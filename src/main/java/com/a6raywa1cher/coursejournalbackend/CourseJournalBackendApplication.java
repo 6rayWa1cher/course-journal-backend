@@ -7,7 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class CourseJournalBackendApplication {
 
     public static void main(String[] args) {
-        System.out.println(32);
         SpringApplication.run(CourseJournalBackendApplication.class, args);
     }
 
