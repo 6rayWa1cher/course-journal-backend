@@ -31,8 +31,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
-      <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/.idea/libraries" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -75,7 +75,6 @@
     <orderEntry type="library" name="Maven: org.springframework.data:spring-data-jpa:2.6.1" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.data:spring-data-commons:2.6.1" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-orm:5.3.15" level="project" />
-    <orderEntry type="library" name="Maven: org.springframework:spring-context:5.3.15" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-tx:5.3.15" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-beans:5.3.15" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.33" level="project" />
@@ -102,9 +101,6 @@
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.module:jackson-module-parameter-names:2.13.1" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-web:5.3.15" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-webmvc:5.3.15" level="project" />
-    <orderEntry type="library" name="Maven: org.liquibase:liquibase-core:4.5.0" level="project" />
-    <orderEntry type="library" name="Maven: javax.xml.bind:jaxb-api:2.3.1" level="project" />
-    <orderEntry type="library" name="Maven: javax.activation:javax.activation-api:1.2.0" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.springframework.boot:spring-boot-devtools:2.6.3" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot:2.6.3" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-autoconfigure:2.6.3" level="project" />
@@ -148,5 +144,25 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.springframework.security:spring-security-test:5.6.1" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.security:spring-security-core:5.6.1" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.security:spring-security-crypto:5.6.1" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: io.zonky.test:embedded-database-spring-test:2.1.1" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: io.zonky.test:embedded-database-spring-test-autoconfigure:2.1.1" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.testcontainers:postgresql:1.15.3" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.testcontainers:jdbc:1.15.3" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.testcontainers:database-commons:1.15.3" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.testcontainers:testcontainers:1.15.3" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.13.2" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.hamcrest:hamcrest-core:2.2" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.apache.commons:commons-compress:1.20" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.rnorth.duct-tape:duct-tape:1.0.8" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.rnorth.visible-assertions:visible-assertions:2.1.2" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: net.java.dev.jna:jna:5.2.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: com.github.docker-java:docker-java-api:3.2.8" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: com.github.docker-java:docker-java-transport-zerodep:3.2.8" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: com.github.docker-java:docker-java-transport:3.2.8" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.testcontainers:mssqlserver:1.15.3" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.testcontainers:mysql:1.15.3" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.testcontainers:mariadb:1.15.3" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-context:5.3.15" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: com.cedarsoftware:java-util:1.34.0" level="project" />
   </component>
 </module>

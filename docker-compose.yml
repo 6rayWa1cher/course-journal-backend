@@ -1,0 +1,37 @@
+version: '3.3'
+
+services:
+  app:
+    build:
+      context: .
+    container_name: app
+    networks:
+      - private_network
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/compose-postgres
+      - SPRING_DATASOURCE_USERNAME=compose-postgres
+      - SPRING_DATASOURCE_PASSWORD=compose-postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_PROFILES_ACTIVE=${PROFILE}
+    ports:
+      - '8080:8080'
+
+  db:
+    image: 'postgres:14.1-alpine'
+    container_name: db
+    networks:
+      - private_network
+    environment:
+      - POSTGRES_USER=compose-postgres
+      - POSTGRES_PASSWORD=compose-postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+networks:
+  private_network:
+
+volumes:
+  pgdata:
