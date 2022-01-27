@@ -1,22 +1,25 @@
 package com.a6raywa1cher.coursejournalbackend.model;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.Hibernate;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.ReadOnlyProperty;
 
 import javax.persistence.*;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+@Entity
+@Table(name = "course")
 @Getter
 @Setter
 @ToString
-@NoArgsConstructor
 @RequiredArgsConstructor
-@Entity
-@Table(name = "course")
 public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -35,11 +38,13 @@ public class Course {
 
     @Column(name = "created_at")
     @CreatedDate
-    private ZonedDateTime createdAt;
+    @ReadOnlyProperty
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     @LastModifiedDate
-    private ZonedDateTime lastModifiedAt;
+    @ReadOnlyProperty
+    private LocalDateTime lastModifiedAt;
 
     @Override
     public boolean equals(Object o) {

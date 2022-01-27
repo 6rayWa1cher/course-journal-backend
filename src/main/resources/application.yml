@@ -1,3 +1,12 @@
+# ===============================
+# APPLICATION
+# ===============================
+app:
+  version: '@project.version@ c:@git.commit.id.abbrev@_@git.build.time@ b:@maven.build.timestamp@'
+  cors-allowed-origins: [ "http://localhost:8080", "http://localhost:3000" ]
+# ===============================
+# SPRING
+# ===============================
 spring:
   jmx:
     default-domain: com.a6raywa1cher.coursejournalbackend

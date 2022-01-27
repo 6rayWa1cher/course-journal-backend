@@ -1,15 +1,28 @@
 package com.a6raywa1cher.coursejournalbackend.model;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.Hibernate;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.ReadOnlyProperty;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "task", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"course_id", "task_number"})
 })
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -42,6 +55,10 @@ public class Task {
     @Column(name = "announcement_at")
     private ZonedDateTime announcementAt;
 
+    @OneToMany(mappedBy = "primaryKey.task", orphanRemoval = true, cascade = CascadeType.ALL)
+    @ToString.Exclude
+    private List<Submission> submissions;
+
     @Column(name = "soft_deadline_at")
     private ZonedDateTime softDeadlineAt;
 
@@ -50,9 +67,24 @@ public class Task {
 
     @Column(name = "created_at")
     @CreatedDate
-    private ZonedDateTime createdAt;
+    @ReadOnlyProperty
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     @LastModifiedDate
-    private ZonedDateTime lastModifiedAt;
+    @ReadOnlyProperty
+    private LocalDateTime lastModifiedAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Task task = (Task) o;
+        return id != null && Objects.equals(id, task.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

@@ -1,14 +1,14 @@
 package com.a6raywa1cher.coursejournalbackend.model.embed;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import java.io.Serializable;
 
-@Data
 @Embeddable
-public class FullName {
+@Data
+public class FullName implements Serializable {
     @Column(name = "first_name")
     private String firstName;
 
@@ -17,9 +17,4 @@ public class FullName {
 
     @Column(name = "middle_name")
     private String middleName;
-
-    @JsonInclude
-    public String getFullName() {
-        return String.join(" ", lastName, firstName, middleName);
-    }
 }

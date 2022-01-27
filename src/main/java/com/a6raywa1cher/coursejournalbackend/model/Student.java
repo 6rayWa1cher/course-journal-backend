@@ -1,19 +1,26 @@
 package com.a6raywa1cher.coursejournalbackend.model;
 
 import com.a6raywa1cher.coursejournalbackend.model.embed.FullName;
-import lombok.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.Hibernate;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.ReadOnlyProperty;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
+@Entity
+@Table(name = "student")
 @Getter
 @Setter
 @ToString
-@NoArgsConstructor
 @RequiredArgsConstructor
-@Entity
-@Table(name = "student")
 public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -25,6 +32,20 @@ public class Student {
 
     @Embedded
     private FullName fullName;
+
+    @OneToMany(mappedBy = "primaryKey.student", orphanRemoval = true, cascade = CascadeType.ALL)
+    @ToString.Exclude
+    private List<Submission> submissions;
+
+    @Column(name = "created_at")
+    @CreatedDate
+    @ReadOnlyProperty
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    @LastModifiedDate
+    @ReadOnlyProperty
+    private LocalDateTime lastModifiedAt;
 
     @Override
     public boolean equals(Object o) {
