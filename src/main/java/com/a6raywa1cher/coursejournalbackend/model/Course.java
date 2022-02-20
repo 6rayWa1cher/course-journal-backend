@@ -24,6 +24,7 @@ public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
+    @ReadOnlyProperty
     private Long id;
 
     @Column(name = "name", nullable = false, unique = true)

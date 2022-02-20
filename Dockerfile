@@ -17,7 +17,6 @@ COPY ./src ./src
 COPY ./pom.xml ./pom.xml
 
 RUN ./mvnw package -DskipTests
-RUN echo hello
 
 FROM openjdk:17-alpine
 WORKDIR /app

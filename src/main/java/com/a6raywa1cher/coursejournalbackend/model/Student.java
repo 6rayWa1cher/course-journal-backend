@@ -25,6 +25,7 @@ public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
+    @ReadOnlyProperty
     private Long id;
 
     @ManyToOne(optional = false)

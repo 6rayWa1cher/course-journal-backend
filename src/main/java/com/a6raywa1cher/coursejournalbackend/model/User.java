@@ -1,12 +1,18 @@
 package com.a6raywa1cher.coursejournalbackend.model;
 
 import com.a6raywa1cher.coursejournalbackend.model.embed.FullName;
+import com.a6raywa1cher.jsonrestsecurity.dao.model.IUser;
+import com.a6raywa1cher.jsonrestsecurity.dao.model.RefreshToken;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.vladmihalcea.hibernate.type.json.JsonType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.ReadOnlyProperty;
@@ -19,15 +25,19 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "user")
+@TypeDefs({
+        @TypeDef(name = "json", typeClass = JsonType.class)
+})
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @ToString
 @RequiredArgsConstructor
-public class User {
+public class User implements IUser {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
+    @ReadOnlyProperty
     private Long id;
 
     @Column(name = "username", unique = true)
@@ -48,6 +58,11 @@ public class User {
     @ToString.Exclude
     private List<Course> courseList;
 
+    @Column(name = "refresh_tokens", columnDefinition = "jsonb")
+    @Type(type = "json")
+    @JsonIgnore
+    private List<RefreshToken> refreshTokens;
+
     @Column(name = "created_at")
     @CreatedDate
     @ReadOnlyProperty
@@ -58,9 +73,8 @@ public class User {
     @ReadOnlyProperty
     private LocalDateTime lastModifiedAt;
 
-    @Column(name = "last_online_at")
-    @ReadOnlyProperty
-    private LocalDateTime lastOnlineAt;
+    @Column(name = "last_visit_at")
+    private LocalDateTime lastVisitAt;
 
     @Override
     public boolean equals(Object o) {
