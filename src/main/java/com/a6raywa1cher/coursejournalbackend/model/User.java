@@ -4,6 +4,7 @@ import com.a6raywa1cher.coursejournalbackend.model.embed.FullName;
 import com.a6raywa1cher.jsonrestsecurity.dao.model.IUser;
 import com.a6raywa1cher.jsonrestsecurity.dao.model.RefreshToken;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -36,7 +38,7 @@ import java.util.Objects;
 public class User implements IUser {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id", nullable = false, updatable = false)
     @ReadOnlyProperty
     private Long id;
 
@@ -56,12 +58,14 @@ public class User implements IUser {
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Access(AccessType.PROPERTY)
     private List<Course> courseList;
 
     @Column(name = "refresh_tokens", columnDefinition = "jsonb")
     @Type(type = "json")
     @JsonIgnore
-    private List<RefreshToken> refreshTokens;
+    private List<RefreshToken> refreshTokens = new ArrayList<>();
 
     @Column(name = "created_at")
     @CreatedDate

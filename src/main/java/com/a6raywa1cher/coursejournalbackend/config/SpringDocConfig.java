@@ -40,6 +40,8 @@ public class SpringDocConfig {
                 )
                 .addSecurityItem(new SecurityRequirement()
                         .addList("jwt")
+                )
+                .addSecurityItem(new SecurityRequirement()
                         .addList("basic")
                 );
         if (apiEndpoint != null) {
