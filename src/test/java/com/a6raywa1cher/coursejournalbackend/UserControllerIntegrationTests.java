@@ -77,6 +77,67 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
+    void getUserById__notExists__invalid() throws Exception {
+        long userId = userService.createUser(CreateEditUserDto.builder()
+                .username(USERNAME)
+                .userRole(UserRole.TEACHER)
+                .build()).getId();
+
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                securePerform(get("/users/{id}", userId + 1000))
+                        .andExpect(status().isNotFound());
+            }
+        };
+    }
+
+    @Test
+    void getUserByUsername__authenticated__valid() {
+        String newUserUsername = "aatjw";
+        userService.createUser(CreateEditUserDto.builder()
+                .username(newUserUsername)
+                .userRole(UserRole.TEACHER)
+                .build());
+
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                securePerform(get("/users/username/{username}", newUserUsername))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.username").value(newUserUsername));
+            }
+        };
+    }
+
+    @Test
+    void getUserByUsername__notAuthenticated__invalid() throws Exception {
+        userService.createUser(CreateEditUserDto.builder()
+                .username(USERNAME)
+                .userRole(UserRole.TEACHER)
+                .build());
+
+        mvc.perform(get("/users/username/{username}", USERNAME))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void getUserByUsername__notExists__invalid() throws Exception {
+        userService.createUser(CreateEditUserDto.builder()
+                .username(USERNAME)
+                .userRole(UserRole.TEACHER)
+                .build());
+
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                securePerform(get("/users/username/{username}", USERNAME + "jiogre"))
+                        .andExpect(status().isNotFound());
+            }
+        };
+    }
+
+    @Test
     void createUser__adminCreatingTeacher__valid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
