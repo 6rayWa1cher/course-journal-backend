@@ -3,13 +3,11 @@ package com.a6raywa1cher.coursejournalbackend.dto;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import lombok.Data;
 
-import java.time.ZonedDateTime;
-
 @Data
-public class UserDto {
-    private Long id;
-
+public class CreateEditUserDto {
     private String username;
+
+    private String password;
 
     private UserRole userRole;
 
@@ -18,10 +16,4 @@ public class UserDto {
     private String middleName;
 
     private String lastName;
-
-    private ZonedDateTime createdAt;
-
-    private ZonedDateTime lastModifiedAt;
-
-    private ZonedDateTime lastVisitAt;
 }

@@ -1,6 +1,5 @@
 package com.a6raywa1cher.coursejournalbackend.model;
 
-import com.a6raywa1cher.coursejournalbackend.model.embed.FullName;
 import com.a6raywa1cher.jsonrestsecurity.dao.model.IUser;
 import com.a6raywa1cher.jsonrestsecurity.dao.model.RefreshToken;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -51,8 +50,14 @@ public class User implements IUser {
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
 
-    @Embedded
-    private FullName fullName;
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
+    private String lastName;
+
+    @Column(name = "middle_name")
+    private String middleName;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude

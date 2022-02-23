@@ -1,6 +1,5 @@
 package com.a6raywa1cher.coursejournalbackend.model;
 
-import com.a6raywa1cher.coursejournalbackend.model.embed.FullName;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -31,8 +30,14 @@ public class Student {
     @ManyToOne(optional = false)
     private Course course;
 
-    @Embedded
-    private FullName fullName;
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
+    private String lastName;
+
+    @Column(name = "middle_name")
+    private String middleName;
 
     @OneToMany(mappedBy = "primaryKey.student", orphanRemoval = true, cascade = CascadeType.ALL)
     @ToString.Exclude
