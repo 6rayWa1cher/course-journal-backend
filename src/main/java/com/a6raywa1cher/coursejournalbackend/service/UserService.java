@@ -9,6 +9,10 @@ import org.springframework.data.domain.Pageable;
 public interface UserService {
     Page<UserDto> getPage(Pageable pageable);
 
+    UserDto getById(long id);
+
+    UserDto getByUsername(String username);
+
     UserDto createUser(CreateEditUserDto dto);
 
     UserDto updateUser(long id, CreateEditUserDto dto);

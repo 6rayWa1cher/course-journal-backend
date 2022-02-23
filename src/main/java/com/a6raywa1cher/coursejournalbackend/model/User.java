@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "user")
+@Table(name = "app_user")
 @TypeDefs({
         @TypeDef(name = "json", typeClass = JsonType.class)
 })

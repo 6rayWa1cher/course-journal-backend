@@ -18,7 +18,7 @@
         <java.version>17</java.version>
         <springdoc.version>1.6.6</springdoc.version>
         <mapstruct.version>1.4.2.Final</mapstruct.version>
-        <json-rest-security.version>0.0.3</json-rest-security.version>
+        <json-rest-security.version>0.0.5-SNAPSHOT</json-rest-security.version>
     </properties>
     <dependencies>
         <dependency>

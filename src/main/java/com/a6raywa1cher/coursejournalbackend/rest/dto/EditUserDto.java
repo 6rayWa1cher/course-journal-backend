@@ -1,13 +1,15 @@
 package com.a6raywa1cher.coursejournalbackend.rest.dto;
 
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
+import com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary;
 import lombok.Data;
 
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 @Data
 public class EditUserDto {
-    @Size(min = 5, max = 25)
+    @Pattern(regexp = RegexLibrary.USERNAME)
     private String username;
 
     private String password;

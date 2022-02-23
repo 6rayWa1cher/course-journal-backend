@@ -16,12 +16,12 @@ RUN ./mvnw dependency:go-offline -B
 COPY ./src ./src
 COPY ./pom.xml ./pom.xml
 
-RUN ./mvnw package -DskipTests
+RUN ./mvnw package -DskipTests -Dmaven.gitcommitid.skip=true
 
 FROM openjdk:17-alpine
 WORKDIR /app
 
 EXPOSE 8080
-COPY --from=builder /app/target/course-journal-backend-*.jar /app/app.jar
+COPY --from=builder /app/target/course-journal-backend.jar /app/app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]

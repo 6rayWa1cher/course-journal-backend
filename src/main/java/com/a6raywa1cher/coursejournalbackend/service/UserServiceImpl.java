@@ -30,6 +30,22 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll(pageable).map(mapper::toUserDto);
     }
 
+    private User $getById(long id) {
+        return userRepository.findById(id).orElseThrow(() -> new NotFoundException(id, User.class));
+    }
+
+    @Override
+    public UserDto getById(long id) {
+        return mapper.toUserDto($getById(id));
+    }
+
+    @Override
+    public UserDto getByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .map(mapper::toUserDto)
+                .orElseThrow(() -> new NotFoundException("username", username, User.class));
+    }
+
     @Override
     public UserDto createUser(CreateEditUserDto dto) {
         User user = new User();
@@ -42,8 +58,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto updateUser(long id, CreateEditUserDto dto) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(id, User.class));
+        User user = $getById(id);
         mapper.toUser(dto, user);
         user.setLastModifiedAt(LocalDateTime.now());
         return mapper.toUserDto(userRepository.save(user));
@@ -51,8 +66,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto patchUser(long id, CreateEditUserDto dto) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(id, User.class));
+        User user = $getById(id);
         mapper.patchUser(dto, user);
         user.setLastModifiedAt(LocalDateTime.now());
         return mapper.toUserDto(userRepository.save(user));
@@ -60,8 +74,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(id, User.class));
+        User user = $getById(id);
         userRepository.delete(user);
     }
 }

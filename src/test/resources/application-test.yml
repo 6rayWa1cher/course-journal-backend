@@ -3,6 +3,7 @@
 # ===============================
 app:
   version: '@project.version@ c:@git.commit.id.abbrev@_@git.build.time@ b:@maven.build.timestamp@'
+  cors-allowed-origins: [ "http://localhost:8080", "http://localhost:3000" ]
 # ===============================
 # SPRING
 # ===============================
@@ -13,14 +14,14 @@ spring:
 # ===============================
 # DB CONNECTION
 # ===============================
-spring.datasource.url: jdbc:postgresql://localhost:5432/postgres
-spring.datasource.username: postgres
-spring.datasource.password: postgres
+spring.datasource.url: jdbc:postgresql://localhost:5432/course-journal-test
+spring.datasource.username: cat
+spring.datasource.password: cat
 # ===============================
 # JPA / HIBERNATE
 # ===============================
-spring.jpa.show-sql: false
-spring.jpa.hibernate.ddl-auto: update
+spring.jpa.show-sql: true
+spring.jpa.hibernate.ddl-auto: create-drop
 spring.jpa.properties.hibernate.default_schema: public
 spring.jpa.database-platform: org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.properties.hibernate.current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
@@ -35,5 +36,15 @@ springdoc:
 # ===============================
 json-rest-security:
   jwt:
-    secret: 0hLPKPapgfrwB1m4aL0Bez343MhodEdnMU3JxZnw0NGYGRNYNf97kpSweD3H1Tj
+    secret: meow
     access-duration: P1D
+  fail-limiter:
+    enable: false
+  first-user:
+    enable: true
+    username: admin
+    password: admin
+    role: ADMIN
+logging:
+  level:
+    org.springframework.security: TRACE

@@ -136,3 +136,4 @@ buildNumber.properties
 .mvn/wrapper/maven-wrapper.jar
 
 application-*.yml
+!src/test/resources/application-test.yml
