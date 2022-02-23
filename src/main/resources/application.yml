@@ -30,6 +30,8 @@ spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults: false
 # ===============================
 springdoc:
   show-actuator: true
+  swagger-ui:
+    operations-sorter: alpha
 # ===============================
 # JSON-REST-SECURITY
 # ===============================

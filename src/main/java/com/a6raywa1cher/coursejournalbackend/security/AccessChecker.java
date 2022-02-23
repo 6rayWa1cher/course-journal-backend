@@ -1,9 +1,12 @@
 package com.a6raywa1cher.coursejournalbackend.security;
 
+import com.a6raywa1cher.coursejournalbackend.model.Course;
 import com.a6raywa1cher.coursejournalbackend.model.User;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
+import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
 import com.a6raywa1cher.coursejournalbackend.model.repo.UserRepository;
 import com.a6raywa1cher.jsonrestsecurity.component.resolver.AuthenticationResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -13,10 +16,14 @@ import java.util.Optional;
 public class AccessChecker {
     private final AuthenticationResolver resolver;
     private final UserRepository userRepository;
+    private final CourseRepository courseRepository;
 
-    public AccessChecker(AuthenticationResolver resolver, UserRepository userRepository) {
+    @Autowired
+    public AccessChecker(AuthenticationResolver resolver, UserRepository userRepository,
+                         CourseRepository courseRepository) {
         this.resolver = resolver;
         this.userRepository = userRepository;
+        this.courseRepository = courseRepository;
     }
 
     private boolean isAdmin(Authentication authentication) {
@@ -42,5 +49,11 @@ public class AccessChecker {
 
     public boolean editUserAccess(long id, UserRole userRole, Authentication authentication) {
         return isUserModificationAuthorized(id, authentication) && isValidUserRoleRequest(userRole, authentication);
+    }
+
+    public boolean editCourseAccess(long id, Authentication authentication) {
+        if (isAdmin(authentication)) return true;
+        Optional<Course> byId = courseRepository.findById(id);
+        return byId.isEmpty() || loggedInAs(byId.get().getOwner(), authentication);
     }
 }

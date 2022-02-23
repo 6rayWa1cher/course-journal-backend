@@ -5,11 +5,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class NotFoundException extends RuntimeException {
-    public NotFoundException(Long id, Class<?> clazz) {
+    public NotFoundException(Class<?> clazz, Long id) {
         super("Object of the class %s with id %s is not found".formatted(clazz.getSimpleName(), id));
     }
 
-    public NotFoundException(String query, String value, Class<?> clazz) {
+    public NotFoundException(Class<?> clazz, String query, String value) {
         super("Object of the class %s with %s = %s is not found".formatted(clazz.getSimpleName(), query, value));
     }
 }

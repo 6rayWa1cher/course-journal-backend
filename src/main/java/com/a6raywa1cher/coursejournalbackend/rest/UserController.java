@@ -4,6 +4,7 @@ import com.a6raywa1cher.coursejournalbackend.dto.UserDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.CreateUserDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.EditUserDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.MapStructRestDtoMapper;
+import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnUpdate;
 import com.a6raywa1cher.coursejournalbackend.service.UserService;
 import com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary;
 import org.springdoc.api.annotations.ParameterObject;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -60,6 +62,7 @@ public class UserController {
 
     @PatchMapping("/{id}")
     @PreAuthorize("@accessChecker.editUserAccess(#id, #dto.userRole, authentication)")
+    @Validated(OnUpdate.class)
     public UserDto patchUser(@RequestBody @Valid EditUserDto dto, @PathVariable long id) {
         return userService.patchUser(id, mapper.map(dto));
     }

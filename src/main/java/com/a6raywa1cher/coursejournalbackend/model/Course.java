@@ -15,7 +15,10 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "course")
+@Table(
+        name = "course",
+        uniqueConstraints = @UniqueConstraint(name = "one_name_per_owner", columnNames = {"owner_id", "name"})
+)
 @Getter
 @Setter
 @ToString
@@ -23,11 +26,11 @@ import java.util.Objects;
 public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id", nullable = false, updatable = false)
     @ReadOnlyProperty
     private Long id;
 
-    @Column(name = "name", nullable = false, unique = true)
+    @Column(name = "name", nullable = false)
     private String name;
 
     @ManyToOne(optional = false)

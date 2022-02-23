@@ -3,13 +3,19 @@ package com.a6raywa1cher.coursejournalbackend.service;
 
 import com.a6raywa1cher.coursejournalbackend.dto.CreateEditUserDto;
 import com.a6raywa1cher.coursejournalbackend.dto.UserDto;
+import com.a6raywa1cher.coursejournalbackend.model.User;
+import org.mapstruct.Named;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+@Named("UserService")
 public interface UserService {
     Page<UserDto> getPage(Pageable pageable);
 
     UserDto getById(long id);
+
+    @Named("GetRawById")
+    User getRawById(long id);
 
     UserDto getByUsername(String username);
 
