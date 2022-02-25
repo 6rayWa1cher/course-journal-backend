@@ -1,5 +1,6 @@
 package com.a6raywa1cher.coursejournalbackend.model;
 
+import com.a6raywa1cher.coursejournalbackend.security.Owned;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -23,7 +24,7 @@ import java.util.Objects;
 @Setter
 @ToString
 @RequiredArgsConstructor
-public class Course {
+public class Course implements Owned {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false, updatable = false)
@@ -61,5 +62,10 @@ public class Course {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    @Override
+    public long getOwnerId() {
+        return owner.getId();
     }
 }

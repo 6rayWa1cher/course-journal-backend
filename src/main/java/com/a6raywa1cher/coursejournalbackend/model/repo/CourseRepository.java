@@ -13,6 +13,11 @@ import org.springframework.stereotype.Repository;
 public interface CourseRepository extends PagingAndSortingRepository<Course, Long> {
     boolean existsByNameAndOwner(String name, User owner);
 
-    @Query("from Course c where c.name like %:query%")
+    @Query("from Course c where lower(c.name) like %:query%")
     Page<Course> findByNameContains(@Param("query") String query, Pageable pageable);
+
+    Page<Course> findByOwner(User owner, Pageable pageable);
+
+    @Query("from Course c where c.owner = :owner and lower(c.name) like %:name%")
+    Page<Course> findByOwnerAndNameContains(@Param("owner") User owner, @Param("name") String name, Pageable pageable);
 }

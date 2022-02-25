@@ -18,14 +18,14 @@ public abstract class MapStructMapper {
     @Mapping(target = "createdAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
     @Mapping(target = "lastModifiedAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
     @Mapping(target = "lastVisitAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
-    public abstract UserDto toUserDto(User user);
+    public abstract UserDto map(User user);
 
     @CreateEditUserDtoToUserMapping
-    public abstract void putUser(CreateEditUserDto dto, @MappingTarget User user);
+    public abstract void put(CreateEditUserDto dto, @MappingTarget User user);
 
     @CreateEditUserDtoToUserMapping
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    public abstract void patchUser(CreateEditUserDto dto, @MappingTarget User user);
+    public abstract void patch(CreateEditUserDto dto, @MappingTarget User user);
 
     // ================================================================================================================
     // Course
@@ -36,13 +36,16 @@ public abstract class MapStructMapper {
     public abstract CourseDto map(Course course);
 
     @CreatedModifiedRestrictMapping
-    @Mapping(source = "owner", target = "owner", qualifiedByName = {"UserService", "GetRawById"})
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "owner", ignore = true)
     @Mapping(target = "students", ignore = true)
     public abstract void put(CourseDto dto, @MappingTarget Course target);
 
     @CreatedModifiedRestrictMapping
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(source = "owner", target = "owner", qualifiedByName = {"UserService", "GetRawById"})
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "owner", ignore = true)
     @Mapping(target = "students", ignore = true)
     public abstract void patch(CourseDto dto, @MappingTarget Course target);
+
 }

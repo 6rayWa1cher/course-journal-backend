@@ -6,11 +6,17 @@ import com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Positive;
 
 @Data
 public class CourseRestDto {
     @NotBlank(groups = {OnCreate.class, OnUpdate.class})
     @Pattern(regexp = RegexLibrary.GENERAL_NAME)
     private String name;
+
+    @NotNull(groups = {OnCreate.class, OnUpdate.class})
+    @Positive
+    private Long owner;
 }

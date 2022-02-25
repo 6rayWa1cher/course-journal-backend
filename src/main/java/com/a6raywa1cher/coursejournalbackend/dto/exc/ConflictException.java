@@ -17,7 +17,7 @@ public class ConflictException extends RuntimeException {
 
     private static String zip(String... values) {
         if (values.length == 0) throw new IllegalArgumentException("Values array is empty");
-        if (values.length % 2 == 0)
+        if (values.length % 2 != 0)
             throw new IllegalArgumentException("Values aren't paired: " + String.join(",", values));
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < values.length; i += 2) {

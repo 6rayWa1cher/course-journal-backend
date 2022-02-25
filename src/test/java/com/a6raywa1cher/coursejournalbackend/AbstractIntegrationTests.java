@@ -4,6 +4,7 @@ import com.a6raywa1cher.coursejournalbackend.dto.CreateEditUserDto;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.a6raywa1cher.coursejournalbackend.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javafaker.Faker;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +26,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @Transactional
 public abstract class AbstractIntegrationTests {
-    protected final String ADMIN_USERNAME = "admin";
-    protected final String ADMIN_PASSWORD = "admin";
-    protected final String USERNAME = "leopold";
-    protected final String PASSWORD = "guysletsbefriends";
+    protected static final String ADMIN_USERNAME = "admin";
+    protected static final String ADMIN_PASSWORD = "admin";
+    protected static final String USERNAME = "leopold";
+    protected static final String PASSWORD = "guysletsbefriends";
+    protected final Faker faker = new Faker();
+
     @Autowired
     protected MockMvc mvc;
 

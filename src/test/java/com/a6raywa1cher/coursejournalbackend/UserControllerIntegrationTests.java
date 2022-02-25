@@ -77,7 +77,7 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
-    void getUserById__notExists__invalid() throws Exception {
+    void getUserById__notExists__invalid() {
         long userId = userService.createUser(CreateEditUserDto.builder()
                 .username(USERNAME)
                 .userRole(UserRole.TEACHER)
@@ -122,7 +122,7 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
-    void getUserByUsername__notExists__invalid() throws Exception {
+    void getUserByUsername__notExists__invalid() {
         userService.createUser(CreateEditUserDto.builder()
                 .username(USERNAME)
                 .userRole(UserRole.TEACHER)
@@ -258,6 +258,32 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
+    void createUser__conflictingUsernames__invalid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                securePerform(post("/users/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("username", USERNAME)
+                                .put("password", PASSWORD)
+                                .put("userRole", "TEACHER")
+                                .toString()))
+                        .andExpect(status().isCreated());
+
+                securePerform(post("/users/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("username", USERNAME)
+                                .put("password", PASSWORD)
+                                .put("userRole", "TEACHER")
+                                .toString()))
+                        .andExpect(status().isConflict());
+            }
+        };
+    }
+
+    @Test
     void putUser__self__full__valid() {
         String newUsername = "abcdef";
         String newFirstName = "cat";
@@ -342,6 +368,38 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
+    void putUser__otherAsTeacher__invalid() {
+        String prevUsername = "kt34wo";
+        String newUsername = "abcdef";
+        String newFirstName = "cat";
+        String newLastName = "dog";
+        String newPassword = "qwerty";
+
+        long userId = userService.createUser(
+                CreateEditUserDto.builder()
+                        .username(prevUsername)
+                        .userRole(UserRole.TEACHER)
+                        .build()
+        ).getId();
+
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                securePerform(put("/users/{id}", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("username", newUsername)
+                                .put("password", newPassword)
+                                .put("userRole", "TEACHER")
+                                .put("firstName", newFirstName)
+                                .put("lastName", newLastName)
+                                .toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
     void putUser__selfEscalation__invalid() {
         String newUsername = "abcdef";
         String newFirstName = "cat";
@@ -360,6 +418,37 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
                                 .put("lastName", newLastName)
                                 .toString()))
                         .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void putUser__usernameConflict__invalid() {
+        String newUsername = "abcdef";
+        String newFirstName = "cat";
+        String newLastName = "dog";
+        String newPassword = "qwerty";
+
+        userService.createUser(
+                CreateEditUserDto.builder()
+                        .username(newUsername)
+                        .userRole(UserRole.TEACHER)
+                        .build()
+        );
+
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                securePerform(put("/users/{id}", getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("username", newUsername)
+                                .put("password", newPassword)
+                                .put("userRole", "TEACHER")
+                                .put("firstName", newFirstName)
+                                .put("lastName", newLastName)
+                                .toString()))
+                        .andExpect(status().isConflict());
             }
         };
     }
@@ -443,6 +532,31 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
+    void patchUser__otherAsTeacher__invalid() {
+        String prevUsername = "kt34wo";
+        String newFirstName = "cat";
+
+        long userId = userService.createUser(
+                CreateEditUserDto.builder()
+                        .username(prevUsername)
+                        .userRole(UserRole.TEACHER)
+                        .build()
+        ).getId();
+
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                securePerform(patch("/users/{id}", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("firstName", newFirstName)
+                                .toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
     void patchUser__selfEscalation__invalid() {
         String newFirstName = "cat";
         String newLastName = "dog";
@@ -459,6 +573,30 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
                                 .put("lastName", newLastName)
                                 .toString()))
                         .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void patchUser__usernameConflict__invalid() {
+        String newUsername = "abcdef";
+
+        userService.createUser(
+                CreateEditUserDto.builder()
+                        .username(newUsername)
+                        .userRole(UserRole.TEACHER)
+                        .build()
+        );
+
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                securePerform(patch("/users/{id}", getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("username", newUsername)
+                                .toString()))
+                        .andExpect(status().isConflict());
             }
         };
     }

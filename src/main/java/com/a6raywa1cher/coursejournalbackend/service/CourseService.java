@@ -11,6 +11,10 @@ public interface CourseService {
 
     Page<CourseDto> getByNameContains(String query, Pageable pageable);
 
+    Page<CourseDto> getByOwner(long ownerId, Pageable pageable);
+
+    Page<CourseDto> getByOwnerAndNameContains(long ownerId, String name, Pageable pageable);
+
     CourseDto create(CourseDto dto);
 
     CourseDto update(long id, CourseDto dto);

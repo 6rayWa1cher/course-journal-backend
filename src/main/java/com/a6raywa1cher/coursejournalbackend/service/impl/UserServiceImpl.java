@@ -16,6 +16,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Optional;
+
+import static com.a6raywa1cher.coursejournalbackend.utils.CommonUtils.coalesce;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -30,23 +33,23 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<UserDto> getPage(Pageable pageable) {
-        return userRepository.findAll(pageable).map(mapper::toUserDto);
+        return userRepository.findAll(pageable).map(mapper::map);
     }
 
     @Override
     public UserDto getById(long id) {
-        return mapper.toUserDto($getById(id));
+        return mapper.map($getById(id));
     }
 
     @Override
-    public User getRawById(long id) {
-        return $getById(id);
+    public Optional<User> findRawById(long id) {
+        return userRepository.findById(id);
     }
 
     @Override
     public UserDto getByUsername(String username) {
         return userRepository.findByUsername(username)
-                .map(mapper::toUserDto)
+                .map(mapper::map)
                 .orElseThrow(() -> new NotFoundException(User.class, "username", username));
     }
 
@@ -56,13 +59,13 @@ public class UserServiceImpl implements UserService {
 
         assertUsernameAvailable(dto.getUsername());
 
-        mapper.putUser(dto, user);
+        mapper.put(dto, user);
 
         user.setRefreshTokens(new ArrayList<>());
         user.setCreatedAt(LocalDateTime.now());
         user.setLastModifiedAt(LocalDateTime.now());
 
-        return mapper.toUserDto(userRepository.save(user));
+        return mapper.map(userRepository.save(user));
     }
 
     @Override
@@ -71,18 +74,23 @@ public class UserServiceImpl implements UserService {
 
         assertUsernameNotChangedOrAvailable(user.getUsername(), dto.getUsername());
 
-        mapper.putUser(dto, user);
+        mapper.put(dto, user);
 
         user.setLastModifiedAt(LocalDateTime.now());
-        return mapper.toUserDto(userRepository.save(user));
+        return mapper.map(userRepository.save(user));
     }
 
     @Override
     public UserDto patchUser(long id, CreateEditUserDto dto) {
         User user = $getById(id);
-        mapper.patchUser(dto, user);
+
+        assertUsernameNotChangedOrAvailable(
+                user.getUsername(), coalesce(dto.getUsername(), user.getUsername())
+        );
+
+        mapper.patch(dto, user);
         user.setLastModifiedAt(LocalDateTime.now());
-        return mapper.toUserDto(userRepository.save(user));
+        return mapper.map(userRepository.save(user));
     }
 
     @Override
