@@ -35,7 +35,7 @@ springdoc:
 # ===============================
 # JSON-REST-SECURITY
 # ===============================
-json-rest-security:
-  jwt:
-    secret: 0hLPKPapgfrwB1m4aL0Bez343MhodEdnMU3JxZnw0NGYGRNYNf97kpSweD3H1Tj
-    access-duration: P1D
+#json-rest-security:
+#  jwt:
+#    secret: 0hLPKPapgfrwB1m4aL0Bez343MhodEdnMU3JxZnw0NGYGRNYNf97kpSweD3H1Tj
+#    access-duration: P1D

@@ -16,6 +16,7 @@
         <setting name="validation-enabled" value="true" />
         <setting name="provider-name" value="Hibernate" />
         <datasource-mapping>
+          <factory-entry name="course-journal-backend" />
           <factory-entry name="entityManagerFactory" value="4f7bc415-8a8d-4246-bf64-246d92e45d3c" />
         </datasource-mapping>
         <naming-strategy-map />
@@ -153,7 +154,7 @@
     <orderEntry type="library" name="Maven: io.swagger.core.v3:swagger-annotations:2.1.12" level="project" />
     <orderEntry type="library" name="Maven: io.swagger.core.v3:swagger-models:2.1.12" level="project" />
     <orderEntry type="library" name="Maven: org.mapstruct:mapstruct:1.4.2.Final" level="project" />
-    <orderEntry type="library" name="Maven: com.a6raywa1cher:json-rest-security-spring-boot-starter:0.0.5-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: com.a6raywa1cher:json-rest-security-spring-boot-starter:0.0.5" level="project" />
     <orderEntry type="library" name="Maven: com.google.guava:guava:31.0.1-jre" level="project" />
     <orderEntry type="library" name="Maven: com.google.guava:failureaccess:1.0.1" level="project" />
     <orderEntry type="library" name="Maven: com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava" level="project" />
