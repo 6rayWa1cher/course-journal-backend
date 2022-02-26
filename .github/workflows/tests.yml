@@ -36,7 +36,12 @@ jobs:
         run: mvn --batch-mode --update-snapshots compile
 
       - name: Run tests
-        run: mvn test -Dspring.datasource.username=postgres -Dspring.datasource.password=postgres
+        run: mvn test
+        env:
+          spring.datasource.username: postgres
+          spring.datasource.password: postgres
+          spring.jpa.show-sql: false
+          logging.level.org.springframework.security: INFO
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
