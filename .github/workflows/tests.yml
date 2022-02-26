@@ -16,8 +16,8 @@ jobs:
         ports: [ "5432:5432" ]
         env:
           POSTGRES_DB: course-journal-test
-          POSTGRES_PASSWORD: cat
-          POSTGRES_USER: cat
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
