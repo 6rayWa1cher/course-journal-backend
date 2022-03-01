@@ -2,8 +2,10 @@ package com.a6raywa1cher.coursejournalbackend.dto.mapper;
 
 import com.a6raywa1cher.coursejournalbackend.dto.CourseDto;
 import com.a6raywa1cher.coursejournalbackend.dto.CreateEditUserDto;
+import com.a6raywa1cher.coursejournalbackend.dto.TaskDto;
 import com.a6raywa1cher.coursejournalbackend.dto.UserDto;
 import com.a6raywa1cher.coursejournalbackend.model.Course;
+import com.a6raywa1cher.coursejournalbackend.model.Task;
 import com.a6raywa1cher.coursejournalbackend.model.User;
 import com.a6raywa1cher.coursejournalbackend.service.UserService;
 import org.mapstruct.*;
@@ -48,4 +50,23 @@ public abstract class MapStructMapper {
     @Mapping(target = "students", ignore = true)
     public abstract void patch(CourseDto dto, @MappingTarget Course target);
 
+    // ================================================================================================================
+    // Course
+    // ================================================================================================================
+
+    @CreatedModifiedMapping
+    @Mapping(target = "course", source = "course.id")
+    public abstract TaskDto map(Task task);
+
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "course", ignore = true)
+    @Mapping(target = "submissions", ignore = true)
+    public abstract void put(TaskDto dto, @MappingTarget Task target);
+
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "course", ignore = true)
+    @Mapping(target = "submissions", ignore = true)
+    public abstract void patch(TaskDto dto, @MappingTarget Task target);
 }

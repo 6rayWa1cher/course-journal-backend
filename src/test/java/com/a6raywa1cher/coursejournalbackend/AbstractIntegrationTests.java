@@ -94,6 +94,10 @@ public abstract class AbstractIntegrationTests {
             }
         }
 
+        protected long getIdAsLong() {
+            return Long.parseLong(getId());
+        }
+
         public String getUsername() {
             return username;
         }

@@ -105,7 +105,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
                 securePerform(get("/courses/owner/{id}", getId())
                         .queryParam("sort", "id,desc")
-                        .queryParam("name", "C>"))
+                        .queryParam("name", "c>"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.totalElements").value(1))
                         .andExpect(jsonPath("$.content[0].name").value(sentence1));
@@ -113,7 +113,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
                 securePerform(get("/courses/owner/{id}", getId())
                         .queryParam("sort", "id,desc")
-                        .queryParam("name", "F>"))
+                        .queryParam("name", "f>"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.totalElements").value(1))
                         .andExpect(jsonPath("$.content[0].name").value(sentence2));
@@ -434,7 +434,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = Long.parseLong(getId());
+                long ownerId = getIdAsLong();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -575,7 +575,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = Long.parseLong(getId());
+                long ownerId = getIdAsLong();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -610,7 +610,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
-                long newOwnerId = Long.parseLong(getId());
+                long newOwnerId = getIdAsLong();
 
                 securePerform(put("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -657,7 +657,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 String name1 = faker.lorem().sentence();
                 String name2 = faker.lorem().sentence();
-                long ownerId = Long.parseLong(getId());
+                long ownerId = getIdAsLong();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name1)
@@ -687,7 +687,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 String name = faker.lorem().sentence();
                 long ownerId1 = createUser();
-                long ownerId2 = Long.parseLong(getId());
+                long ownerId2 = getIdAsLong();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -716,7 +716,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId1 = Long.parseLong(getId());
+                long ownerId1 = getIdAsLong();
                 long ownerId2 = createUser();
 
                 long courseId = courseService.create(CourseDto.builder()
@@ -768,7 +768,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = Long.parseLong(getId());
+                long ownerId = getIdAsLong();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -904,7 +904,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = Long.parseLong(getId());
+                long ownerId = getIdAsLong();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -936,7 +936,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                         .owner(ownerId)
                         .build()).getId();
 
-                long newOwnerId = Long.parseLong(getId());
+                long newOwnerId = getIdAsLong();
 
                 securePerform(patch("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -980,7 +980,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 String name1 = faker.lorem().sentence();
                 String name2 = faker.lorem().sentence();
-                long ownerId = Long.parseLong(getId());
+                long ownerId = getIdAsLong();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name1)
@@ -1009,7 +1009,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 String name = faker.lorem().sentence();
                 long ownerId1 = createUser();
-                long ownerId2 = Long.parseLong(getId());
+                long ownerId2 = getIdAsLong();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -1037,7 +1037,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId1 = Long.parseLong(getId());
+                long ownerId1 = getIdAsLong();
                 long ownerId2 = createUser();
 
                 long courseId = courseService.create(CourseDto.builder()
@@ -1089,7 +1089,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = Long.parseLong(getId());
+                long ownerId = getIdAsLong();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -1111,7 +1111,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = Long.parseLong(getId());
+                long ownerId = getIdAsLong();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -1145,7 +1145,6 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             }
         };
     }
-
 
     @Test
     void deleteCourse__notAuthenticated__invalid() throws Exception {

@@ -15,8 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.StreamSupport;
 
 import static com.a6raywa1cher.coursejournalbackend.utils.CommonUtils.coalesce;
 
@@ -37,6 +37,16 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public CourseDto getById(long id) {
         return mapper.map($getById(id));
+    }
+
+    @Override
+    public Optional<Course> findRawById(long id) {
+        return repository.findById(id);
+    }
+
+    @Override
+    public List<Course> findAllRawById(Collection<Long> id) {
+        return StreamSupport.stream(repository.findAllById(id).spliterator(), false).toList();
     }
 
     @Override

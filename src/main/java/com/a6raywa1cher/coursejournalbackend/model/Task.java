@@ -1,5 +1,6 @@
 package com.a6raywa1cher.coursejournalbackend.model;
 
+import com.a6raywa1cher.coursejournalbackend.security.Owned;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -23,14 +24,14 @@ import java.util.Objects;
 @Setter
 @ToString
 @RequiredArgsConstructor
-public class Task {
+public class Task implements Owned {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     @ReadOnlyProperty
     private Long id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id")
     private Course course;
 
@@ -87,5 +88,10 @@ public class Task {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    @Override
+    public long getOwnerId() {
+        return course.getOwnerId();
     }
 }

@@ -94,5 +94,4 @@ public class AccessChecker {
     public boolean deleteCourseAccess(long id, Authentication authentication) {
         return isOwnedByClientOrAdmin(id, Course.class, authentication);
     }
-
 }
