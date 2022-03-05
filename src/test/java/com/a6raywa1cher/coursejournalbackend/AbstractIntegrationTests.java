@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import static com.a6raywa1cher.coursejournalbackend.TestUtils.basic;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -40,6 +41,9 @@ public abstract class AbstractIntegrationTests {
 
     @Autowired
     protected UserService userService;
+
+    @Autowired
+    protected TransactionTemplate transactionTemplate;
 
     @Test
     void contextLoads() {

@@ -57,8 +57,8 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 securePerform(get("/tasks/course/{id}", courseId1).queryParam("sort", "id,desc"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.totalElements").value(2))
-                        .andExpect(jsonPath("$.content[0].name").value(sentence2))
-                        .andExpect(jsonPath("$.content[1].name").value(sentence1));
+                        .andExpect(jsonPath("$.content[0].title").value(sentence2))
+                        .andExpect(jsonPath("$.content[1].title").value(sentence1));
             }
         };
     }
@@ -86,8 +86,8 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 securePerform(get("/tasks/course/{id}", courseId).queryParam("sort", "id,desc"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.totalElements").value(2))
-                        .andExpect(jsonPath("$.content[0].name").value(sentence2))
-                        .andExpect(jsonPath("$.content[1].name").value(sentence1));
+                        .andExpect(jsonPath("$.content[0].title").value(sentence2))
+                        .andExpect(jsonPath("$.content[1].title").value(sentence1));
             }
         };
     }
@@ -143,8 +143,8 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
 
                 securePerform(get("/tasks/course/{id}/all", courseId1))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.content[0].name").value(sentence2))
-                        .andExpect(jsonPath("$.content[1].name").value(sentence1));
+                        .andExpect(jsonPath("$.content[0].title").value(sentence2))
+                        .andExpect(jsonPath("$.content[1].title").value(sentence1));
             }
         };
     }
@@ -179,8 +179,8 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
 
                 securePerform(get("/tasks/course/{id}/all", courseId1))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.content[0].name").value(sentence2))
-                        .andExpect(jsonPath("$.content[1].name").value(sentence1));
+                        .andExpect(jsonPath("$.content[0].title").value(sentence2))
+                        .andExpect(jsonPath("$.content[1].title").value(sentence1));
             }
         };
     }
@@ -227,7 +227,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void getTaskById__otherAsAdmin__valid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
                 String title = faker.lorem().sentence();
@@ -579,7 +579,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void reorderTasks__conflictingTaskNumber__withinList__invalid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
                 String sentence1 = faker.lorem().sentence();
@@ -947,7 +947,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = createCourse(createUser());
+                long courseId = createCourse(getIdAsLong());
                 int taskNumber = 123;
                 String title = faker.lorem().sentence();
                 String description = faker.lorem().paragraph();
@@ -961,17 +961,21 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String prevTitle = faker.lorem().sentence();
                 String prevDescription = faker.lorem().paragraph();
 
-                long taskId = taskService.create(TaskDto.builder()
-                        .title(prevTitle)
-                        .description(prevDescription)
-                        .course(courseId)
-                        .build()).getId();
+                long taskId = transactionTemplate.execute((status) -> {
+                    long id = taskService.create(TaskDto.builder()
+                            .title(prevTitle)
+                            .description(prevDescription)
+                            .course(courseId)
+                            .build()).getId();
 
-                taskService.create(TaskDto.builder()
-                        .title(faker.lorem().sentence())
-                        .course(courseId)
-                        .taskNumber(taskNumber)
-                        .build());
+                    taskService.create(TaskDto.builder()
+                            .title(faker.lorem().sentence())
+                            .course(courseId)
+                            .taskNumber(taskNumber)
+                            .build());
+                    status.flush();
+                    return id;
+                });
 
                 securePerform(put("/tasks/{id}", taskId)
                         .contentType(MediaType.APPLICATION_JSON)

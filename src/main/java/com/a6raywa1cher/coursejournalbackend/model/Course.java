@@ -41,6 +41,10 @@ public class Course implements Owned {
     @ToString.Exclude
     private List<Student> students;
 
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<Task> tasks;
+
     @Column(name = "created_at")
     @CreatedDate
     @ReadOnlyProperty

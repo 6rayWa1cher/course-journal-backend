@@ -61,12 +61,11 @@ public abstract class MapStructMapper {
     @CreatedModifiedRestrictMapping
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "course", ignore = true)
-    @Mapping(target = "submissions", ignore = true)
     public abstract void put(TaskDto dto, @MappingTarget Task target);
 
     @CreatedModifiedRestrictMapping
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "course", ignore = true)
-    @Mapping(target = "submissions", ignore = true)
     public abstract void patch(TaskDto dto, @MappingTarget Task target);
 }

@@ -17,9 +17,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "task", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"course_id", "task_number"})
-})
+@Table(name = "task")
 @Getter
 @Setter
 @ToString
@@ -35,8 +33,8 @@ public class Task implements Owned {
     @JoinColumn(name = "course_id")
     private Course course;
 
-    @Column(name = "task_number", nullable = false)
-    private Integer taskNumber;
+    @Column(name = "task_number")
+    private Integer taskNumber; // contains unique constraint in init.sql file
 
     @Column(name = "title")
     private String title;

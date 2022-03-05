@@ -2,6 +2,7 @@ package com.a6raywa1cher.coursejournalbackend.rest;
 
 import com.a6raywa1cher.coursejournalbackend.dto.TaskDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.MapStructRestDtoMapper;
+import com.a6raywa1cher.coursejournalbackend.rest.dto.ReorderTasksRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.ShortTaskRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.TaskRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnCreate;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/tasks")
@@ -42,6 +44,22 @@ public class TaskController {
     @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Course), authentication)")
     public Page<ShortTaskRestDto> getByCourse(@PathVariable long id, @ParameterObject Pageable pageable) {
         return service.getByCourseId(id, pageable).map(mapper::map);
+    }
+
+    @PostMapping("/course/{id}/reorder")
+    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Course), authentication)")
+    public void reorderCourse(
+            @PathVariable long id,
+            @RequestBody ReorderTasksRestDto dto
+    ) {
+        service.reorder(id,
+                dto.getOrder()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                ReorderTasksRestDto.ReorderRequest::getId,
+                                ReorderTasksRestDto.ReorderRequest::getNumber
+                        ))
+        );
     }
 
     @GetMapping("/course/{id}/all")

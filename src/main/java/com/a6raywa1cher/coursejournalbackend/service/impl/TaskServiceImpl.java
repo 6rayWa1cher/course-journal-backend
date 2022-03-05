@@ -11,6 +11,7 @@ import com.a6raywa1cher.coursejournalbackend.model.Task;
 import com.a6raywa1cher.coursejournalbackend.model.repo.TaskRepository;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
 import com.a6raywa1cher.coursejournalbackend.service.TaskService;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,16 +63,16 @@ public class TaskServiceImpl implements TaskService {
         }
 
         Map<Long, List<Long>> courses = splitByCourses(allRawById);
-        if (courses.size() != 1) {
+        if (courses.size() != 1 || courses.keySet().iterator().next() != courseId) {
             throw new VariousParentEntitiesException(courses);
         }
         Course course = allRawById.get(0).getCourse();
 
+        assertNoConflictsInTaskNumbers(course, idToNumber);
+
         for (Task task : allRawById) {
             task.setTaskNumber(idToNumber.get(task.getId()));
         }
-
-        assertNoConflictsInTaskNumbers(course, allRawById.toArray(new Task[0]));
 
         repository.saveAll(allRawById);
     }
@@ -96,8 +97,13 @@ public class TaskServiceImpl implements TaskService {
         Task task = new Task();
         Course course = getCourseById(dto.getCourse());
 
+        if (dto.getTaskNumber() != null) {
+            assertNoConflictsInTaskNumbers(course, dto.getTaskNumber());
+        }
         mapper.put(dto, task);
-        assertNoConflictsInTaskNumbers(course, task);
+        if (dto.getTaskNumber() == null) {
+            task.setTaskNumber(repository.getNextNumber(course));
+        }
 
         task.setCourse(course);
         task.setCreatedAt(LocalDateTime.now());
@@ -110,8 +116,8 @@ public class TaskServiceImpl implements TaskService {
         Task task = getTaskById(id);
         Course course = getCourseById(dto.getCourse());
 
+        assertNoConflictsInTaskNumbers(course, dto.getTaskNumber());
         mapper.put(dto, task);
-        assertNoConflictsInTaskNumbers(course, task);
         assertNoCourseChange(task.getCourse(), course);
 
         task.setCourse(course);
@@ -124,8 +130,9 @@ public class TaskServiceImpl implements TaskService {
         Task task = getTaskById(id);
         Course course = dto.getCourse() != null ? getCourseById(dto.getCourse()) : task.getCourse();
 
+        if (dto.getTaskNumber() != null)
+            assertNoConflictsInTaskNumbers(course, Map.of(task.getId(), dto.getTaskNumber()));
         mapper.patch(dto, task);
-        assertNoConflictsInTaskNumbers(course, task);
         assertNoCourseChange(task.getCourse(), course);
 
         task.setCourse(course);
@@ -139,18 +146,32 @@ public class TaskServiceImpl implements TaskService {
         repository.delete(task);
     }
 
-    private void assertNoConflictsInTaskNumbers(Course course, Task... changed) {
+    private void assertNoConflictsInTaskNumbers(Course course, Map<Long, Integer> changes) {
+        assertNoConflictsInTaskNumbers(course, changes.entrySet().stream()
+                .map(Pair::of)
+                .toList());
+    }
+
+    private void assertNoConflictsInTaskNumbers(Course course, Integer newNumber) {
+        assertNoConflictsInTaskNumbers(course, List.of(Pair.of(null, newNumber)));
+    }
+
+    private void assertNoConflictsInTaskNumbers(Course course, List<Pair<Long, Integer>> changes) {
         Map<Long, Integer> inDb = repository.getAllByCourse(course)
                 .stream()
                 .collect(Collectors.toMap(Task::getId, Task::getTaskNumber));
-
-        for (Task task : changed) {
-            inDb.replace(task.getId(), task.getTaskNumber());
+        Set<Integer> booked = new HashSet<>();
+        for (var item : changes) {
+            Long id = item.getKey();
+            int number = item.getValue();
+            if (id == null) {
+                booked.add(number);
+            } else {
+                inDb.replace(id, number);
+            }
         }
 
-        Set<Integer> booked = new HashSet<>();
-        for (var item : inDb.entrySet()) {
-            int number = item.getValue();
+        for (int number : inDb.values()) {
             if (booked.contains(number)) {
                 throw new ConflictException(
                         Task.class,
@@ -158,7 +179,7 @@ public class TaskServiceImpl implements TaskService {
                         "course", Long.toString(course.getId())
                 );
             }
-            booked.add(item.getValue());
+            booked.add(number);
         }
     }
 
@@ -172,10 +193,7 @@ public class TaskServiceImpl implements TaskService {
         Map<Long, List<Long>> out = new HashMap<>();
         for (Task task : tasks) {
             long course = task.getCourse().getId();
-            List<Long> list = out.get(course);
-            if (list == null) {
-                list = out.put(course, new ArrayList<>());
-            }
+            List<Long> list = out.computeIfAbsent(course, k -> new ArrayList<>());
             list.add(task.getId());
         }
         return out;
