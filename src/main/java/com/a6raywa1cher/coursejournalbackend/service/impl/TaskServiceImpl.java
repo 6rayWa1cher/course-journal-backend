@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -70,11 +71,10 @@ public class TaskServiceImpl implements TaskService {
 
         assertNoConflictsInTaskNumbers(course, idToNumber);
 
-        for (Task task : allRawById) {
-            task.setTaskNumber(idToNumber.get(task.getId()));
-        }
-
-        repository.saveAll(allRawById);
+        repository.reorderTasksWithFlush(
+                allRawById.stream()
+                        .collect(Collectors.toMap(Function.identity(), t -> idToNumber.get(t.getId())))
+        );
     }
 
     @Override
@@ -116,7 +116,7 @@ public class TaskServiceImpl implements TaskService {
         Task task = getTaskById(id);
         Course course = getCourseById(dto.getCourse());
 
-        assertNoConflictsInTaskNumbers(course, dto.getTaskNumber());
+        assertNoConflictsInTaskNumbers(course, Map.of(id, dto.getTaskNumber()));
         mapper.put(dto, task);
         assertNoCourseChange(task.getCourse(), course);
 

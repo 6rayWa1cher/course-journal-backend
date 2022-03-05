@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface TaskRepository extends PagingAndSortingRepository<Task, Long> {
+public interface TaskRepository extends PagingAndSortingRepository<Task, Long>, CustomTaskRepository {
     List<Task> getAllByCourse(Course course);
 
     Page<Task> getAllByCourse(Course course, Pageable pageable);

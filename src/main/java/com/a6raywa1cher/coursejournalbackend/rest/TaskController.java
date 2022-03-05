@@ -19,6 +19,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,7 +51,7 @@ public class TaskController {
     @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Course), authentication)")
     public void reorderCourse(
             @PathVariable long id,
-            @RequestBody ReorderTasksRestDto dto
+            @RequestBody @Valid ReorderTasksRestDto dto
     ) {
         service.reorder(id,
                 dto.getOrder()
@@ -65,7 +66,10 @@ public class TaskController {
     @GetMapping("/course/{id}/all")
     @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Course), authentication)")
     public List<ShortTaskRestDto> getAllByCourse(@PathVariable long id) {
-        return service.getByCourseId(id).stream().map(mapper::map).toList();
+        return service.getByCourseId(id).stream()
+                .map(mapper::map)
+                .sorted(Comparator.comparing(ShortTaskRestDto::getTaskNumber))
+                .toList();
     }
 
     @PostMapping("/")

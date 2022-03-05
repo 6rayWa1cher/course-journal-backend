@@ -143,8 +143,8 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
 
                 securePerform(get("/tasks/course/{id}/all", courseId1))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.content[0].title").value(sentence2))
-                        .andExpect(jsonPath("$.content[1].title").value(sentence1));
+                        .andExpect(jsonPath("$[0].title").value(sentence2))
+                        .andExpect(jsonPath("$[1].title").value(sentence1));
             }
         };
     }
@@ -179,8 +179,8 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
 
                 securePerform(get("/tasks/course/{id}/all", courseId1))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.content[0].title").value(sentence2))
-                        .andExpect(jsonPath("$.content[1].title").value(sentence1));
+                        .andExpect(jsonPath("$[0].title").value(sentence2))
+                        .andExpect(jsonPath("$[1].title").value(sentence1));
             }
         };
     }
@@ -616,7 +616,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void reorderTasks__conflictingTaskNumber__withinCourse__invalid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
                 String sentence1 = faker.lorem().sentence();
@@ -759,9 +759,9 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                         jsonPath("$.maxScore").value(maxScore),
                         jsonPath("$.maxPenaltyPercent").value(maxPenaltyPercent),
                         jsonPath("$.announced").value(announced),
-                        jsonPath("$.announcementAt").value(announcementAt.toString()),
-                        jsonPath("$.softDeadlineAt").value(softDeadlineAt.toString()),
-                        jsonPath("$.hardDeadlineAt").value(hardDeadlineAt.toString()),
+                        jsonPath("$.announcementAt", new TestUtils.DateMatcher(announcementAt)),
+                        jsonPath("$.softDeadlineAt", new TestUtils.DateMatcher(softDeadlineAt)),
+                        jsonPath("$.hardDeadlineAt", new TestUtils.DateMatcher(hardDeadlineAt)),
                 };
 
                 securePerform(put("/tasks/{id}", taskId)
@@ -782,7 +782,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                         .andExpectAll(resultMatchers);
 
 
-                securePerform(get("/tasks/{id}", courseId))
+                securePerform(get("/tasks/{id}", taskId))
                         .andExpect(status().isOk())
                         .andExpectAll(resultMatchers);
             }
@@ -823,9 +823,9 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                         jsonPath("$.maxScore").value(maxScore),
                         jsonPath("$.maxPenaltyPercent").value(maxPenaltyPercent),
                         jsonPath("$.announced").value(announced),
-                        jsonPath("$.announcementAt").value(announcementAt.toString()),
-                        jsonPath("$.softDeadlineAt").value(softDeadlineAt.toString()),
-                        jsonPath("$.hardDeadlineAt").value(hardDeadlineAt.toString()),
+                        jsonPath("$.announcementAt", new TestUtils.DateMatcher(announcementAt)),
+                        jsonPath("$.softDeadlineAt", new TestUtils.DateMatcher(softDeadlineAt)),
+                        jsonPath("$.hardDeadlineAt", new TestUtils.DateMatcher(hardDeadlineAt)),
                 };
 
                 securePerform(put("/tasks/{id}", taskId)
@@ -846,7 +846,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                         .andExpectAll(resultMatchers);
 
 
-                securePerform(get("/tasks/{id}", courseId))
+                securePerform(get("/tasks/{id}", taskId))
                         .andExpect(status().isOk())
                         .andExpectAll(resultMatchers);
             }
@@ -961,7 +961,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String prevTitle = faker.lorem().sentence();
                 String prevDescription = faker.lorem().paragraph();
 
-                long taskId = transactionTemplate.execute((status) -> {
+                Long taskId = transactionTemplate.execute((status) -> {
                     long id = taskService.create(TaskDto.builder()
                             .title(prevTitle)
                             .description(prevDescription)
@@ -1114,9 +1114,9 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                         jsonPath("$.maxScore").value(maxScore),
                         jsonPath("$.maxPenaltyPercent").value(maxPenaltyPercent),
                         jsonPath("$.announced").value(announced),
-                        jsonPath("$.announcementAt").value(announcementAt.toString()),
-                        jsonPath("$.softDeadlineAt").value(softDeadlineAt.toString()),
-                        jsonPath("$.hardDeadlineAt").value(hardDeadlineAt.toString()),
+                        jsonPath("$.announcementAt", new TestUtils.DateMatcher(announcementAt)),
+                        jsonPath("$.softDeadlineAt", new TestUtils.DateMatcher(softDeadlineAt)),
+                        jsonPath("$.hardDeadlineAt", new TestUtils.DateMatcher(hardDeadlineAt)),
                 };
 
                 securePerform(patch("/tasks/{id}", taskId)
@@ -1135,7 +1135,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                         .andExpectAll(resultMatchers);
 
 
-                securePerform(get("/tasks/{id}", courseId))
+                securePerform(get("/tasks/{id}", taskId))
                         .andExpect(status().isOk())
                         .andExpectAll(resultMatchers);
             }
@@ -1175,9 +1175,9 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                         jsonPath("$.maxScore").value(maxScore),
                         jsonPath("$.maxPenaltyPercent").value(maxPenaltyPercent),
                         jsonPath("$.announced").value(announced),
-                        jsonPath("$.announcementAt").value(announcementAt.toString()),
-                        jsonPath("$.softDeadlineAt").value(softDeadlineAt.toString()),
-                        jsonPath("$.hardDeadlineAt").value(hardDeadlineAt.toString()),
+                        jsonPath("$.announcementAt", new TestUtils.DateMatcher(announcementAt)),
+                        jsonPath("$.softDeadlineAt", new TestUtils.DateMatcher(softDeadlineAt)),
+                        jsonPath("$.hardDeadlineAt", new TestUtils.DateMatcher(hardDeadlineAt)),
                 };
 
                 securePerform(patch("/tasks/{id}", taskId)
@@ -1196,7 +1196,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                         .andExpectAll(resultMatchers);
 
 
-                securePerform(get("/tasks/{id}", courseId))
+                securePerform(get("/tasks/{id}", taskId))
                         .andExpect(status().isOk())
                         .andExpectAll(resultMatchers);
             }
@@ -1259,7 +1259,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void patchTask__conflictingTaskNumber__invalid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
                 long courseId = createCourse(createUser());

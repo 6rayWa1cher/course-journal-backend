@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "task")
+@Table(name = "task", uniqueConstraints = @UniqueConstraint(columnNames = {"course_id", "task_number"}))
 @Getter
 @Setter
 @ToString

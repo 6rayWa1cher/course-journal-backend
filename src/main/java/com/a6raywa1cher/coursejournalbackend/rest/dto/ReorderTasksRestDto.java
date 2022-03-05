@@ -1,6 +1,9 @@
 package com.a6raywa1cher.coursejournalbackend.rest.dto;
 
+import com.a6raywa1cher.coursejournalbackend.validation.NoConflictsInTaskNumbers;
+import com.a6raywa1cher.coursejournalbackend.validation.UniqueIds;
 import lombok.Data;
+import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -13,9 +16,12 @@ public class ReorderTasksRestDto {
     @NotNull
     @Size(min = 1)
     @Valid
+    @NoConflictsInTaskNumbers
+    @UniqueIds
     private List<ReorderRequest> order;
 
     @Data
+    @Validated
     public static class ReorderRequest {
         @NotNull
         @Positive
