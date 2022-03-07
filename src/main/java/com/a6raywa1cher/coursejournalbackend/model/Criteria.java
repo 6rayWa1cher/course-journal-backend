@@ -1,5 +1,6 @@
 package com.a6raywa1cher.coursejournalbackend.model;
 
+import com.a6raywa1cher.coursejournalbackend.security.Owned;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -14,12 +15,12 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "criteria")
+@Table(name = "criteria", uniqueConstraints = @UniqueConstraint(columnNames = {"task_id", "name"}))
 @Getter
 @Setter
 @ToString
 @RequiredArgsConstructor
-public class Criteria {
+public class Criteria implements Owned {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
@@ -27,7 +28,11 @@ public class Criteria {
     private Long id;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "task_id")
     private Task task;
+
+    @Column(name = "name", nullable = false)
+    private String name;
 
     @Column(name = "criteria_percent")
     private Integer criteriaPercent;
@@ -53,5 +58,10 @@ public class Criteria {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    @Override
+    public long getOwnerId() {
+        return task.getOwnerId();
     }
 }

@@ -1,5 +1,6 @@
-package com.a6raywa1cher.coursejournalbackend;
+package com.a6raywa1cher.coursejournalbackend.integration;
 
+import com.a6raywa1cher.coursejournalbackend.EntityFactory;
 import com.a6raywa1cher.coursejournalbackend.dto.CreateEditUserDto;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.a6raywa1cher.coursejournalbackend.service.UserService;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -26,12 +28,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
+@Import(IntegrationTestConfiguration.class)
 public abstract class AbstractIntegrationTests {
     protected static final String ADMIN_USERNAME = "admin";
     protected static final String ADMIN_PASSWORD = "admin";
     protected static final String USERNAME = "leopold";
     protected static final String PASSWORD = "guysletsbefriends";
-    protected final Faker faker = new Faker();
+
+    @Autowired
+    protected Faker faker;
+
+    @Autowired
+    protected EntityFactory ef;
 
     @Autowired
     protected MockMvc mvc;

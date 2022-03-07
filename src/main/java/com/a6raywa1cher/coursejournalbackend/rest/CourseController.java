@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
-import static com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary.GENERAL_NAME;
+import static com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary.COMMON_NAME;
 
 @RestController
 @RequestMapping("/courses")
@@ -48,7 +48,7 @@ public class CourseController {
 
     @GetMapping("/name")
     @Secured("ROLE_ADMIN")
-    public Page<CourseDto> findByName(@RequestParam @Pattern(regexp = GENERAL_NAME) @Valid String query,
+    public Page<CourseDto> findByName(@RequestParam @Pattern(regexp = COMMON_NAME) @Valid String query,
                                       @ParameterObject Pageable page) {
         return service.getByNameContains(query, page);
     }
@@ -56,7 +56,7 @@ public class CourseController {
     @GetMapping("/owner/{id}")
     @PreAuthorize("@accessChecker.loggedInAsOrAdmin(#id, authentication)")
     public Page<CourseDto> findByOwner(@PathVariable long id,
-                                       @RequestParam(required = false) @Pattern(regexp = GENERAL_NAME) @Valid String name,
+                                       @RequestParam(required = false) @Pattern(regexp = COMMON_NAME) @Valid String name,
                                        @ParameterObject Pageable pageable) {
         if (name == null) {
             return service.getByOwner(id, pageable);

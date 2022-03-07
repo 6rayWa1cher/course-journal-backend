@@ -1,8 +1,6 @@
-package com.a6raywa1cher.coursejournalbackend;
+package com.a6raywa1cher.coursejournalbackend.integration;
 
 import com.a6raywa1cher.coursejournalbackend.dto.CourseDto;
-import com.a6raywa1cher.coursejournalbackend.dto.CreateEditUserDto;
-import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
 import com.a6raywa1cher.coursejournalbackend.model.repo.UserRepository;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
@@ -43,7 +41,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
                 courseService.create(CourseDto.builder()
                         .name(sentence2)
-                        .owner(createUser())
+                        .owner(ef.createUser())
                         .build());
 
                 securePerform(get("/courses/").queryParam("sort", "id,desc"))
@@ -94,7 +92,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
                 courseService.create(CourseDto.builder()
                         .name(sentence3)
-                        .owner(createUser())
+                        .owner(ef.createUser())
                         .build());
 
                 securePerform(get("/courses/owner/{id}", getId()).queryParam("sort", "id,desc"))
@@ -145,7 +143,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
                 courseService.create(CourseDto.builder()
                         .name(sentence2)
-                        .owner(createUser())
+                        .owner(ef.createUser())
                         .build());
 
                 securePerform(get("/courses/owner/{id}", getId()).queryParam("sort", "id,desc"))
@@ -158,7 +156,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void getCoursesByOwner__otherAsTeacher__invalid() {
-        long id = createUser();
+        long id = ef.createUser();
 
         new WithUser(USERNAME, PASSWORD) {
             @Override
@@ -171,7 +169,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void getCoursesByOwner__notAuthenticated__invalid() throws Exception {
-        long id = createUser();
+        long id = ef.createUser();
         mvc.perform(get("/courses/owner/{id}", id)).andExpect(status().isUnauthorized());
     }
 
@@ -221,7 +219,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long id = courseService.create(CourseDto.builder()
                         .name(name)
-                        .owner(createUser())
+                        .owner(ef.createUser())
                         .build()).getId();
 
                 securePerform(get("/courses/{id}", id))
@@ -235,7 +233,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         String name = faker.lorem().sentence();
         long id = courseService.create(CourseDto.builder()
                 .name(name)
-                .owner(createUser())
+                .owner(ef.createUser())
                 .build()).getId();
 
         mvc.perform(get("/courses/{id}", id))
@@ -247,7 +245,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         String name = faker.lorem().sentence();
         long id = courseService.create(CourseDto.builder()
                 .name(name)
-                .owner(createUser())
+                .owner(ef.createUser())
                 .build()).getId();
 
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
@@ -266,7 +264,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         String name = faker.lorem().sentence();
         courseService.create(CourseDto.builder()
                 .name(name)
-                .owner(createUser())
+                .owner(ef.createUser())
                 .build());
 
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
@@ -285,7 +283,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         String name = faker.lorem().sentence();
         courseService.create(CourseDto.builder()
                 .name(name)
-                .owner(createUser())
+                .owner(ef.createUser())
                 .build());
 
         mvc.perform(get("/courses/name").queryParam("query", name))
@@ -297,7 +295,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         String name = faker.lorem().sentence();
         courseService.create(CourseDto.builder()
                 .name(name)
-                .owner(createUser())
+                .owner(ef.createUser())
                 .build());
 
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
@@ -347,7 +345,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = createUser();
+                long ownerId = ef.createUser();
 
                 securePerform(post("/courses/")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -375,7 +373,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = createUser();
+                long ownerId = ef.createUser();
 
                 securePerform(post("/courses/")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -421,7 +419,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.createObjectNode()
                                 .put("name", faker.lorem().sentence())
-                                .put("owner", createUser())
+                                .put("owner", ef.createUser())
                                 .toString()))
                 .andExpect(status().isUnauthorized());
     }
@@ -472,7 +470,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = createUser();
+                long ownerId = ef.createUser();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -510,7 +508,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = createUser();
+                long ownerId = ef.createUser();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -536,7 +534,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = createUser();
+                long ownerId = ef.createUser();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -544,7 +542,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
-                long newOwnerId = createUser();
+                long newOwnerId = ef.createUser();
 
                 ResultMatcher[] resultMatchers = {
                         jsonPath("$.id").value(courseId),
@@ -583,7 +581,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
-                long newOwnerId = createUser();
+                long newOwnerId = ef.createUser();
 
                 securePerform(put("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -602,7 +600,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = createUser();
+                long ownerId = ef.createUser();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -629,7 +627,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = createUser();
+                long ownerId = ef.createUser();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -637,7 +635,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
-                long newOwnerId = createUser();
+                long newOwnerId = ef.createUser();
 
                 securePerform(put("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -686,7 +684,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId1 = createUser();
+                long ownerId1 = ef.createUser();
                 long ownerId2 = getIdAsLong();
 
                 long courseId = courseService.create(CourseDto.builder()
@@ -717,7 +715,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 String name = faker.lorem().sentence();
                 long ownerId1 = getIdAsLong();
-                long ownerId2 = createUser();
+                long ownerId2 = ef.createUser();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -743,7 +741,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void putCourse__notAuthenticated__invalid() throws Exception {
         String name = faker.lorem().sentence();
-        long ownerId = createUser();
+        long ownerId = ef.createUser();
 
         long courseId = courseService.create(CourseDto.builder()
                 .name(name)
@@ -754,7 +752,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.createObjectNode()
                                 .put("name", faker.lorem().sentence())
-                                .put("owner", createUser())
+                                .put("owner", ef.createUser())
                                 .toString()))
                 .andExpect(status().isUnauthorized());
     }
@@ -805,7 +803,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = createUser();
+                long ownerId = ef.createUser();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -842,7 +840,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = createUser();
+                long ownerId = ef.createUser();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -867,14 +865,14 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = createUser();
+                long ownerId = ef.createUser();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
 
-                long newOwnerId = createUser();
+                long newOwnerId = ef.createUser();
 
                 ResultMatcher[] resultMatchers = {
                         jsonPath("$.id").value(courseId),
@@ -911,7 +909,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                         .owner(ownerId)
                         .build()).getId();
 
-                long newOwnerId = createUser();
+                long newOwnerId = ef.createUser();
 
                 securePerform(patch("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -929,7 +927,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = createUser();
+                long ownerId = ef.createUser();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -954,14 +952,14 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = createUser();
+                long ownerId = ef.createUser();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
 
-                long newOwnerId = createUser();
+                long newOwnerId = ef.createUser();
 
                 securePerform(patch("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -1008,7 +1006,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId1 = createUser();
+                long ownerId1 = ef.createUser();
                 long ownerId2 = getIdAsLong();
 
                 long courseId = courseService.create(CourseDto.builder()
@@ -1038,7 +1036,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 String name = faker.lorem().sentence();
                 long ownerId1 = getIdAsLong();
-                long ownerId2 = createUser();
+                long ownerId2 = ef.createUser();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -1063,7 +1061,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void patchCourse__notAuthenticated__invalid() throws Exception {
         String name = faker.lorem().sentence();
-        long ownerId = createUser();
+        long ownerId = ef.createUser();
 
         long courseId = courseService.create(CourseDto.builder()
                 .name(name)
@@ -1133,7 +1131,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long ownerId = createUser();
+                long ownerId = ef.createUser();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -1149,7 +1147,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void deleteCourse__notAuthenticated__invalid() throws Exception {
         String name = faker.lorem().sentence();
-        long ownerId = createUser();
+        long ownerId = ef.createUser();
 
         long courseId = courseService.create(CourseDto.builder()
                 .name(name)
@@ -1167,12 +1165,5 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         return Integer.toUnsignedLong(JsonPath.read(contentAsString, "$.id"));
-    }
-
-    private long createUser() {
-        return userService.createUser(CreateEditUserDto.builder()
-                .username(faker.name().username())
-                .userRole(UserRole.TEACHER)
-                .build()).getId();
     }
 }

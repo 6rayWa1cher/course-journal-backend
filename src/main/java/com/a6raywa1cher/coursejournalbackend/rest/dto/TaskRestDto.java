@@ -7,8 +7,8 @@ import lombok.Data;
 import javax.validation.constraints.*;
 import java.time.ZonedDateTime;
 
-import static com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary.GENERAL_DESCRIPTION;
-import static com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary.GENERAL_NAME;
+import static com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary.COMMON_DESCRIPTION;
+import static com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary.COMMON_NAME;
 
 @Data
 public class TaskRestDto {
@@ -20,10 +20,10 @@ public class TaskRestDto {
     private Integer taskNumber;
 
     @NotBlank(groups = {OnCreate.class, OnUpdate.class})
-    @Pattern(regexp = GENERAL_NAME)
+    @Pattern(regexp = COMMON_NAME)
     private String title;
 
-    @Pattern(regexp = GENERAL_DESCRIPTION)
+    @Pattern(regexp = COMMON_DESCRIPTION)
     private String description;
 
     @PositiveOrZero

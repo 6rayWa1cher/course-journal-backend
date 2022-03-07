@@ -1,10 +1,8 @@
 package com.a6raywa1cher.coursejournalbackend.dto.mapper;
 
-import com.a6raywa1cher.coursejournalbackend.dto.CourseDto;
-import com.a6raywa1cher.coursejournalbackend.dto.CreateEditUserDto;
-import com.a6raywa1cher.coursejournalbackend.dto.TaskDto;
-import com.a6raywa1cher.coursejournalbackend.dto.UserDto;
+import com.a6raywa1cher.coursejournalbackend.dto.*;
 import com.a6raywa1cher.coursejournalbackend.model.Course;
+import com.a6raywa1cher.coursejournalbackend.model.Criteria;
 import com.a6raywa1cher.coursejournalbackend.model.Task;
 import com.a6raywa1cher.coursejournalbackend.model.User;
 import com.a6raywa1cher.coursejournalbackend.service.UserService;
@@ -41,6 +39,7 @@ public abstract class MapStructMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "owner", ignore = true)
     @Mapping(target = "students", ignore = true)
+    @Mapping(target = "tasks", ignore = true)
     public abstract void put(CourseDto dto, @MappingTarget Course target);
 
     @CreatedModifiedRestrictMapping
@@ -48,6 +47,7 @@ public abstract class MapStructMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "owner", ignore = true)
     @Mapping(target = "students", ignore = true)
+    @Mapping(target = "tasks", ignore = true)
     public abstract void patch(CourseDto dto, @MappingTarget Course target);
 
     // ================================================================================================================
@@ -61,11 +61,32 @@ public abstract class MapStructMapper {
     @CreatedModifiedRestrictMapping
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "course", ignore = true)
+    @Mapping(target = "submissions", ignore = true)
     public abstract void put(TaskDto dto, @MappingTarget Task target);
 
     @CreatedModifiedRestrictMapping
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "course", ignore = true)
+    @Mapping(target = "submissions", ignore = true)
     public abstract void patch(TaskDto dto, @MappingTarget Task target);
+
+    // ================================================================================================================
+    // Criteria
+    // ================================================================================================================
+
+    @CreatedModifiedMapping
+    @Mapping(target = "task", source = "task.id")
+    public abstract CriteriaDto map(Criteria criteria);
+
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "task", ignore = true)
+    public abstract void put(CriteriaDto dto, @MappingTarget Criteria target);
+
+    @CreatedModifiedRestrictMapping
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "task", ignore = true)
+    public abstract void patch(CriteriaDto dto, @MappingTarget Criteria target);
 }

@@ -35,6 +35,7 @@ public class Course implements Owned {
     private String name;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "owner_id")
     private User owner;
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -1,9 +1,8 @@
-package com.a6raywa1cher.coursejournalbackend;
+package com.a6raywa1cher.coursejournalbackend.integration;
 
 import com.a6raywa1cher.coursejournalbackend.dto.CreateEditUserDto;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.a6raywa1cher.coursejournalbackend.model.repo.UserRepository;
-import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -654,13 +653,5 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
                         .andExpect(status().isForbidden());
             }
         };
-    }
-
-
-    private int getUserIdByUsername(String username, WithUser withUser) throws Exception {
-        String contentAsString = withUser.securePerform(get("/users/username/{username}", username))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-        return JsonPath.read(contentAsString, "$.id");
     }
 }

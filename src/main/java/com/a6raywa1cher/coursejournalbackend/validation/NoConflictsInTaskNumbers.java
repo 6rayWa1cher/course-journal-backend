@@ -12,7 +12,7 @@ import static java.lang.annotation.ElementType.FIELD;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(FIELD)
 public @interface NoConflictsInTaskNumbers {
-    String message() default "The input list cannot contain more than 4 movies.";
+    String message() default "Reorder map cannot contain same task number twice";
 
     Class<?>[] groups() default {};
 

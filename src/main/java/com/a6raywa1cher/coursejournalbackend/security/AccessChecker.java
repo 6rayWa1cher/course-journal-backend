@@ -48,7 +48,8 @@ public class AccessChecker {
                 .orElse(true);
     }
 
-    public <T extends Owned> boolean isOwnedByClientOrAdmin(long id, Class<T> ownedClass, Authentication authentication) {
+    public <T extends Owned> boolean isOwnedByClientOrAdmin(Long id, Class<T> ownedClass, Authentication authentication) {
+        if (id == null) return false;
         if (isAdmin(authentication)) return true;
         T byId = em.find(ownedClass, id);
         return byId == null || loggedInAs(byId.getOwnerId(), authentication);

@@ -34,13 +34,12 @@ public class Task implements Owned {
     private Course course;
 
     @Column(name = "task_number")
-    private Integer taskNumber; // contains unique constraint in init.sql file
+    private Integer taskNumber;
 
-    @Column(name = "title")
+    @Column(name = "title", nullable = false)
     private String title;
 
     @Column(name = "description")
-    @Lob
     private String description;
 
     @Column(name = "max_score")
