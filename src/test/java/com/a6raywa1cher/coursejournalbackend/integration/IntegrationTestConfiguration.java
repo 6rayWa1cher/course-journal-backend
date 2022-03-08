@@ -1,10 +1,8 @@
 package com.a6raywa1cher.coursejournalbackend.integration;
 
 import com.a6raywa1cher.coursejournalbackend.EntityFactory;
-import com.a6raywa1cher.coursejournalbackend.service.CourseService;
-import com.a6raywa1cher.coursejournalbackend.service.CriteriaService;
-import com.a6raywa1cher.coursejournalbackend.service.TaskService;
-import com.a6raywa1cher.coursejournalbackend.service.UserService;
+import com.a6raywa1cher.coursejournalbackend.MapStructTestMapper;
+import com.a6raywa1cher.coursejournalbackend.service.*;
 import com.github.javafaker.Faker;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +15,7 @@ public class IntegrationTestConfiguration {
     }
 
     @Bean
-    public EntityFactory ef(TaskService taskService, CourseService courseService, UserService userService, CriteriaService criteriaService, Faker faker) {
-        return new EntityFactory(taskService, courseService, userService, criteriaService, faker);
+    public EntityFactory ef(TaskService taskService, CourseService courseService, UserService userService, CriteriaService criteriaService, Faker faker, MapStructTestMapper mapper, StudentService studentService) {
+        return new EntityFactory(taskService, courseService, userService, criteriaService, faker, mapper, studentService);
     }
 }

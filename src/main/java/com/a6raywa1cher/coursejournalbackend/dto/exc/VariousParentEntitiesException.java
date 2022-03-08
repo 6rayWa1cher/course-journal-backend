@@ -9,7 +9,13 @@ import java.util.Map;
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class VariousParentEntitiesException extends RuntimeException {
     public VariousParentEntitiesException(Map<Long, List<Long>> sourceMap) {
-        super("Required a single parent, got multiple: " + toSourceString(sourceMap));
+        super("Required a single parent, got: " + toSourceString(sourceMap));
+    }
+
+    public VariousParentEntitiesException(List<Long> sourceList) {
+        super("Required a single parent, got: " +
+                String.join(",", sourceList.stream().map(id -> Long.toString(id)).toList())
+        );
     }
 
     private static String toSourceString(Map<Long, List<Long>> sourceMap) {

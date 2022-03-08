@@ -18,8 +18,7 @@ public class CustomTaskRepositoryImpl implements CustomTaskRepository {
     @Override
     @Transactional
     public void reorderTasksWithFlush(Map<Task, Integer> remap) {
-        for (var item : remap.entrySet()) {
-            Task task = item.getKey();
+        for (Task task : remap.keySet()) {
             task.setTaskNumber(null);
             em.merge(task);
         }

@@ -1,10 +1,7 @@
 package com.a6raywa1cher.coursejournalbackend.dto.mapper;
 
 import com.a6raywa1cher.coursejournalbackend.dto.*;
-import com.a6raywa1cher.coursejournalbackend.model.Course;
-import com.a6raywa1cher.coursejournalbackend.model.Criteria;
-import com.a6raywa1cher.coursejournalbackend.model.Task;
-import com.a6raywa1cher.coursejournalbackend.model.User;
+import com.a6raywa1cher.coursejournalbackend.model.*;
 import com.a6raywa1cher.coursejournalbackend.service.UserService;
 import org.mapstruct.*;
 
@@ -89,4 +86,25 @@ public abstract class MapStructMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "task", ignore = true)
     public abstract void patch(CriteriaDto dto, @MappingTarget Criteria target);
+
+    // ================================================================================================================
+    // Student
+    // ================================================================================================================
+
+    @CreatedModifiedMapping
+    @Mapping(target = "course", source = "course.id")
+    public abstract StudentDto map(Student student);
+
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "course", ignore = true)
+    @Mapping(target = "submissions", ignore = true)
+    public abstract void put(StudentDto dto, @MappingTarget Student target);
+
+    @CreatedModifiedRestrictMapping
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "course", ignore = true)
+    @Mapping(target = "submissions", ignore = true)
+    public abstract void patch(StudentDto dto, @MappingTarget Student target);
 }

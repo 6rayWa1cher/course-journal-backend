@@ -1,5 +1,6 @@
 package com.a6raywa1cher.coursejournalbackend.model;
 
+import com.a6raywa1cher.coursejournalbackend.security.Owned;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -20,7 +21,7 @@ import java.util.Objects;
 @Setter
 @ToString
 @RequiredArgsConstructor
-public class Student {
+public class Student implements Owned {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
@@ -30,10 +31,10 @@ public class Student {
     @ManyToOne(optional = false)
     private Course course;
 
-    @Column(name = "first_name")
+    @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    @Column(name = "last_name")
+    @Column(name = "last_name", nullable = false)
     private String lastName;
 
     @Column(name = "middle_name")
@@ -64,5 +65,10 @@ public class Student {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    @Override
+    public long getOwnerId() {
+        return course.getOwnerId();
     }
 }

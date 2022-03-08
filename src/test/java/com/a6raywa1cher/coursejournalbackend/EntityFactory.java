@@ -2,14 +2,13 @@ package com.a6raywa1cher.coursejournalbackend;
 
 import com.a6raywa1cher.coursejournalbackend.dto.CourseDto;
 import com.a6raywa1cher.coursejournalbackend.dto.CreateEditUserDto;
+import com.a6raywa1cher.coursejournalbackend.dto.StudentDto;
 import com.a6raywa1cher.coursejournalbackend.dto.TaskDto;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
-import com.a6raywa1cher.coursejournalbackend.service.CourseService;
-import com.a6raywa1cher.coursejournalbackend.service.CriteriaService;
-import com.a6raywa1cher.coursejournalbackend.service.TaskService;
-import com.a6raywa1cher.coursejournalbackend.service.UserService;
+import com.a6raywa1cher.coursejournalbackend.service.*;
 import com.github.javafaker.Faker;
 import lombok.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestComponent;
 
 @TestComponent
@@ -24,12 +23,19 @@ public class EntityFactory {
 
     private final Faker faker;
 
-    public EntityFactory(TaskService taskService, CourseService courseService, UserService userService, CriteriaService criteriaService, Faker faker) {
+    private final MapStructTestMapper mapper;
+
+    private final StudentService studentService;
+
+    @Autowired
+    public EntityFactory(TaskService taskService, CourseService courseService, UserService userService, CriteriaService criteriaService, Faker faker, MapStructTestMapper mapper, StudentService studentService) {
         this.taskService = taskService;
         this.courseService = courseService;
         this.userService = userService;
         this.criteriaService = criteriaService;
         this.faker = faker;
+        this.mapper = mapper;
+        this.studentService = studentService;
     }
 
     public long createUser() {
@@ -48,10 +54,17 @@ public class EntityFactory {
     }
 
     public long createCourse(EntityFactoryBag bag) {
-        return courseService.create(CourseDto.builder()
+        CourseDto dto = CourseDto.builder()
                 .name(faker.lorem().sentence())
                 .owner(bag.getUserId())
-                .build()).getId();
+                .build();
+
+        CourseDto dtoFromBag = bag.getDto(CourseDto.class);
+        if (dtoFromBag != null) {
+            mapper.merge(dtoFromBag, dto);
+        }
+
+        return courseService.create(dto).getId();
     }
 
     public long createTask() {
@@ -63,10 +76,40 @@ public class EntityFactory {
     }
 
     public long createTask(EntityFactoryBag bag) {
-        return taskService.create(TaskDto.builder()
+        TaskDto dto = TaskDto.builder()
                 .title(faker.lorem().sentence())
                 .course(bag.getCourseId())
-                .build()).getId();
+                .build();
+
+        TaskDto dtoFromBag = bag.getDto(TaskDto.class);
+        if (dtoFromBag != null) {
+            mapper.merge(dtoFromBag, dto);
+        }
+
+        return taskService.create(dto).getId();
+    }
+
+    public long createStudent() {
+        return createStudent(bag());
+    }
+
+    public long createStudent(Long userId) {
+        return createStudent(bag().withUserId(userId));
+    }
+
+    public long createStudent(EntityFactoryBag bag) {
+        StudentDto dto = StudentDto.builder()
+                .firstName(faker.name().firstName())
+                .lastName(faker.name().lastName())
+                .course(bag.getCourseId())
+                .build();
+
+        StudentDto dtoFromBag = bag.getDto(StudentDto.class);
+        if (dtoFromBag != null) {
+            mapper.merge(dtoFromBag, dto);
+        }
+
+        return studentService.create(dto).getId();
     }
 
     public EntityFactoryBag bag() {
@@ -87,6 +130,10 @@ public class EntityFactory {
 
         private Long taskId;
 
+        private Long studentId;
+
+        private Object dto;
+
         public Long getUserId() {
             if (userId == null) userId = ef.createUser();
             return userId;
@@ -100,6 +147,16 @@ public class EntityFactory {
         public Long getTaskId() {
             if (taskId == null) taskId = ef.createTask(this);
             return taskId;
+        }
+
+        public Long getStudentId() {
+            if (studentId == null) studentId = ef.createStudent(this);
+            return studentId;
+        }
+
+        public <T> T getDto(Class<T> clazz) {
+            if (dto == null) return null;
+            return clazz.isAssignableFrom(dto.getClass()) ? clazz.cast(dto) : null;
         }
     }
 }

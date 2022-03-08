@@ -167,7 +167,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
 
                 criteriaService.create(CriteriaDto.builder()
                         .name(sentence1)
-                        .criteriaPercent(60)
+                        .criteriaPercent(75)
                         .task(taskId1)
                         .build());
 

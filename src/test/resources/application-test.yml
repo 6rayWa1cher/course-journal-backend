@@ -15,8 +15,8 @@ spring:
 # DB CONNECTION
 # ===============================
 spring.datasource.url: jdbc:postgresql://localhost:5432/course-journal-test
-spring.datasource.username: postgres
-spring.datasource.password: Ofss57ArFFNAZfNL9cWO
+spring.datasource.username: cat
+spring.datasource.password: cat
 # ===============================
 # JPA / HIBERNATE
 # ===============================
