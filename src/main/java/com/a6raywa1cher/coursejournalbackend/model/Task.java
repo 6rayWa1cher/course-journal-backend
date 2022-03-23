@@ -12,7 +12,6 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -52,17 +51,17 @@ public class Task implements Owned {
     private Boolean announced;
 
     @Column(name = "announcement_at")
-    private ZonedDateTime announcementAt;
+    private LocalDateTime announcementAt;
 
     @OneToMany(mappedBy = "primaryKey.task", orphanRemoval = true, cascade = CascadeType.ALL)
     @ToString.Exclude
     private List<Submission> submissions;
 
     @Column(name = "soft_deadline_at")
-    private ZonedDateTime softDeadlineAt;
+    private LocalDateTime softDeadlineAt;
 
     @Column(name = "hard_deadline_at")
-    private ZonedDateTime hardDeadlineAt;
+    private LocalDateTime hardDeadlineAt;
 
     @Column(name = "created_at")
     @CreatedDate

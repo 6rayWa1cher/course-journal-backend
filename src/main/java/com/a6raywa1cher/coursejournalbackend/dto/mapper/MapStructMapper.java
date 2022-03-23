@@ -53,12 +53,18 @@ public abstract class MapStructMapper {
 
     @CreatedModifiedMapping
     @Mapping(target = "course", source = "course.id")
+    @Mapping(target = "announcementAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
+    @Mapping(target = "softDeadlineAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
+    @Mapping(target = "hardDeadlineAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
     public abstract TaskDto map(Task task);
 
     @CreatedModifiedRestrictMapping
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "course", ignore = true)
     @Mapping(target = "submissions", ignore = true)
+    @Mapping(target = "announcementAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
+    @Mapping(target = "softDeadlineAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
+    @Mapping(target = "hardDeadlineAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
     public abstract void put(TaskDto dto, @MappingTarget Task target);
 
     @CreatedModifiedRestrictMapping
@@ -66,6 +72,9 @@ public abstract class MapStructMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "course", ignore = true)
     @Mapping(target = "submissions", ignore = true)
+    @Mapping(target = "announcementAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
+    @Mapping(target = "softDeadlineAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
+    @Mapping(target = "hardDeadlineAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
     public abstract void patch(TaskDto dto, @MappingTarget Task target);
 
     // ================================================================================================================

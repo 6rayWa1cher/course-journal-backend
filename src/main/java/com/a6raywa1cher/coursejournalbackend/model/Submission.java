@@ -12,7 +12,6 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,7 +26,7 @@ public class Submission {
     private SubmissionId primaryKey;
 
     @Column(name = "submitted_at", nullable = false)
-    private ZonedDateTime submittedAt;
+    private LocalDateTime submittedAt;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
@@ -43,8 +42,11 @@ public class Submission {
     @ToString.Exclude
     private List<Criteria> satisfiedCriteria;
 
-    @Column(name = "score")
-    private Integer score;
+    @Column(name = "main_score")
+    private Integer mainScore;
+
+    @Column(name = "additional_score")
+    private Integer additionalScore;
 
     @Column(name = "created_at")
     @CreatedDate

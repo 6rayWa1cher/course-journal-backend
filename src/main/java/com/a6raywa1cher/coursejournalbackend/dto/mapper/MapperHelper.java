@@ -41,6 +41,12 @@ public class MapperHelper {
         return ZonedDateTime.of(dateTime, ZoneId.systemDefault());
     }
 
+    @Named("ToLocalDateTime")
+    public LocalDateTime toLocalDateTime(ZonedDateTime dateTime) {
+        if (dateTime == null) return null;
+        return dateTime.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
     @Named("EncodePassword")
     public String encodePassword(String rawPassword) {
         if (rawPassword == null) return null;
