@@ -1,8 +1,6 @@
 package com.a6raywa1cher.coursejournalbackend.security;
 
-import com.a6raywa1cher.coursejournalbackend.model.Course;
-import com.a6raywa1cher.coursejournalbackend.model.User;
-import com.a6raywa1cher.coursejournalbackend.model.UserRole;
+import com.a6raywa1cher.coursejournalbackend.model.*;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
 import com.a6raywa1cher.coursejournalbackend.model.repo.UserRepository;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.CourseRestDto;
@@ -14,6 +12,9 @@ import org.springframework.stereotype.Component;
 import javax.persistence.EntityManager;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.a6raywa1cher.coursejournalbackend.security.Permission.getPermissionForCourse;
+import static com.a6raywa1cher.coursejournalbackend.security.Permission.getPermissionForUser;
 
 @Component
 public class AccessChecker {
@@ -48,11 +49,38 @@ public class AccessChecker {
                 .orElse(true);
     }
 
-    public <T extends Owned> boolean isOwnedByClientOrAdmin(Long id, Class<T> ownedClass, Authentication authentication) {
+    private <T> String getPermission(T entity, ActionType type) {
+        if (entity instanceof Course course) {
+            return getPermissionForCourse(course, type);
+        } else if (entity instanceof Task task) {
+            return getPermissionForCourse(task.getCourse(), type);
+        } else if (entity instanceof Student student) {
+            return getPermissionForCourse(student.getCourse(), type);
+        } else if (entity instanceof Criteria criteria) {
+            return getPermissionForCourse(criteria.getTask().getCourse(), type);
+        } else if (entity instanceof User user) {
+            return getPermissionForUser(user, type);
+        } else if (entity instanceof Submission submission) {
+            return getPermissionForCourse(submission.getPrimaryKey().getTask().getCourse(), type);
+        } else {
+            throw new IllegalArgumentException("Unknown entity " + entity.getClass().getSimpleName());
+        }
+    }
+
+    private boolean hasAuthority(String authority, Authentication authentication) {
+        return authentication.getAuthorities()
+                .stream().anyMatch(ga -> ga.getAuthority().equals(authority));
+    }
+
+    public <T> boolean hasAuthority(Long id, Class<T> clazz, String type, Authentication authentication) {
+        return hasAuthority(id, clazz, ActionType.valueOf(type), authentication);
+    }
+
+    public <T> boolean hasAuthority(Long id, Class<T> clazz, ActionType type, Authentication authentication) {
         if (id == null) return false;
         if (isAdmin(authentication)) return true;
-        T byId = em.find(ownedClass, id);
-        return byId == null || loggedInAs(byId.getOwnerId(), authentication);
+        T byId = em.find(clazz, id);
+        return byId == null || hasAuthority(getPermission(byId, type), authentication);
     }
 
     public boolean loggedInAsOrAdmin(Long id, Authentication authentication) {
@@ -68,17 +96,15 @@ public class AccessChecker {
         return userRole.equals(UserRole.TEACHER) || isAdmin(authentication);
     }
 
-    public boolean isUserModificationAuthorized(long id, Authentication authentication) {
-        if (isAdmin(authentication)) return true;
-        Optional<User> byId = userRepository.findById(id);
-        return byId.isEmpty() || loggedInAs(byId.get(), authentication);
+    public boolean readCourseAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Course.class, ActionType.READ, authentication);
     }
 
-    public boolean editUserAccess(long id, UserRole userRole, Authentication authentication) {
-        return isUserModificationAuthorized(id, authentication) && isValidUserRoleRequest(userRole, authentication);
+    public boolean editCourseAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Course.class, ActionType.WRITE, authentication);
     }
 
-    public boolean editCourseAccess(long id, CourseRestDto dto, Authentication authentication) {
+    public boolean editCourseAccessWithDto(Long id, CourseRestDto dto, Authentication authentication) {
         if (isAdmin(authentication)) return true;
 
         Optional<Course> byId = courseRepository.findById(id);
@@ -88,11 +114,60 @@ public class AccessChecker {
         if (dto.getOwner() != null && !Objects.equals(dto.getOwner(), course.getOwner().getId())) {
             return false;
         }
-
-        return loggedInAs(course.getOwner(), authentication);
+        return hasAuthority(id, Course.class, ActionType.WRITE, authentication);
     }
 
-    public boolean deleteCourseAccess(long id, Authentication authentication) {
-        return isOwnedByClientOrAdmin(id, Course.class, authentication);
+
+    public boolean createCriteriaAccess(Long taskId, Authentication authentication) {
+        return hasAuthority(taskId, Task.class, ActionType.WRITE, authentication);
+    }
+
+    public boolean readCriteriaAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Criteria.class, ActionType.READ, authentication);
+    }
+
+    public boolean editCriteriaAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Criteria.class, ActionType.WRITE, authentication);
+    }
+
+
+    public boolean createStudentAccess(Long courseId, Authentication authentication) {
+        return hasAuthority(courseId, Course.class, ActionType.WRITE, authentication);
+    }
+
+    public boolean readStudentAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Student.class, ActionType.READ, authentication);
+    }
+
+    public boolean editStudentAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Student.class, ActionType.WRITE, authentication);
+    }
+
+
+    public boolean createTaskAccess(Long courseId, Authentication authentication) {
+        return hasAuthority(courseId, Course.class, ActionType.WRITE, authentication);
+    }
+
+    public boolean readTaskAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Task.class, ActionType.READ, authentication);
+    }
+
+    public boolean editTaskAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Task.class, ActionType.WRITE, authentication);
+    }
+
+
+    public boolean isUserModificationAuthorized(Long id, Authentication authentication) {
+        if (isAdmin(authentication)) return true;
+        Optional<User> byId = userRepository.findById(id);
+        return byId.isEmpty() || loggedInAs(byId.get(), authentication);
+    }
+
+    public boolean readUserAccess(Long id, UserRole userRole, Authentication authentication) {
+        return true;
+    }
+
+    public boolean editUserAccess(Long id, UserRole userRole, Authentication authentication) {
+        return isUserModificationAuthorized(id, authentication) && isValidUserRoleRequest(userRole, authentication);
     }
 }

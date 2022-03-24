@@ -36,19 +36,19 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Task), authentication)")
+    @PreAuthorize("@accessChecker.readTaskAccess(#id, authentication)")
     public TaskDto getById(@PathVariable long id) {
         return service.getById(id);
     }
 
     @GetMapping("/course/{id}")
-    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Course), authentication)")
+    @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
     public Page<ShortTaskRestDto> getByCourse(@PathVariable long id, @ParameterObject Pageable pageable) {
         return service.getByCourseId(id, pageable).map(mapper::map);
     }
 
     @PostMapping("/course/{id}/reorder")
-    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Course), authentication)")
+    @PreAuthorize("@accessChecker.editCourseAccess(#id, authentication)")
     public void reorderCourse(
             @PathVariable long id,
             @RequestBody @Valid ReorderTasksRestDto dto
@@ -64,7 +64,7 @@ public class TaskController {
     }
 
     @GetMapping("/course/{id}/all")
-    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Course), authentication)")
+    @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
     public List<ShortTaskRestDto> getAllByCourse(@PathVariable long id) {
         return service.getByCourseId(id).stream()
                 .map(mapper::map)
@@ -73,7 +73,7 @@ public class TaskController {
     }
 
     @PostMapping("/")
-    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#dto.course, T(com.a6raywa1cher.coursejournalbackend.model.Course), authentication)")
+    @PreAuthorize("@accessChecker.createTaskAccess(#dto.course, authentication)")
     @ResponseStatus(HttpStatus.CREATED)
     @Validated(OnCreate.class)
     public TaskDto create(@RequestBody @Valid TaskRestDto dto) {
@@ -81,21 +81,21 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Task), authentication)")
+    @PreAuthorize("@accessChecker.editTaskAccess(#id, authentication)")
     @Validated(OnUpdate.class)
     public TaskDto update(@RequestBody @Valid TaskRestDto dto, @PathVariable long id) {
         return service.update(id, mapper.map(dto));
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Task), authentication)")
+    @PreAuthorize("@accessChecker.editTaskAccess(#id, authentication)")
     @Validated(OnPatch.class)
     public TaskDto patch(@RequestBody @Valid TaskRestDto dto, @PathVariable long id) {
         return service.patch(id, mapper.map(dto));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Task), authentication)")
+    @PreAuthorize("@accessChecker.editTaskAccess(#id, authentication)")
     public void delete(@PathVariable long id) {
         service.delete(id);
     }

@@ -9,6 +9,8 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface CourseRepository extends PagingAndSortingRepository<Course, Long> {
     boolean existsByNameAndOwner(String name, User owner);
@@ -20,4 +22,7 @@ public interface CourseRepository extends PagingAndSortingRepository<Course, Lon
 
     @Query("from Course c where c.owner = :owner and lower(c.name) like %:name%")
     Page<Course> findByOwnerAndNameContains(@Param("owner") User owner, @Param("name") String name, Pageable pageable);
+
+    @Query("select c.id from Course c where c.owner = :owner")
+    List<Long> findByOwner(@Param("owner") User owner);
 }

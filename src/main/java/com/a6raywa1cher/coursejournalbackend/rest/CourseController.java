@@ -41,7 +41,7 @@ public class CourseController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Course), authentication)")
+    @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
     public CourseDto getById(@PathVariable long id) {
         return service.getById(id);
     }
@@ -66,7 +66,7 @@ public class CourseController {
     }
 
     @PostMapping("/")
-    @PreAuthorize("@accessChecker.loggedInAsOrAdmin(#dto.owner, authentication)")
+    @PreAuthorize("@accessChecker.hasAuthority(#dto.owner, T(com.a6raywa1cher.coursejournalbackend.model.User), 'WRITE', authentication)")
     @ResponseStatus(HttpStatus.CREATED)
     @Validated(OnCreate.class)
     public CourseDto create(@RequestBody @Valid CourseRestDto dto) {
@@ -74,21 +74,21 @@ public class CourseController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("@accessChecker.editCourseAccess(#id, #dto, authentication)")
+    @PreAuthorize("@accessChecker.editCourseAccessWithDto(#id, #dto, authentication)")
     @Validated(OnUpdate.class)
     public CourseDto update(@RequestBody @Valid CourseRestDto dto, @PathVariable long id) {
         return service.update(id, mapper.map(dto));
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("@accessChecker.editCourseAccess(#id, #dto, authentication)")
+    @PreAuthorize("@accessChecker.editCourseAccessWithDto(#id, #dto, authentication)")
     @Validated(OnPatch.class)
     public CourseDto patch(@RequestBody @Valid CourseRestDto dto, @PathVariable long id) {
         return service.patch(id, mapper.map(dto));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("@accessChecker.deleteCourseAccess(#id, authentication)")
+    @PreAuthorize("@accessChecker.hasAuthority(#id, T(com.a6raywa1cher.coursejournalbackend.model.Course), 'WRITE', authentication)")
     public void delete(@PathVariable long id) {
         service.delete(id);
     }

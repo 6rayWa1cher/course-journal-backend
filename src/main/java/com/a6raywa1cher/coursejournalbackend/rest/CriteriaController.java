@@ -30,13 +30,13 @@ public class CriteriaController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Criteria), authentication)")
+    @PreAuthorize("@accessChecker.readCriteriaAccess(#id, authentication)")
     public CriteriaDto getById(@PathVariable long id) {
         return service.getById(id);
     }
 
     @GetMapping("/task/{id}")
-    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Task), authentication)")
+    @PreAuthorize("@accessChecker.readTaskAccess(#id, authentication)")
     public List<CriteriaDto> getByTask(@PathVariable long id) {
         return service.getByTaskId(id).stream()
                 .sorted(Comparator.comparing(CriteriaDto::getCriteriaPercent))
@@ -44,7 +44,7 @@ public class CriteriaController {
     }
 
     @PostMapping("/")
-    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#dto.task, T(com.a6raywa1cher.coursejournalbackend.model.Task), authentication)")
+    @PreAuthorize("@accessChecker.createCriteriaAccess(#dto.task, authentication)")
     @ResponseStatus(HttpStatus.CREATED)
     @Validated(OnCreate.class)
     public CriteriaDto create(@RequestBody @Valid CriteriaRestDto dto) {
@@ -52,21 +52,21 @@ public class CriteriaController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Criteria), authentication)")
+    @PreAuthorize("@accessChecker.editCriteriaAccess(#id, authentication)")
     @Validated(OnUpdate.class)
     public CriteriaDto update(@RequestBody @Valid CriteriaRestDto dto, @PathVariable long id) {
         return service.update(id, mapper.map(dto));
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Criteria), authentication)")
+    @PreAuthorize("@accessChecker.editCriteriaAccess(#id, authentication)")
     @Validated(OnPatch.class)
     public CriteriaDto patch(@RequestBody @Valid CriteriaRestDto dto, @PathVariable long id) {
         return service.patch(id, mapper.map(dto));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("@accessChecker.isOwnedByClientOrAdmin(#id, T(com.a6raywa1cher.coursejournalbackend.model.Criteria), authentication)")
+    @PreAuthorize("@accessChecker.editCriteriaAccess(#id, authentication)")
     public void delete(@PathVariable long id) {
         service.delete(id);
     }
