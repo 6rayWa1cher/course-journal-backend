@@ -1,6 +1,5 @@
 package com.a6raywa1cher.coursejournalbackend.model;
 
-import com.a6raywa1cher.coursejournalbackend.model.embed.SubmissionId;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -16,14 +15,28 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "submission")
+@Table(
+        name = "submission",
+        uniqueConstraints = @UniqueConstraint(name = "one_sub_per_task_student", columnNames = {"task_id", "student_id"})
+)
 @Getter
 @Setter
 @ToString
 @RequiredArgsConstructor
 public class Submission {
-    @EmbeddedId
-    private SubmissionId primaryKey;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id", nullable = false)
+    @ReadOnlyProperty
+    private Long id;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "task_id")
+    private Task task;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "student_id")
+    private Student student;
 
     @Column(name = "submitted_at", nullable = false)
     private LocalDateTime submittedAt;
@@ -32,8 +45,7 @@ public class Submission {
     @JoinTable(
             name = "submission_criteria",
             joinColumns = {
-                    @JoinColumn(name = "task_id", referencedColumnName = "task_id"),
-                    @JoinColumn(name = "student_id", referencedColumnName = "student_id")
+                    @JoinColumn(name = "submission_id", referencedColumnName = "id"),
             },
             inverseJoinColumns = {
                     @JoinColumn(name = "criteria_id", referencedColumnName = "id")
@@ -63,11 +75,11 @@ public class Submission {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
         Submission that = (Submission) o;
-        return primaryKey != null && Objects.equals(primaryKey, that.primaryKey);
+        return id != null && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(primaryKey);
+        return getClass().hashCode();
     }
 }
