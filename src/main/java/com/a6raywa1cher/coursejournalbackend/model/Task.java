@@ -52,7 +52,7 @@ public class Task {
     @Column(name = "announcement_at")
     private LocalDateTime announcementAt;
 
-    @OneToMany(mappedBy = "primaryKey.task", orphanRemoval = true, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "task", orphanRemoval = true, cascade = CascadeType.ALL)
     @ToString.Exclude
     private List<Submission> submissions;
 

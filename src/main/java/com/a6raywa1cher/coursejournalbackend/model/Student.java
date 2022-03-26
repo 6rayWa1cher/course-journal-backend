@@ -39,7 +39,7 @@ public class Student {
     @Column(name = "middle_name")
     private String middleName;
 
-    @OneToMany(mappedBy = "primaryKey.student", orphanRemoval = true, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "student", orphanRemoval = true, cascade = CascadeType.ALL)
     @ToString.Exclude
     private List<Submission> submissions;
 

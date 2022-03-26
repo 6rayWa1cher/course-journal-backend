@@ -61,7 +61,7 @@ public class AccessChecker {
         } else if (entity instanceof User user) {
             return getPermissionForUser(user, type);
         } else if (entity instanceof Submission submission) {
-            return getPermissionForCourse(submission.getPrimaryKey().getTask().getCourse(), type);
+            return getPermissionForCourse(submission.getTask().getCourse(), type);
         } else {
             throw new IllegalArgumentException("Unknown entity " + entity.getClass().getSimpleName());
         }
