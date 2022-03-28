@@ -20,7 +20,7 @@ import java.util.Objects;
 @Setter
 @ToString
 @RequiredArgsConstructor
-public class Student {
+public class Student implements IdEntity<Long> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
@@ -39,7 +39,7 @@ public class Student {
     @Column(name = "middle_name")
     private String middleName;
 
-    @OneToMany(mappedBy = "primaryKey.student", orphanRemoval = true, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "student", orphanRemoval = true, cascade = CascadeType.ALL)
     @ToString.Exclude
     private List<Submission> submissions;
 

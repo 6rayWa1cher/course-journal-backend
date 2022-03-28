@@ -125,12 +125,15 @@ public abstract class MapStructMapper {
     @Mapping(target = "task", source = "task.id")
     @Mapping(target = "student", source = "student.id")
     @Mapping(target = "submittedAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
+    @Mapping(target = "satisfiedCriteria", qualifiedByName = {"MapperHelper", "ExtractIds"})
     public abstract SubmissionDto map(Submission submission);
 
     @CreatedModifiedRestrictMapping
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "mainScore", ignore = true)
     @Mapping(target = "satisfiedCriteria", ignore = true)
+    @Mapping(target = "task", ignore = true)
+    @Mapping(target = "student", ignore = true)
     public abstract void put(SubmissionDto dto, @MappingTarget Submission target);
 
     @CreatedModifiedRestrictMapping
@@ -138,5 +141,7 @@ public abstract class MapStructMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "mainScore", ignore = true)
     @Mapping(target = "satisfiedCriteria", ignore = true)
+    @Mapping(target = "task", ignore = true)
+    @Mapping(target = "student", ignore = true)
     public abstract void patch(SubmissionDto dto, @MappingTarget Submission target);
 }

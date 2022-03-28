@@ -1,5 +1,7 @@
 package com.a6raywa1cher.coursejournalbackend;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.test.web.servlet.ResultMatcher;
 
@@ -8,6 +10,8 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Data
+@Builder
+@AllArgsConstructor
 public class RequestContext<T> {
     private final T request;
 

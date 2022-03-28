@@ -1,15 +1,15 @@
 package com.a6raywa1cher.coursejournalbackend;
 
-import com.a6raywa1cher.coursejournalbackend.dto.CourseDto;
-import com.a6raywa1cher.coursejournalbackend.dto.CreateEditUserDto;
-import com.a6raywa1cher.coursejournalbackend.dto.StudentDto;
-import com.a6raywa1cher.coursejournalbackend.dto.TaskDto;
+import com.a6raywa1cher.coursejournalbackend.dto.*;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.a6raywa1cher.coursejournalbackend.service.*;
 import com.github.javafaker.Faker;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestComponent;
+
+import java.time.ZonedDateTime;
+import java.util.stream.Stream;
 
 @TestComponent
 public class EntityFactory {
@@ -21,6 +21,8 @@ public class EntityFactory {
 
     private final CriteriaService criteriaService;
 
+    private final SubmissionService submissionService;
+
     private final Faker faker;
 
     private final MapStructTestMapper mapper;
@@ -28,11 +30,14 @@ public class EntityFactory {
     private final StudentService studentService;
 
     @Autowired
-    public EntityFactory(TaskService taskService, CourseService courseService, UserService userService, CriteriaService criteriaService, Faker faker, MapStructTestMapper mapper, StudentService studentService) {
+    public EntityFactory(TaskService taskService, CourseService courseService, UserService userService,
+                         CriteriaService criteriaService, SubmissionService submissionService, Faker faker,
+                         MapStructTestMapper mapper, StudentService studentService) {
         this.taskService = taskService;
         this.courseService = courseService;
         this.userService = userService;
         this.criteriaService = criteriaService;
+        this.submissionService = submissionService;
         this.faker = faker;
         this.mapper = mapper;
         this.studentService = studentService;
@@ -112,6 +117,57 @@ public class EntityFactory {
         return studentService.create(dto).getId();
     }
 
+    public long createCriteria() {
+        return createCriteria(bag());
+    }
+
+    public long createCriteria(Long userId) {
+        return createCriteria(bag().withUserId(userId));
+    }
+
+    public long createCriteria(EntityFactoryBag bag) {
+        CriteriaDto dto = CriteriaDto.builder()
+                .name(faker.lorem().sentence())
+                .criteriaPercent(faker.number().numberBetween(20, 80))
+                .task(bag.getTaskId())
+                .build();
+
+        CriteriaDto dtoFromBag = bag.getDto(CriteriaDto.class);
+        if (dtoFromBag != null) {
+            mapper.merge(dtoFromBag, dto);
+        }
+
+        return criteriaService.create(dto).getId();
+    }
+
+    public long createSubmission() {
+        return createSubmission(bag());
+    }
+
+    public long createSubmission(Long userId) {
+        return createSubmission(bag().withUserId(userId));
+    }
+
+    public long createSubmission(EntityFactoryBag bag) {
+        SubmissionDto dto = SubmissionDto.builder()
+                .submittedAt(ZonedDateTime.now().minusDays(faker.number().numberBetween(1, 8)))
+                .additionalScore(faker.number().numberBetween(0, 5))
+                .task(bag.getTaskId())
+                .student(bag.getStudentId())
+                .satisfiedCriteria(
+                        Stream.generate(() -> createCriteria(bag))
+                                .limit(faker.number().numberBetween(1, 5))
+                                .toList())
+                .build();
+
+        SubmissionDto dtoFromBag = bag.getDto(SubmissionDto.class);
+        if (dtoFromBag != null) {
+            mapper.merge(dtoFromBag, dto);
+        }
+
+        return submissionService.create(dto).getId();
+    }
+
     public EntityFactoryBag bag() {
         return new EntityFactoryBag(this);
     }
@@ -131,6 +187,10 @@ public class EntityFactory {
         private Long taskId;
 
         private Long studentId;
+
+        private Long criteriaId;
+
+        private Long submissionId;
 
         private Object dto;
 
@@ -152,6 +212,16 @@ public class EntityFactory {
         public Long getStudentId() {
             if (studentId == null) studentId = ef.createStudent(this);
             return studentId;
+        }
+
+        public Long getCriteriaId() {
+            if (criteriaId == null) criteriaId = ef.createCriteria(this);
+            return criteriaId;
+        }
+
+        public Long getSubmissionId() {
+            if (submissionId == null) submissionId = ef.createSubmission(this);
+            return submissionId;
         }
 
         public <T> T getDto(Class<T> clazz) {
