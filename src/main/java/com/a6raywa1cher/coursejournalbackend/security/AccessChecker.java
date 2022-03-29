@@ -157,6 +157,20 @@ public class AccessChecker {
     }
 
 
+    public boolean createSubmissionAccess(Long taskId, Long studentId, Authentication authentication) {
+        return hasAuthority(taskId, Task.class, ActionType.WRITE, authentication) &&
+                hasAuthority(studentId, Student.class, ActionType.WRITE, authentication);
+    }
+
+    public boolean readSubmissionAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Submission.class, ActionType.READ, authentication);
+    }
+
+    public boolean editSubmissionAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Submission.class, ActionType.WRITE, authentication);
+    }
+
+
     public boolean isUserModificationAuthorized(Long id, Authentication authentication) {
         if (isAdmin(authentication)) return true;
         Optional<User> byId = userRepository.findById(id);

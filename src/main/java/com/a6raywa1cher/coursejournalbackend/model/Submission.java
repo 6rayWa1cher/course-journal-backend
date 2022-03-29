@@ -31,11 +31,11 @@ public class Submission implements IdEntity<Long> {
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "task_id")
+    @JoinColumn(name = "task_id", nullable = false, updatable = false)
     private Task task;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "student_id")
+    @JoinColumn(name = "student_id", nullable = false, updatable = false)
     private Student student;
 
     @Column(name = "submitted_at", nullable = false)

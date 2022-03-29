@@ -13,6 +13,7 @@ public class UniqueIdsReorderRequestValidator implements ConstraintValidator<Uni
         List<ReorderTasksRestDto.ReorderRequest>> {
     @Override
     public boolean isValid(List<ReorderTasksRestDto.ReorderRequest> value, ConstraintValidatorContext context) {
+        if (value == null) return true;
         List<Long> values = value.stream().map(ReorderTasksRestDto.ReorderRequest::getId).toList();
         return values.size() == new HashSet<>(values).size();
     }

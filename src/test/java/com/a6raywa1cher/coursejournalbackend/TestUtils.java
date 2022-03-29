@@ -4,6 +4,7 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Base64;
 
@@ -26,7 +27,7 @@ public final class TestUtils {
 
         @Override
         public boolean matches(Object actual) {
-            return ZonedDateTime.parse((String) actual).isEqual(date);
+            return Duration.between(date, ZonedDateTime.parse((String) actual)).toMillis() < 1;
         }
 
         @Override
