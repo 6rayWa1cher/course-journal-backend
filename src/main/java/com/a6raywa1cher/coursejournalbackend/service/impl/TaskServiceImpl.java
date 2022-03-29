@@ -1,12 +1,10 @@
 package com.a6raywa1cher.coursejournalbackend.service.impl;
 
 import com.a6raywa1cher.coursejournalbackend.dto.TaskDto;
-import com.a6raywa1cher.coursejournalbackend.dto.exc.ConflictException;
-import com.a6raywa1cher.coursejournalbackend.dto.exc.NotFoundException;
-import com.a6raywa1cher.coursejournalbackend.dto.exc.TransferNotAllowedException;
-import com.a6raywa1cher.coursejournalbackend.dto.exc.VariousParentEntitiesException;
+import com.a6raywa1cher.coursejournalbackend.dto.exc.*;
 import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
 import com.a6raywa1cher.coursejournalbackend.model.Course;
+import com.a6raywa1cher.coursejournalbackend.model.Submission;
 import com.a6raywa1cher.coursejournalbackend.model.Task;
 import com.a6raywa1cher.coursejournalbackend.model.repo.TaskRepository;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
@@ -106,6 +104,7 @@ public class TaskServiceImpl implements TaskService {
         if (dto.getTaskNumber() == null) {
             task.setTaskNumber(repository.getNextNumber(course));
         }
+        assertDeadlineRule(task);
 
         task.setCourse(course);
         task.setCreatedAt(LocalDateTime.now());
@@ -121,6 +120,7 @@ public class TaskServiceImpl implements TaskService {
         assertNoConflictsInTaskNumbers(course, Map.of(id, dto.getTaskNumber()));
         mapper.put(dto, task);
         assertNoCourseChange(task.getCourse(), course);
+        assertDeadlineRule(task);
 
         task.setCourse(course);
         task.setLastModifiedAt(LocalDateTime.now());
@@ -136,6 +136,7 @@ public class TaskServiceImpl implements TaskService {
             assertNoConflictsInTaskNumbers(course, Map.of(task.getId(), dto.getTaskNumber()));
         mapper.patch(dto, task);
         assertNoCourseChange(task.getCourse(), course);
+        assertDeadlineRule(task);
 
         task.setCourse(course);
         task.setLastModifiedAt(LocalDateTime.now());
@@ -207,5 +208,18 @@ public class TaskServiceImpl implements TaskService {
 
     private Task getTaskById(long id) {
         return repository.findById(id).orElseThrow(() -> new NotFoundException(Task.class, id));
+    }
+
+    private void assertDeadlineRule(Task task) {
+        if (task.getDeadlinesEnabled() == null || !task.getDeadlinesEnabled()) return;
+        LocalDateTime hardDeadlineAt = task.getHardDeadlineAt();
+        LocalDateTime softDeadlineAt = task.getSoftDeadlineAt();
+        if ((hardDeadlineAt == null) != (softDeadlineAt == null)) {
+            throw new PairedAttributesRuleViolationException(
+                    Submission.class,
+                    "hardDeadlineAt", hardDeadlineAt,
+                    "softDeadlineAt", softDeadlineAt
+            );
+        }
     }
 }

@@ -56,6 +56,9 @@ public class Task implements IdEntity<Long> {
     @ToString.Exclude
     private List<Submission> submissions;
 
+    @Column(name = "deadlines_enabled")
+    private Boolean deadlinesEnabled;
+
     @Column(name = "soft_deadline_at")
     private LocalDateTime softDeadlineAt;
 
