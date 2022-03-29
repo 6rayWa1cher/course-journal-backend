@@ -4,7 +4,6 @@ import com.a6raywa1cher.coursejournalbackend.dto.TaskDto;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.*;
 import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
 import com.a6raywa1cher.coursejournalbackend.model.Course;
-import com.a6raywa1cher.coursejournalbackend.model.Submission;
 import com.a6raywa1cher.coursejournalbackend.model.Task;
 import com.a6raywa1cher.coursejournalbackend.model.repo.TaskRepository;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
@@ -214,12 +213,8 @@ public class TaskServiceImpl implements TaskService {
         if (task.getDeadlinesEnabled() == null || !task.getDeadlinesEnabled()) return;
         LocalDateTime hardDeadlineAt = task.getHardDeadlineAt();
         LocalDateTime softDeadlineAt = task.getSoftDeadlineAt();
-        if ((hardDeadlineAt == null) != (softDeadlineAt == null)) {
-            throw new PairedAttributesRuleViolationException(
-                    Submission.class,
-                    "hardDeadlineAt", hardDeadlineAt,
-                    "softDeadlineAt", softDeadlineAt
-            );
+        if ((hardDeadlineAt == null) || (softDeadlineAt == null)) {
+            throw new NoDataPresentedException(Task.class, "hardDeadlineAt", "softDeadlineAt");
         }
     }
 }

@@ -8,7 +8,9 @@ import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestComponent;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.stream.Stream;
 
 @TestComponent
@@ -81,9 +83,15 @@ public class EntityFactory {
     }
 
     public long createTask(EntityFactoryBag bag) {
+        ZonedDateTime softDeadlineAt = ZonedDateTime.now();
+        ZonedDateTime hardDeadlineAt = ZonedDateTime.now().plusDays(faker.number().numberBetween(1, 10));
         TaskDto dto = TaskDto.builder()
                 .title(faker.lorem().sentence())
                 .course(bag.getCourseId())
+                .maxScore(faker.number().numberBetween(5, 10))
+                .softDeadlineAt(softDeadlineAt)
+                .hardDeadlineAt(hardDeadlineAt)
+                .deadlinesEnabled(true)
                 .build();
 
         TaskDto dtoFromBag = bag.getDto(TaskDto.class);
@@ -150,7 +158,7 @@ public class EntityFactory {
 
     public long createSubmission(EntityFactoryBag bag) {
         SubmissionDto dto = SubmissionDto.builder()
-                .submittedAt(ZonedDateTime.now().minusDays(faker.number().numberBetween(1, 8)))
+                .submittedAt(getFakedZonedDateTime(ZonedDateTime.now().minusDays(15), ZonedDateTime.now().plusDays(15)))
                 .additionalScore(faker.number().numberBetween(0, 5))
                 .task(bag.getTaskId())
                 .student(bag.getStudentId())
@@ -228,5 +236,12 @@ public class EntityFactory {
             if (dto == null) return null;
             return clazz.isAssignableFrom(dto.getClass()) ? clazz.cast(dto) : null;
         }
+    }
+
+    private ZonedDateTime getFakedZonedDateTime(ZonedDateTime from, ZonedDateTime to) {
+        Date fromDate = Date.from(from.toInstant());
+        Date toDate = Date.from(to.toInstant());
+        Date randomDate = faker.date().between(fromDate, toDate);
+        return ZonedDateTime.ofInstant(randomDate.toInstant(), ZoneId.systemDefault());
     }
 }

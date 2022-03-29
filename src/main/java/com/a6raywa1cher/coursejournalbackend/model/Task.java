@@ -11,6 +11,7 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -54,7 +55,11 @@ public class Task implements IdEntity<Long> {
 
     @OneToMany(mappedBy = "task", orphanRemoval = true, cascade = CascadeType.ALL)
     @ToString.Exclude
-    private List<Submission> submissions;
+    private List<Submission> submissions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "task", orphanRemoval = true, cascade = CascadeType.ALL)
+    @ToString.Exclude
+    private List<Criteria> criteria = new ArrayList<>();
 
     @Column(name = "deadlines_enabled")
     private Boolean deadlinesEnabled;

@@ -10,7 +10,6 @@ import com.jayway.jsonpath.JsonPath;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.jupiter.api.Test;
-import org.mockito.internal.matchers.GreaterThan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -479,7 +478,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 jsonPath(prefix + ".task").value(taskId),
                 jsonPath(prefix + ".student").value(studentId),
                 jsonPath(prefix + ".submittedAt").value(new TestUtils.DateMatcher(submittedAt)),
-                jsonPath(prefix + ".mainScore").value(new GreaterThan<>(0)),
+                jsonPath(prefix + ".mainScore").value(new TestUtils.GreaterThanMatcher(0)),
                 jsonPath(prefix + ".additionalScore").value(additionalScore),
                 jsonPath(prefix + ".satisfiedCriteria", contains(satisfiedCriteria.stream().map(Math::toIntExact).toArray())),
         };
@@ -506,7 +505,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                         .andExpectAll(ctx.getMatchers())
                         .andReturn();
 
-                long id = Long.parseLong(JsonPath.read(mvcResult.getResponse().getContentAsString(), "$.id"));
+                int id = JsonPath.read(mvcResult.getResponse().getContentAsString(), "$.id");
 
                 securePerform(get("/submissions/{id}", id))
                         .andExpect(status().isOk())
@@ -534,7 +533,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                         .andExpectAll(ctx.getMatchers())
                         .andReturn();
 
-                long id = Long.parseLong(JsonPath.read(mvcResult.getResponse().getContentAsString(), "$.id"));
+                int id = JsonPath.read(mvcResult.getResponse().getContentAsString(), "$.id");
 
                 securePerform(get("/submissions/{id}", id))
                         .andExpect(status().isOk())
@@ -578,17 +577,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 ObjectNode request = ctx.getRequest()
                         .put("mainScore", mainScore);
 
-                var mainScoreMatcher = new BaseMatcher<Integer>() {
-                    @Override
-                    public boolean matches(Object actual) {
-                        return ((int) actual) != 100500;
-                    }
-
-                    @Override
-                    public void describeTo(Description description) {
-                        description.appendValue(this);
-                    }
-                };
+                var mainScoreMatcher = new TestUtils.NotEqualsMatcher(100500);
 
                 MvcResult mvcResult = securePerform(post("/submissions/")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -598,7 +587,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                         .andExpect(jsonPath("$.mainScore").value(mainScoreMatcher))
                         .andReturn();
 
-                long id = Long.parseLong(JsonPath.read(mvcResult.getResponse().getContentAsString(), "$.id"));
+                int id = JsonPath.read(mvcResult.getResponse().getContentAsString(), "$.id");
 
                 securePerform(get("/submissions/{id}", id))
                         .andExpect(status().isOk())
@@ -686,7 +675,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 jsonPath(prefix + ".task").value(taskId),
                 jsonPath(prefix + ".student").value(studentId),
                 jsonPath(prefix + ".submittedAt").value(new TestUtils.DateMatcher(submittedAt)),
-                jsonPath(prefix + ".mainScore").value(new GreaterThan<>(0)),
+                jsonPath(prefix + ".mainScore").value(new TestUtils.GreaterThanMatcher(0)),
                 jsonPath(prefix + ".additionalScore").value(additionalScore),
                 jsonPath(prefix + ".satisfiedCriteria").isEmpty()
         };
@@ -975,7 +964,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 jsonPath(prefix + ".task").value(taskId),
                 jsonPath(prefix + ".student").value(studentId),
                 jsonPath(prefix + ".submittedAt").value(new TestUtils.DateMatcher(submittedAt)),
-                jsonPath(prefix + ".mainScore").value(new GreaterThan<>(0)),
+                jsonPath(prefix + ".mainScore").value(new TestUtils.GreaterThanMatcher(0)),
                 jsonPath(prefix + ".additionalScore").value(additionalScore),
                 jsonPath(prefix + ".satisfiedCriteria").isNotEmpty()
         };

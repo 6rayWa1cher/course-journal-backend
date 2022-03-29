@@ -54,11 +54,11 @@ public class Submission implements IdEntity<Long> {
     @ToString.Exclude
     private List<Criteria> satisfiedCriteria;
 
-    @Column(name = "main_score")
-    private Integer mainScore;
+    @Column(name = "main_score", precision = 3, scale = 2)
+    private Double mainScore;
 
-    @Column(name = "additional_score")
-    private Integer additionalScore;
+    @Column(name = "additional_score", precision = 3, scale = 2)
+    private Double additionalScore;
 
     @Column(name = "created_at")
     @CreatedDate

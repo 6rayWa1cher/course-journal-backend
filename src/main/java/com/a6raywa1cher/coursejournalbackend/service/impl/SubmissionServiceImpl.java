@@ -93,7 +93,11 @@ public class SubmissionServiceImpl implements SubmissionService {
         submission.setTask(task);
         submission.setStudent(student);
         submission.setSatisfiedCriteria(satisfiedCriteria);
-        submission.setMainScore(scoringService.getMainScore(submission));
+        submission.setMainScore(scoringService.getMainScore(
+                mapper.map(submission),
+                mapper.map(task),
+                task.getCriteria().stream().map(mapper::map).toList()
+        ));
         submission.setCreatedAt(LocalDateTime.now());
         submission.setLastModifiedAt(LocalDateTime.now());
         return mapper.map(repository.save(submission));
@@ -112,7 +116,11 @@ public class SubmissionServiceImpl implements SubmissionService {
         mapper.put(dto, submission);
 
         submission.setSatisfiedCriteria(new ArrayList<>(satisfiedCriteria));
-        submission.setMainScore(scoringService.getMainScore(submission));
+        submission.setMainScore(scoringService.getMainScore(
+                mapper.map(submission),
+                mapper.map(task),
+                task.getCriteria().stream().map(mapper::map).toList()
+        ));
         submission.setLastModifiedAt(LocalDateTime.now());
         return mapper.map(repository.save(submission));
     }
@@ -132,7 +140,11 @@ public class SubmissionServiceImpl implements SubmissionService {
         mapper.patch(dto, submission);
 
         submission.setSatisfiedCriteria(new ArrayList<>(satisfiedCriteria));
-        submission.setMainScore(scoringService.getMainScore(submission));
+        submission.setMainScore(scoringService.getMainScore(
+                mapper.map(submission),
+                mapper.map(task),
+                task.getCriteria().stream().map(mapper::map).toList()
+        ));
         submission.setLastModifiedAt(LocalDateTime.now());
         return mapper.map(repository.save(submission));
     }

@@ -35,4 +35,40 @@ public final class TestUtils {
             description.appendValue(date);
         }
     }
+
+    public static final class GreaterThanMatcher extends BaseMatcher<Integer> {
+        private final int value;
+
+        public GreaterThanMatcher(int value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean matches(Object actual) {
+            return ((int) actual) > value;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendValue(value);
+        }
+    }
+
+    public static final class NotEqualsMatcher extends BaseMatcher<Integer> {
+        private final int value;
+
+        public NotEqualsMatcher(int value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean matches(Object actual) {
+            return ((int) actual) != value;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendValue(value);
+        }
+    }
 }
