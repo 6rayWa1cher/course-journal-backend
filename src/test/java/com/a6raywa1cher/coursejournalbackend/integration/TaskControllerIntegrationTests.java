@@ -396,6 +396,101 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
+    void createTask__deadlinesMixedNullsAndEnabled__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                String title1 = faker.lorem().sentence();
+                String title2 = faker.lorem().sentence();
+
+                long courseId = ef.createCourse(getIdAsLong());
+
+                taskService.create(TaskDto.builder()
+                        .title(title1)
+                        .taskNumber(1)
+                        .course(courseId)
+                        .build());
+
+                securePerform(post("/tasks/", courseId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("title", title2)
+                                .put("taskNumber", 2)
+                                .put("course", courseId)
+                                .put("hardDeadlineAt", ZonedDateTime.now().plusDays(5).toString())
+                                .put("deadlinesEnabled", true)
+                                .toString()))
+                        .andExpect(status().isBadRequest());
+            }
+        };
+    }
+
+    @Test
+    void createTask__deadlinesNotMixedNullsAndEnabled__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                String title1 = faker.lorem().sentence();
+                String title2 = faker.lorem().sentence();
+
+                long courseId = ef.createCourse(getIdAsLong());
+
+                taskService.create(TaskDto.builder()
+                        .title(title1)
+                        .taskNumber(1)
+                        .course(courseId)
+                        .build());
+
+                securePerform(post("/tasks/", courseId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("title", title2)
+                                .put("taskNumber", 1)
+                                .put("course", courseId)
+                                .put("hardDeadlineAt", ZonedDateTime.now().plusDays(5).toString())
+                                .put("softDeadlineAt", ZonedDateTime.now().plusDays(2).toString())
+                                .put("deadlinesEnabled", true)
+                                .toString()))
+                        .andExpect(status().isConflict());
+            }
+        };
+    }
+
+    @Test
+    void createTask__deadlinesMixedNullsAndDisabled__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                String title = faker.lorem().sentence();
+                long courseId = ef.createCourse(getIdAsLong());
+                ZonedDateTime softDeadlineAt = ZonedDateTime.now().plusDays(2);
+
+                securePerform(post("/tasks/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("title", title)
+                                .put("course", courseId)
+                                .put("softDeadlineAt", softDeadlineAt.toString())
+                                .put("deadlinesEnabled", false)
+                                .toString()))
+                        .andExpect(status().isCreated())
+                        .andExpectAll(
+                                jsonPath("$.id").isNumber(),
+                                jsonPath("$.title").value(title),
+                                jsonPath("$.course").value(courseId),
+                                jsonPath("$.deadlinesEnabled").value(false),
+                                jsonPath("$.softDeadlineAt").value(new TestUtils.DateMatcher(softDeadlineAt))
+
+                        );
+
+                securePerform(get("/tasks/course/{id}", courseId))
+                        .andExpect(status().isOk())
+                        .andExpect(content().string(containsString(title)));
+            }
+        };
+    }
+
+    @Test
     void createTask__notAuthenticated__invalid() throws Exception {
         mvc.perform(post("/tasks/")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -734,6 +829,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 int maxScore = 150;
                 int maxPenaltyPercent = 60;
                 boolean announced = true;
+                boolean deadlinesEnabled = true;
                 ZonedDateTime announcementAt = ZonedDateTime.now().minusSeconds(5);
                 ZonedDateTime softDeadlineAt = ZonedDateTime.now().plusDays(15);
                 ZonedDateTime hardDeadlineAt = ZonedDateTime.now().plusDays(30);
@@ -756,6 +852,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                         jsonPath("$.maxScore").value(maxScore),
                         jsonPath("$.maxPenaltyPercent").value(maxPenaltyPercent),
                         jsonPath("$.announced").value(announced),
+                        jsonPath("$.deadlinesEnabled").value(deadlinesEnabled),
                         jsonPath("$.announcementAt", new TestUtils.DateMatcher(announcementAt)),
                         jsonPath("$.softDeadlineAt", new TestUtils.DateMatcher(softDeadlineAt)),
                         jsonPath("$.hardDeadlineAt", new TestUtils.DateMatcher(hardDeadlineAt)),
@@ -771,6 +868,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                                 .put("maxScore", maxScore)
                                 .put("maxPenaltyPercent", maxPenaltyPercent)
                                 .put("announced", announced)
+                                .put("deadlinesEnabled", deadlinesEnabled)
                                 .put("announcementAt", announcementAt.toString())
                                 .put("softDeadlineAt", softDeadlineAt.toString())
                                 .put("hardDeadlineAt", hardDeadlineAt.toString())
@@ -798,6 +896,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 int maxScore = 150;
                 int maxPenaltyPercent = 60;
                 boolean announced = true;
+                boolean deadlinesEnabled = true;
                 ZonedDateTime announcementAt = ZonedDateTime.now().minusSeconds(5);
                 ZonedDateTime softDeadlineAt = ZonedDateTime.now().plusDays(15);
                 ZonedDateTime hardDeadlineAt = ZonedDateTime.now().plusDays(30);
@@ -820,6 +919,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                         jsonPath("$.maxScore").value(maxScore),
                         jsonPath("$.maxPenaltyPercent").value(maxPenaltyPercent),
                         jsonPath("$.announced").value(announced),
+                        jsonPath("$.deadlinesEnabled").value(deadlinesEnabled),
                         jsonPath("$.announcementAt", new TestUtils.DateMatcher(announcementAt)),
                         jsonPath("$.softDeadlineAt", new TestUtils.DateMatcher(softDeadlineAt)),
                         jsonPath("$.hardDeadlineAt", new TestUtils.DateMatcher(hardDeadlineAt)),
@@ -835,6 +935,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                                 .put("maxScore", maxScore)
                                 .put("maxPenaltyPercent", maxPenaltyPercent)
                                 .put("announced", announced)
+                                .put("deadlinesEnabled", deadlinesEnabled)
                                 .put("announcementAt", announcementAt.toString())
                                 .put("softDeadlineAt", softDeadlineAt.toString())
                                 .put("hardDeadlineAt", hardDeadlineAt.toString())
@@ -862,6 +963,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 int maxScore = 150;
                 int maxPenaltyPercent = 60;
                 boolean announced = true;
+                boolean deadlinesEnabled = true;
                 ZonedDateTime announcementAt = ZonedDateTime.now().minusSeconds(5);
                 ZonedDateTime softDeadlineAt = ZonedDateTime.now().plusDays(15);
                 ZonedDateTime hardDeadlineAt = ZonedDateTime.now().plusDays(30);
@@ -885,6 +987,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                                 .put("maxScore", maxScore)
                                 .put("maxPenaltyPercent", maxPenaltyPercent)
                                 .put("announced", announced)
+                                .put("deadlinesEnabled", deadlinesEnabled)
                                 .put("announcementAt", announcementAt.toString())
                                 .put("softDeadlineAt", softDeadlineAt.toString())
                                 .put("hardDeadlineAt", hardDeadlineAt.toString())
@@ -906,6 +1009,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 int maxScore = 150;
                 int maxPenaltyPercent = 60;
                 boolean announced = true;
+                boolean deadlinesEnabled = true;
                 ZonedDateTime announcementAt = ZonedDateTime.now().minusSeconds(5);
                 ZonedDateTime softDeadlineAt = ZonedDateTime.now().plusDays(15);
                 ZonedDateTime hardDeadlineAt = ZonedDateTime.now().plusDays(30);
@@ -930,6 +1034,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                                 .put("maxScore", maxScore)
                                 .put("maxPenaltyPercent", maxPenaltyPercent)
                                 .put("announced", announced)
+                                .put("deadlinesEnabled", deadlinesEnabled)
                                 .put("announcementAt", announcementAt.toString())
                                 .put("softDeadlineAt", softDeadlineAt.toString())
                                 .put("hardDeadlineAt", hardDeadlineAt.toString())
@@ -951,6 +1056,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 int maxScore = 150;
                 int maxPenaltyPercent = 60;
                 boolean announced = true;
+                boolean deadlinesEnabled = true;
                 ZonedDateTime announcementAt = ZonedDateTime.now().minusSeconds(5);
                 ZonedDateTime softDeadlineAt = ZonedDateTime.now().plusDays(15);
                 ZonedDateTime hardDeadlineAt = ZonedDateTime.now().plusDays(30);
@@ -984,6 +1090,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                                 .put("maxScore", maxScore)
                                 .put("maxPenaltyPercent", maxPenaltyPercent)
                                 .put("announced", announced)
+                                .put("deadlinesEnabled", deadlinesEnabled)
                                 .put("announcementAt", announcementAt.toString())
                                 .put("softDeadlineAt", softDeadlineAt.toString())
                                 .put("hardDeadlineAt", hardDeadlineAt.toString())
@@ -1005,6 +1112,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 int maxScore = 150;
                 int maxPenaltyPercent = 60;
                 boolean announced = true;
+                boolean deadlinesEnabled = true;
                 ZonedDateTime announcementAt = ZonedDateTime.now().minusSeconds(5);
                 ZonedDateTime softDeadlineAt = ZonedDateTime.now().plusDays(15);
                 ZonedDateTime hardDeadlineAt = ZonedDateTime.now().plusDays(30);
@@ -1028,11 +1136,122 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                                 .put("maxScore", maxScore)
                                 .put("maxPenaltyPercent", maxPenaltyPercent)
                                 .put("announced", announced)
+                                .put("deadlinesEnabled", deadlinesEnabled)
                                 .put("announcementAt", announcementAt.toString())
                                 .put("softDeadlineAt", softDeadlineAt.toString())
                                 .put("hardDeadlineAt", hardDeadlineAt.toString())
                                 .toString()))
                         .andExpect(status().isNotFound());
+            }
+        };
+    }
+
+    @Test
+    void putTask__deadlinesMixedNullsAndEnabled__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse(getIdAsLong());
+                int taskNumber = 1;
+                String title = faker.lorem().sentence();
+                String description = faker.lorem().paragraph();
+                int maxScore = 150;
+                int maxPenaltyPercent = 60;
+                boolean announced = true;
+                boolean deadlinesEnabled = true;
+                ZonedDateTime announcementAt = ZonedDateTime.now().minusSeconds(5);
+                ZonedDateTime softDeadlineAt = ZonedDateTime.now().plusDays(15);
+
+                String prevTitle = faker.lorem().sentence();
+                String prevDescription = faker.lorem().paragraph();
+
+                long taskId = taskService.create(TaskDto.builder()
+                        .title(prevTitle)
+                        .description(prevDescription)
+                        .course(courseId)
+                        .build()).getId();
+
+                securePerform(put("/tasks/{id}", taskId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("course", courseId)
+                                .put("taskNumber", taskNumber)
+                                .put("title", title)
+                                .put("description", description)
+                                .put("maxScore", maxScore)
+                                .put("maxPenaltyPercent", maxPenaltyPercent)
+                                .put("announced", announced)
+                                .put("deadlinesEnabled", deadlinesEnabled)
+                                .put("announcementAt", announcementAt.toString())
+                                .put("softDeadlineAt", softDeadlineAt.toString())
+                                .putNull("hardDeadlineAt")
+                                .toString()))
+                        .andExpect(status().isBadRequest());
+            }
+        };
+    }
+
+    @Test
+    void putTask__deadlinesMixedNullsAndDisabled__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse(getIdAsLong());
+                int taskNumber = 1;
+                String title = faker.lorem().sentence();
+                String description = faker.lorem().paragraph();
+                int maxScore = 150;
+                int maxPenaltyPercent = 60;
+                boolean announced = true;
+                boolean deadlinesEnabled = false;
+                ZonedDateTime announcementAt = ZonedDateTime.now().minusSeconds(5);
+                ZonedDateTime softDeadlineAt = ZonedDateTime.now().plusDays(15);
+
+                String prevTitle = faker.lorem().sentence();
+                String prevDescription = faker.lorem().paragraph();
+
+                long taskId = taskService.create(TaskDto.builder()
+                        .title(prevTitle)
+                        .description(prevDescription)
+                        .course(courseId)
+                        .build()).getId();
+
+                ResultMatcher[] resultMatchers = {
+                        jsonPath("$.id").value(taskId),
+                        jsonPath("$.course").value(courseId),
+                        jsonPath("$.taskNumber").value(taskNumber),
+                        jsonPath("$.title").value(title),
+                        jsonPath("$.description").value(description),
+                        jsonPath("$.maxScore").value(maxScore),
+                        jsonPath("$.maxPenaltyPercent").value(maxPenaltyPercent),
+                        jsonPath("$.announced").value(announced),
+                        jsonPath("$.deadlinesEnabled").value(deadlinesEnabled),
+                        jsonPath("$.announcementAt", new TestUtils.DateMatcher(announcementAt)),
+                        jsonPath("$.softDeadlineAt", new TestUtils.DateMatcher(softDeadlineAt)),
+                };
+
+                securePerform(put("/tasks/{id}", taskId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("course", courseId)
+                                .put("taskNumber", taskNumber)
+                                .put("title", title)
+                                .put("description", description)
+                                .put("maxScore", maxScore)
+                                .put("maxPenaltyPercent", maxPenaltyPercent)
+                                .put("announced", announced)
+                                .put("deadlinesEnabled", deadlinesEnabled)
+                                .put("announcementAt", announcementAt.toString())
+                                .put("softDeadlineAt", softDeadlineAt.toString())
+                                .putNull("hardDeadlineAt")
+                                .toString()))
+                        .andExpect(status().isOk())
+                        .andExpectAll(resultMatchers);
+
+
+                securePerform(get("/tasks/{id}", taskId))
+                        .andExpect(status().isOk())
+                        .andExpectAll(resultMatchers);
             }
         };
     }
@@ -1308,6 +1527,100 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                                 .put("course", courseId)
                                 .toString()))
                         .andExpect(status().isNotFound());
+            }
+        };
+    }
+
+    @Test
+    void patchTask__deadlinesMixedNullsAndEnabled__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse(getIdAsLong());
+                ZonedDateTime announcementAt = ZonedDateTime.now().minusSeconds(5);
+
+                String title = faker.lorem().sentence();
+                String description = faker.lorem().paragraph();
+
+                long taskId = taskService.create(TaskDto.builder()
+                        .title(title)
+                        .description(description)
+                        .course(courseId)
+                        .softDeadlineAt(ZonedDateTime.now().plusDays(5))
+                        .build()).getId();
+
+                securePerform(patch("/tasks/{id}", taskId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("announcementAt", announcementAt.toString())
+                                .put("deadlinesEnabled", true)
+                                .toString()))
+                        .andExpect(status().isBadRequest());
+            }
+        };
+    }
+
+    @Test
+    void patchTask__deadlinesMixedNullsAndDisabled__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse(getIdAsLong());
+                int taskNumber = 1;
+                String title = faker.lorem().sentence();
+                String description = faker.lorem().paragraph();
+                int maxScore = 150;
+                int maxPenaltyPercent = 60;
+                boolean announced = true;
+                boolean deadlinesEnabled = false;
+                ZonedDateTime announcementAt = ZonedDateTime.now().minusSeconds(5);
+                ZonedDateTime softDeadlineAt = ZonedDateTime.now().plusDays(15);
+
+                String prevTitle = faker.lorem().sentence();
+                String prevDescription = faker.lorem().paragraph();
+
+                long taskId = taskService.create(TaskDto.builder()
+                        .title(prevTitle)
+                        .description(prevDescription)
+                        .course(courseId)
+                        .build()).getId();
+
+                ResultMatcher[] resultMatchers = {
+                        jsonPath("$.id").value(taskId),
+                        jsonPath("$.course").value(courseId),
+                        jsonPath("$.taskNumber").value(taskNumber),
+                        jsonPath("$.title").value(title),
+                        jsonPath("$.description").value(description),
+                        jsonPath("$.maxScore").value(maxScore),
+                        jsonPath("$.maxPenaltyPercent").value(maxPenaltyPercent),
+                        jsonPath("$.announced").value(announced),
+                        jsonPath("$.deadlinesEnabled").value(deadlinesEnabled),
+                        jsonPath("$.announcementAt", new TestUtils.DateMatcher(announcementAt)),
+                        jsonPath("$.softDeadlineAt", new TestUtils.DateMatcher(softDeadlineAt)),
+                };
+
+                securePerform(put("/tasks/{id}", taskId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("course", courseId)
+                                .put("taskNumber", taskNumber)
+                                .put("title", title)
+                                .put("description", description)
+                                .put("maxScore", maxScore)
+                                .put("maxPenaltyPercent", maxPenaltyPercent)
+                                .put("announced", announced)
+                                .put("deadlinesEnabled", deadlinesEnabled)
+                                .put("announcementAt", announcementAt.toString())
+                                .put("softDeadlineAt", softDeadlineAt.toString())
+                                .putNull("hardDeadlineAt")
+                                .toString()))
+                        .andExpect(status().isOk())
+                        .andExpectAll(resultMatchers);
+
+
+                securePerform(get("/tasks/{id}", taskId))
+                        .andExpect(status().isOk())
+                        .andExpectAll(resultMatchers);
             }
         };
     }

@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 @Service
 @Transactional
@@ -41,6 +42,11 @@ public class CriteriaServiceImpl implements CriteriaService {
     @Override
     public Optional<Criteria> findRawById(long id) {
         return repository.findById(id);
+    }
+
+    @Override
+    public List<Criteria> findRawById(List<Long> ids) {
+        return StreamSupport.stream(repository.findAllById(ids).spliterator(), false).toList();
     }
 
     @Override

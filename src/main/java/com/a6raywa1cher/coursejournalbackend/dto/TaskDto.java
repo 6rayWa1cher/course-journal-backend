@@ -26,6 +26,8 @@ public class TaskDto {
 
     private ZonedDateTime announcementAt;
 
+    private Boolean deadlinesEnabled;
+
     private ZonedDateTime softDeadlineAt;
 
     private ZonedDateTime hardDeadlineAt;
