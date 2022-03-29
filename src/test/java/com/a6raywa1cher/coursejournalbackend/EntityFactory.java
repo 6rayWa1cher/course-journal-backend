@@ -89,6 +89,7 @@ public class EntityFactory {
                 .title(faker.lorem().sentence())
                 .course(bag.getCourseId())
                 .maxScore(faker.number().numberBetween(5, 10))
+                .maxPenaltyPercent(faker.number().numberBetween(0, 95))
                 .softDeadlineAt(softDeadlineAt)
                 .hardDeadlineAt(hardDeadlineAt)
                 .deadlinesEnabled(true)

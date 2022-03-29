@@ -23,14 +23,18 @@ public class LinearSubmissionScoringService implements SubmissionScoringService 
         ZonedDateTime softDeadlineAt = task.getSoftDeadlineAt();
         ZonedDateTime submittedAt = submission.getSubmittedAt();
         ZonedDateTime zero = getOldest(hardDeadlineAt, softDeadlineAt, submittedAt).minusDays(1);
-        long hardDeadline = getDays(hardDeadlineAt, zero);
-        long softDeadline = getDays(softDeadlineAt, zero);
-        long day = getDays(submittedAt, zero);
+        long hardDeadline = getMinutes(hardDeadlineAt, zero);
+        long softDeadline = getMinutes(softDeadlineAt, zero);
+        long submitted = getMinutes(submittedAt, zero);
         double mpd = coalesce(task.getMaxPenaltyPercent(), 0) / 100d;
-
-        return Math.min(1d, Math.max(1d - mpd,
-                -mpd * (day - softDeadline) / ((double) (hardDeadline - softDeadline))
-        ));
+        if (hardDeadline == softDeadline) {
+            return submitted <= softDeadline ? 1 : mpd;
+        } else {
+            return Math.min(1d, Math.max(
+                    1d - mpd,
+                    1d - mpd * (submitted - softDeadline) / ((double) (hardDeadline - softDeadline))
+            ));
+        }
     }
 
     public double calculateCriteriaFactor(SubmissionDto submission, List<CriteriaDto> allCriteria) {
@@ -57,8 +61,8 @@ public class LinearSubmissionScoringService implements SubmissionScoringService 
         return Math.round(p * c * task.getMaxScore() * scaleFactor) / scaleFactor;
     }
 
-    private long getDays(ZonedDateTime date, ZonedDateTime zeroTime) {
-        return zeroTime.until(date, ChronoUnit.DAYS);
+    private long getMinutes(ZonedDateTime date, ZonedDateTime zeroTime) {
+        return zeroTime.until(date, ChronoUnit.MINUTES);
     }
 
     private ZonedDateTime getOldest(ZonedDateTime... times) {
