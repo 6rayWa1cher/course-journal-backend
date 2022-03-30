@@ -1,5 +1,6 @@
 package com.a6raywa1cher.coursejournalbackend.service;
 
+import com.a6raywa1cher.coursejournalbackend.dto.CourseDto;
 import com.a6raywa1cher.coursejournalbackend.dto.CourseTokenDto;
 import com.a6raywa1cher.coursejournalbackend.model.CourseToken;
 
@@ -11,6 +12,8 @@ public interface CourseTokenService {
     Optional<CourseToken> findRawById(long id);
 
     Optional<CourseTokenDto> findByToken(String token);
+
+    CourseDto resolveToken(String token);
 
     CourseTokenDto getByCourseId(long courseId);
 

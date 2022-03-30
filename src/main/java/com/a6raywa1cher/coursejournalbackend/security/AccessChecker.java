@@ -91,6 +91,10 @@ public class AccessChecker {
         return byId.isEmpty() || loggedInAs(byId.get(), authentication);
     }
 
+    public boolean courseTokenAuth(Authentication authentication) {
+        return CourseTokenAuthentication.class.isAssignableFrom(authentication.getClass());
+    }
+
     // ================================================================================================================
 
     public boolean isValidUserRoleRequest(UserRole userRole, Authentication authentication) {

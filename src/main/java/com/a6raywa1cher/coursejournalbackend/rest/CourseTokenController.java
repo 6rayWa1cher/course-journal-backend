@@ -1,12 +1,17 @@
 package com.a6raywa1cher.coursejournalbackend.rest;
 
+import com.a6raywa1cher.coursejournalbackend.dto.CourseDto;
 import com.a6raywa1cher.coursejournalbackend.dto.CourseTokenDto;
+import com.a6raywa1cher.coursejournalbackend.dto.exc.CrossTokenRequestException;
+import com.a6raywa1cher.coursejournalbackend.dto.exc.NotFoundException;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.CourseTokenRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.MapStructRestDtoMapper;
+import com.a6raywa1cher.coursejournalbackend.rest.dto.ResolveCourseTokenRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnCreate;
 import com.a6raywa1cher.coursejournalbackend.service.CourseTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +40,18 @@ public class CourseTokenController {
     @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
     public CourseTokenDto getByCourseId(@PathVariable long id) {
         return service.getByCourseId(id);
+    }
+
+    @PostMapping("/tokens/resolve")
+    @PostAuthorize("""
+            @accessChecker.readCourseAccess(returnObject.id, authentication) and
+            @accessChecker.courseTokenAuth(authentication)""")
+    public CourseDto resolveToken(@RequestBody @Valid ResolveCourseTokenRestDto dto) {
+        try {
+            return service.resolveToken(dto.getToken());
+        } catch (NotFoundException e) {
+            throw new CrossTokenRequestException(e);
+        }
     }
 
     @PostMapping("/tokens")

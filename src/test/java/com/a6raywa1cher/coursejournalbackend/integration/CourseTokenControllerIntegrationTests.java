@@ -12,6 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 
+import java.util.Map;
 import java.util.function.Function;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -210,6 +211,133 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
                         .andExpect(status().isNotFound());
             }
         };
+    }
+
+    // ================================================================================================================
+
+    RequestContext<ObjectNode> createResolveCourseByTokenContext(long courseId) {
+        String token = courseTokenService.create(
+                CourseTokenDto.builder()
+                        .course(courseId)
+                        .build()
+        ).getToken();
+
+        ObjectNode request = objectMapper.createObjectNode()
+                .put("token", token);
+
+        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
+                jsonPath(prefix + ".id").value(courseId),
+        };
+
+        return RequestContext.<ObjectNode>builder()
+                .request(request)
+                .matchersSupplier(matchers)
+                .data(Map.of("token", token))
+                .build();
+    }
+
+    @Test
+    void resolveCourseByToken__self__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse(getIdAsLong());
+
+                var ctx = createResolveCourseByTokenContext(courseId);
+                ObjectNode request = ctx.getRequest();
+
+                securePerform(post("/courses/tokens/resolve")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void resolveCourseByToken__otherAsAdmin__invalid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse();
+
+                var ctx = createResolveCourseByTokenContext(courseId);
+                ObjectNode request = ctx.getRequest();
+
+                securePerform(post("/courses/tokens/resolve")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void resolveCourseByToken__otherAsTeacher__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse();
+
+                var ctx = createResolveCourseByTokenContext(courseId);
+                ObjectNode request = ctx.getRequest();
+
+                securePerform(post("/courses/tokens/resolve")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void resolveCourseByToken__withCourseToken__valid() {
+        long courseId = ef.createCourse();
+        var ctx = createResolveCourseByTokenContext(courseId);
+        ObjectNode request = ctx.getRequest();
+        ResultMatcher[] matchers = ctx.getMatchers();
+        String token = ctx.getData().get("token");
+
+        new WithCourseToken(token) {
+            @Override
+            void run() throws Exception {
+                securePerform(post("/courses/tokens/resolve")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isOk())
+                        .andExpectAll(matchers);
+            }
+        };
+    }
+
+    @Test
+    void resolveCourseByToken__withNotMatchingCourseToken__invalid() {
+        long courseId = ef.createCourse();
+        var ctx = createResolveCourseByTokenContext(courseId);
+        String token = ctx.getData().get("token");
+
+        new WithCourseToken(token) {
+            @Override
+            void run() throws Exception {
+                ObjectNode request = objectMapper.createObjectNode()
+                        .put("token", token + "abc");
+                securePerform(post("/courses/tokens/resolve")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void resolveCourseByToken__notAuthenticated__invalid() throws Exception {
+        long courseId = ef.createCourse();
+        var ctx = createResolveCourseByTokenContext(courseId);
+        ObjectNode request = ctx.getRequest();
+        mvc.perform(post("/courses/tokens/resolve")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                .andExpect(status().isUnauthorized());
     }
 
     // ================================================================================================================

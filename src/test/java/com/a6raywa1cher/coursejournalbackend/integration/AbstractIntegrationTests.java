@@ -1,8 +1,10 @@
 package com.a6raywa1cher.coursejournalbackend.integration;
 
 import com.a6raywa1cher.coursejournalbackend.EntityFactory;
+import com.a6raywa1cher.coursejournalbackend.dto.CourseTokenDto;
 import com.a6raywa1cher.coursejournalbackend.dto.CreateEditUserDto;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
+import com.a6raywa1cher.coursejournalbackend.service.CourseTokenService;
 import com.a6raywa1cher.coursejournalbackend.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import static com.a6raywa1cher.coursejournalbackend.TestUtils.basic;
+import static com.a6raywa1cher.coursejournalbackend.TestUtils.ctbearer;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,6 +55,9 @@ public abstract class AbstractIntegrationTests {
 
     @Autowired
     protected TransactionTemplate transactionTemplate;
+
+    @Autowired
+    private CourseTokenService courseTokenService;
 
     @Test
     void contextLoads() {
@@ -124,6 +130,61 @@ public abstract class AbstractIntegrationTests {
 
         public void setPassword(String password) {
             this.password = password;
+        }
+    }
+
+    abstract class WithCourseToken {
+        private String token;
+        private Long courseId;
+
+        public WithCourseToken(String token) {
+            this.token = token;
+            wrappedRun();
+        }
+
+        public WithCourseToken(long courseId, boolean create) {
+            if (create) {
+                this.token = courseTokenService.create(CourseTokenDto.builder()
+                        .course(courseId)
+                        .build()).getToken();
+            } else {
+                this.token = courseTokenService.getByCourseId(courseId).getToken();
+            }
+            wrappedRun();
+        }
+
+        private void wrappedRun() {
+            try {
+                run();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        abstract void run() throws Exception;
+
+        protected ResultActions securePerform(MockHttpServletRequestBuilder builder) throws Exception {
+            return mvc.perform(
+                    builder
+                            .header(AUTHORIZATION, ctbearer(token))
+            );
+        }
+
+
+        public String getToken() {
+            return token;
+        }
+
+        public void setToken(String token) {
+            this.token = token;
+        }
+
+        public Long getCourseId() {
+            return courseId;
+        }
+
+        public void setCourseId(Long courseId) {
+            this.courseId = courseId;
         }
     }
 }

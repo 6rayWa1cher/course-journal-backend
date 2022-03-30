@@ -18,6 +18,10 @@ public final class TestUtils {
         return "Bearer " + accessToken;
     }
 
+    public static String ctbearer(String accessToken) {
+        return "ctbearer " + accessToken;
+    }
+
     public static final class DateMatcher extends BaseMatcher<String> {
         private final ZonedDateTime date;
 

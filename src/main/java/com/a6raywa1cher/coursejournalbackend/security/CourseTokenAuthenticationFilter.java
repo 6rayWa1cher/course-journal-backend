@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.Locale;
 
 public class CourseTokenAuthenticationFilter extends OncePerRequestFilter {
-    private static final String DIGEST = HttpServletRequest.DIGEST_AUTH.toLowerCase(Locale.ROOT);
+    private static final String AUTH_TYPE = "ctbearer";
 
     private final AuthenticationManager authenticationManager;
     private final AuthenticationEntryPoint authenticationEntryPoint;
@@ -33,7 +33,8 @@ public class CourseTokenAuthenticationFilter extends OncePerRequestFilter {
             return null;
         }
         String[] split = header.split(" ");
-        if (split.length != 2 || !split[0].toLowerCase(Locale.ROOT).equals(DIGEST)) return null;
+        if (split.length != 2 || !split[0].toLowerCase(Locale.ROOT).equals(AUTH_TYPE) || header.contains("."))
+            return null;
         String token = split[1];
         return new CourseTokenAuthentication(token, request.getRemoteAddr());
     }

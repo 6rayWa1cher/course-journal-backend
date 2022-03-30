@@ -1,13 +1,13 @@
 package com.a6raywa1cher.coursejournalbackend.security;
 
 import com.a6raywa1cher.coursejournalbackend.service.CourseTokenService;
+import com.a6raywa1cher.jsonrestsecurity.jwt.JwtAuthenticationFilter;
 import com.a6raywa1cher.jsonrestsecurity.web.JsonRestWebSecurityConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig extends JsonRestWebSecurityConfigurer {
@@ -33,14 +33,14 @@ public class SecurityConfig extends JsonRestWebSecurityConfigurer {
         super.configure(http);
 
         http.authorizeRequests()
-                .anyRequest().access("hasAnyRole('TEACHER', 'ADMIN') && hasAuthority('ENABLED')");
+                .anyRequest().authenticated();
 
         http.addFilterBefore(
                 new CourseTokenAuthenticationFilter(
                         authenticationManagerBean(),
                         authenticationEntryPoint
                 ),
-                UsernamePasswordAuthenticationFilter.class
+                JwtAuthenticationFilter.class
         );
     }
 }

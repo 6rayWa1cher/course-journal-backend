@@ -1,6 +1,7 @@
 package com.a6raywa1cher.coursejournalbackend.service.impl;
 
 import com.a6raywa1cher.coursejournalbackend.component.SecureRandomStringGenerator;
+import com.a6raywa1cher.coursejournalbackend.dto.CourseDto;
 import com.a6raywa1cher.coursejournalbackend.dto.CourseTokenDto;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.ConflictException;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.NotFoundException;
@@ -42,6 +43,14 @@ public class CourseTokenServiceImpl implements CourseTokenService {
     @Override
     public Optional<CourseTokenDto> findByToken(String token) {
         return repository.findByToken(token).map(mapper::map);
+    }
+
+    @Override
+    public CourseDto resolveToken(String token) {
+        return repository.findByToken(token)
+                .map(CourseToken::getCourse)
+                .map(mapper::map)
+                .orElseThrow(() -> new NotFoundException(CourseToken.class, "token", token));
     }
 
     @Override

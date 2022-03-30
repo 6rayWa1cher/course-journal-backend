@@ -6,7 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import java.util.Collection;
 
 public class CourseTokenAuthentication extends AbstractAuthenticationToken {
-    private final String token;
+    private String token;
     private final Object principal;
 
     public CourseTokenAuthentication(String token, Object principal) {
@@ -19,6 +19,7 @@ public class CourseTokenAuthentication extends AbstractAuthenticationToken {
         super(authorities);
         this.token = token;
         this.principal = principal;
+        super.setAuthenticated(true);
     }
 
     @Override
@@ -29,5 +30,18 @@ public class CourseTokenAuthentication extends AbstractAuthenticationToken {
     @Override
     public Object getPrincipal() {
         return principal;
+    }
+
+    @Override
+    public void setAuthenticated(boolean authenticated) {
+        if (authenticated) {
+            throw new IllegalArgumentException("Cannot set authenticated to true");
+        }
+        super.setAuthenticated(false);
+    }
+
+    @Override
+    public void eraseCredentials() {
+        this.token = null;
     }
 }
