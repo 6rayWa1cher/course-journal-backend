@@ -11,42 +11,27 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(
-        name = "course",
-        uniqueConstraints = @UniqueConstraint(name = "one_name_per_owner", columnNames = {"owner_id", "name"})
-)
+@Table(name = "course_token")
 @Getter
 @Setter
 @ToString
 @RequiredArgsConstructor
-public class Course implements IdEntity<Long> {
+public class CourseToken {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false, updatable = false)
     @ReadOnlyProperty
     private Long id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @OneToOne(optional = false)
+    @JoinColumn(name = "course")
+    private Course course;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "owner_id")
-    private User owner;
-
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    private List<Student> students;
-
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    private List<Task> tasks;
-
-    @OneToOne(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    private CourseToken courseToken;
+    @Column(name = "token", nullable = false, unique = true)
+    private String token;
 
     @Column(name = "created_at")
     @CreatedDate
@@ -62,7 +47,7 @@ public class Course implements IdEntity<Long> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Course course = (Course) o;
+        CourseToken course = (CourseToken) o;
         return id != null && Objects.equals(id, course.id);
     }
 

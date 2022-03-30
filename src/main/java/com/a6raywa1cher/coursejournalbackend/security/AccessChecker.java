@@ -62,6 +62,8 @@ public class AccessChecker {
             return getPermissionForUser(user, type);
         } else if (entity instanceof Submission submission) {
             return getPermissionForCourse(submission.getTask().getCourse(), type);
+        } else if (entity instanceof CourseToken courseToken) {
+            return getPermissionForCourse(courseToken.getCourse(), type);
         } else {
             throw new IllegalArgumentException("Unknown entity " + entity.getClass().getSimpleName());
         }
@@ -168,6 +170,19 @@ public class AccessChecker {
 
     public boolean editSubmissionAccess(Long id, Authentication authentication) {
         return hasAuthority(id, Submission.class, ActionType.WRITE, authentication);
+    }
+
+
+    public boolean createCourseTokenAccess(Long courseId, Authentication authentication) {
+        return hasAuthority(courseId, Course.class, ActionType.WRITE, authentication);
+    }
+
+    public boolean readCourseTokenAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, CourseToken.class, ActionType.READ, authentication);
+    }
+
+    public boolean editCourseTokenAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, CourseToken.class, ActionType.WRITE, authentication);
     }
 
 

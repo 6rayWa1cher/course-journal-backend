@@ -19,6 +19,8 @@ public class EntityFactory {
 
     private final CourseService courseService;
 
+    private final CourseTokenService courseTokenService;
+
     private final UserService userService;
 
     private final CriteriaService criteriaService;
@@ -32,11 +34,12 @@ public class EntityFactory {
     private final StudentService studentService;
 
     @Autowired
-    public EntityFactory(TaskService taskService, CourseService courseService, UserService userService,
+    public EntityFactory(TaskService taskService, CourseService courseService, CourseTokenService courseTokenService, UserService userService,
                          CriteriaService criteriaService, SubmissionService submissionService, Faker faker,
                          MapStructTestMapper mapper, StudentService studentService) {
         this.taskService = taskService;
         this.courseService = courseService;
+        this.courseTokenService = courseTokenService;
         this.userService = userService;
         this.criteriaService = criteriaService;
         this.submissionService = submissionService;
@@ -72,6 +75,27 @@ public class EntityFactory {
         }
 
         return courseService.create(dto).getId();
+    }
+
+    public long createCourseToken() {
+        return createCourseToken(bag());
+    }
+
+    public long createCourseToken(Long userId) {
+        return createCourseToken(bag().withUserId(userId));
+    }
+
+    public long createCourseToken(EntityFactoryBag bag) {
+        CourseTokenDto dto = CourseTokenDto.builder()
+                .course(bag.getCourseId())
+                .build();
+
+        CourseTokenDto dtoFromBag = bag.getDto(CourseTokenDto.class);
+        if (dtoFromBag != null) {
+            mapper.merge(dtoFromBag, dto);
+        }
+
+        return courseTokenService.create(dto).getId();
     }
 
     public long createTask() {
@@ -193,6 +217,8 @@ public class EntityFactory {
 
         private Long courseId;
 
+        private Long courseTokenId;
+
         private Long taskId;
 
         private Long studentId;
@@ -211,6 +237,11 @@ public class EntityFactory {
         public Long getCourseId() {
             if (courseId == null) courseId = ef.createCourse(this);
             return courseId;
+        }
+
+        public Long getCourseTokenId() {
+            if (courseTokenId == null) courseTokenId = ef.createCourseToken(this);
+            return courseTokenId;
         }
 
         public Long getTaskId() {

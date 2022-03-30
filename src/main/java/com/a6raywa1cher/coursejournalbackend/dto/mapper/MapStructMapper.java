@@ -37,6 +37,7 @@ public abstract class MapStructMapper {
     @Mapping(target = "owner", ignore = true)
     @Mapping(target = "students", ignore = true)
     @Mapping(target = "tasks", ignore = true)
+    @Mapping(target = "courseToken", ignore = true)
     public abstract void put(CourseDto dto, @MappingTarget Course target);
 
     @CreatedModifiedRestrictMapping
@@ -45,6 +46,7 @@ public abstract class MapStructMapper {
     @Mapping(target = "owner", ignore = true)
     @Mapping(target = "students", ignore = true)
     @Mapping(target = "tasks", ignore = true)
+    @Mapping(target = "courseToken", ignore = true)
     public abstract void patch(CourseDto dto, @MappingTarget Course target);
 
     // ================================================================================================================
@@ -61,6 +63,7 @@ public abstract class MapStructMapper {
     @CreatedModifiedRestrictMapping
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "course", ignore = true)
+    @Mapping(target = "criteria", ignore = true)
     @Mapping(target = "submissions", ignore = true)
     @Mapping(target = "announcementAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
     @Mapping(target = "softDeadlineAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
@@ -71,6 +74,7 @@ public abstract class MapStructMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "course", ignore = true)
+    @Mapping(target = "criteria", ignore = true)
     @Mapping(target = "submissions", ignore = true)
     @Mapping(target = "announcementAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
     @Mapping(target = "softDeadlineAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
@@ -144,4 +148,12 @@ public abstract class MapStructMapper {
     @Mapping(target = "task", ignore = true)
     @Mapping(target = "student", ignore = true)
     public abstract void patch(SubmissionDto dto, @MappingTarget Submission target);
+
+    // ================================================================================================================
+    // CourseToken
+    // ================================================================================================================
+
+    @CreatedModifiedMapping
+    @Mapping(target = "course", source = "course.id")
+    public abstract CourseTokenDto map(CourseToken criteria);
 }

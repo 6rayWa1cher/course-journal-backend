@@ -15,7 +15,7 @@ public class IntegrationTestConfiguration {
     }
 
     @Bean
-    public EntityFactory ef(TaskService taskService, CourseService courseService, UserService userService, CriteriaService criteriaService, Faker faker, MapStructTestMapper mapper, StudentService studentService, SubmissionService submissionService) {
-        return new EntityFactory(taskService, courseService, userService, criteriaService, submissionService, faker, mapper, studentService);
+    public EntityFactory ef(TaskService taskService, CourseService courseService, CourseTokenService courseTokenService, UserService userService, CriteriaService criteriaService, Faker faker, MapStructTestMapper mapper, StudentService studentService, SubmissionService submissionService) {
+        return new EntityFactory(taskService, courseService, courseTokenService, userService, criteriaService, submissionService, faker, mapper, studentService);
     }
 }
