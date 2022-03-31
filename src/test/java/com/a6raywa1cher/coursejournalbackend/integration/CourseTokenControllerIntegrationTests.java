@@ -42,6 +42,7 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
         return RequestContext.<Long>builder()
                 .request(id)
                 .matchersSupplier(matchers)
+                .data(Map.of("courseId", Long.toString(courseId)))
                 .build();
     }
 
@@ -90,6 +91,24 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
 
                 securePerform(get("/courses/tokens/{id}", id))
                         .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getCourseTokenById__withCourseToken__valid() {
+        long ownerId = ef.createUser();
+        var ctx = createGetCourseTokenByIdContext(ownerId);
+
+        long id = ctx.getRequest();
+        ResultMatcher[] matchers = ctx.getMatchers();
+        new WithCourseToken(Long.parseLong(ctx.getData().get("courseId")), false) {
+            @Override
+            void run() throws Exception {
+
+                securePerform(get("/courses/tokens/{id}", id))
+                        .andExpect(status().isOk())
+                        .andExpectAll(matchers);
             }
         };
     }
@@ -187,6 +206,25 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
             void run() throws Exception {
                 securePerform(get("/courses/{id}/token", id))
                         .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getCourseTokenByCourse__withCourseToken__valid() {
+        long ownerId = ef.createUser();
+        long courseId1 = ef.createCourse(ownerId);
+        long courseId2 = ef.createCourse(ownerId);
+        var ctx1 = createGetCourseTokenByCourseContext(courseId1);
+        createGetCourseTokenByCourseContext(courseId2);
+        ResultMatcher[] matchers = ctx1.getMatchers();
+
+        new WithCourseToken(courseId1, false) {
+            @Override
+            void run() throws Exception {
+                securePerform(get("/courses/{id}/token", courseId1))
+                        .andExpect(status().isOk())
+                        .andExpectAll(matchers);
             }
         };
     }
@@ -426,6 +464,23 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
     }
 
     @Test
+    void createCourseToken__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                var ctx = getCreateCourseTokenRequest(getCourseId());
+
+                ObjectNode request = ctx.getRequest();
+
+                securePerform(post("/courses/tokens/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
     void createCourseToken__tokenForCourseExists__invalid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
@@ -499,6 +554,17 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
                 long courseTokenId = ef.createCourseToken();
 
                 securePerform(delete("/courses/tokens/{id}", courseTokenId))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void deleteCourseToken__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                securePerform(delete("/courses/tokens/{id}", getTokenId()))
                         .andExpect(status().isForbidden());
             }
         };

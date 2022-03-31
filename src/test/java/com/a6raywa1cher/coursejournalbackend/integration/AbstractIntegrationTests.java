@@ -136,20 +136,39 @@ public abstract class AbstractIntegrationTests {
     abstract class WithCourseToken {
         private String token;
         private Long courseId;
+        private Long tokenId;
+        private Long ownerId;
+
+        public WithCourseToken() {
+            this(ef.createCourse(), true);
+        }
+
+        public WithCourseToken(long userId) {
+            this(ef.createCourse(userId), true);
+        }
 
         public WithCourseToken(String token) {
+            CourseTokenDto courseTokenDto = courseTokenService.findByToken(token).orElseThrow();
             this.token = token;
+            this.tokenId = courseTokenDto.getId();
+            this.courseId = courseTokenDto.getCourse();
+            this.ownerId = courseTokenService.resolveToken(courseTokenDto.getToken()).getOwner();
             wrappedRun();
         }
 
         public WithCourseToken(long courseId, boolean create) {
+            CourseTokenDto courseTokenDto;
             if (create) {
-                this.token = courseTokenService.create(CourseTokenDto.builder()
+                courseTokenDto = courseTokenService.create(CourseTokenDto.builder()
                         .course(courseId)
-                        .build()).getToken();
+                        .build());
             } else {
-                this.token = courseTokenService.getByCourseId(courseId).getToken();
+                courseTokenDto = courseTokenService.getByCourseId(courseId);
             }
+            this.token = courseTokenDto.getToken();
+            this.tokenId = courseTokenDto.getId();
+            this.courseId = courseTokenDto.getCourse();
+            this.ownerId = courseTokenService.resolveToken(courseTokenDto.getToken()).getOwner();
             wrappedRun();
         }
 
@@ -185,6 +204,22 @@ public abstract class AbstractIntegrationTests {
 
         public void setCourseId(Long courseId) {
             this.courseId = courseId;
+        }
+
+        public Long getTokenId() {
+            return tokenId;
+        }
+
+        public void setTokenId(Long tokenId) {
+            this.tokenId = tokenId;
+        }
+
+        public Long getOwnerId() {
+            return ownerId;
+        }
+
+        public void setOwnerId(Long ownerId) {
+            this.ownerId = ownerId;
         }
     }
 }

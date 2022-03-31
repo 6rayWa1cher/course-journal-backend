@@ -34,7 +34,8 @@ public class CourseTokenAuthenticationProvider implements AuthenticationProvider
             CourseTokenDto courseTokenDto = byToken.get();
             Long course = courseTokenDto.getCourse();
             List<GrantedAuthority> grantedAuthorityList = List.of(
-                    new SimpleGrantedAuthority(Permission.getPermissionForCourse(course, ActionType.READ))
+                    new SimpleGrantedAuthority(Permission.getPermissionForCourse(course, ActionType.READ)),
+                    new SimpleGrantedAuthority("ANONYMOUS_COURSE_TOKEN")
             );
             return new CourseTokenAuthentication(token, auth.getPrincipal(), grantedAuthorityList);
         } catch (Exception e) {

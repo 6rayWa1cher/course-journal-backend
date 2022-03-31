@@ -1,7 +1,9 @@
 package com.a6raywa1cher.coursejournalbackend;
 
+import com.jayway.jsonpath.JsonPath;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -20,6 +22,10 @@ public final class TestUtils {
 
     public static String ctbearer(String accessToken) {
         return "ctbearer " + accessToken;
+    }
+
+    public static long getIdFromResult(MvcResult mvcResult) throws Exception {
+        return JsonPath.<Integer>read(mvcResult.getResponse().getContentAsString(), "$.id");
     }
 
     public static final class DateMatcher extends BaseMatcher<String> {

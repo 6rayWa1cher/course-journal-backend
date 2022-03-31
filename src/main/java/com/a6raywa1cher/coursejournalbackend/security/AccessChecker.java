@@ -2,9 +2,7 @@ package com.a6raywa1cher.coursejournalbackend.security;
 
 import com.a6raywa1cher.coursejournalbackend.model.*;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
-import com.a6raywa1cher.coursejournalbackend.model.repo.UserRepository;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.CourseRestDto;
-import com.a6raywa1cher.jsonrestsecurity.component.resolver.AuthenticationResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -18,16 +16,11 @@ import static com.a6raywa1cher.coursejournalbackend.security.Permission.getPermi
 
 @Component
 public class AccessChecker {
-    private final AuthenticationResolver resolver;
-    private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final EntityManager em;
 
     @Autowired
-    public AccessChecker(AuthenticationResolver resolver, UserRepository userRepository,
-                         CourseRepository courseRepository, EntityManager em) {
-        this.resolver = resolver;
-        this.userRepository = userRepository;
+    public AccessChecker(CourseRepository courseRepository, EntityManager em) {
         this.courseRepository = courseRepository;
         this.em = em;
     }
@@ -36,17 +29,6 @@ public class AccessChecker {
         return authentication != null && authentication.getAuthorities()
                 .stream()
                 .anyMatch(ga -> ga.getAuthority().equals("ROLE_ADMIN"));
-    }
-
-    public boolean loggedInAs(User user, Authentication authentication) {
-        return user.equals(resolver.getUser(authentication));
-    }
-
-    public boolean loggedInAs(Long id, Authentication authentication) {
-        return Optional.ofNullable(id)
-                .flatMap(userRepository::findById)
-                .map(u -> u.equals(resolver.getUser(authentication)))
-                .orElse(true);
     }
 
     private <T> String getPermission(T entity, ActionType type) {
@@ -85,21 +67,15 @@ public class AccessChecker {
         return byId == null || hasAuthority(getPermission(byId, type), authentication);
     }
 
-    public boolean loggedInAsOrAdmin(Long id, Authentication authentication) {
-        if (isAdmin(authentication) || id == null) return true;
-        Optional<User> byId = userRepository.findById(id);
-        return byId.isEmpty() || loggedInAs(byId.get(), authentication);
-    }
-
-    public boolean courseTokenAuth(Authentication authentication) {
-        return CourseTokenAuthentication.class.isAssignableFrom(authentication.getClass());
-    }
-
     // ================================================================================================================
 
     public boolean isValidUserRoleRequest(UserRole userRole, Authentication authentication) {
         if (userRole == null) return true;
         return userRole.equals(UserRole.TEACHER) || isAdmin(authentication);
+    }
+
+    public boolean createCourseAccess(Long ownerId, Authentication authentication) {
+        return hasAuthority(ownerId, User.class, ActionType.WRITE, authentication);
     }
 
     public boolean readCourseAccess(Long id, Authentication authentication) {
@@ -190,17 +166,19 @@ public class AccessChecker {
     }
 
 
-    public boolean isUserModificationAuthorized(Long id, Authentication authentication) {
-        if (isAdmin(authentication)) return true;
-        Optional<User> byId = userRepository.findById(id);
-        return byId.isEmpty() || loggedInAs(byId.get(), authentication);
+    public boolean createUserAccess(UserRole userRole, Authentication authentication) {
+        return isAdmin(authentication);
     }
 
-    public boolean readUserAccess(Long id, UserRole userRole, Authentication authentication) {
-        return true;
+    public boolean readUserAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, User.class, ActionType.READ, authentication);
     }
 
-    public boolean editUserAccess(Long id, UserRole userRole, Authentication authentication) {
-        return isUserModificationAuthorized(id, authentication) && isValidUserRoleRequest(userRole, authentication);
+    public boolean editUserAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, User.class, ActionType.WRITE, authentication);
+    }
+
+    public boolean editUserAccessWithRole(Long id, UserRole userRole, Authentication authentication) {
+        return editUserAccess(id, authentication) && isValidUserRoleRequest(userRole, authentication);
     }
 }

@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.ResultMatcher;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -32,9 +33,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
     @Autowired
     SubmissionService submissionService;
 
-    RequestContext<Long> createGetSubmissionByIdContext(long userId) {
-        long courseId = ef.createCourse(userId);
-
+    RequestContext<Long> createGetSubmissionByIdContextWithCourse(long courseId) {
         ZonedDateTime submittedAt = ZonedDateTime.now().minusDays(1);
         int additionalScore = faker.number().numberBetween(0, 5);
         long taskId = ef.createTask(ef.bag().withCourseId(courseId));
@@ -62,7 +61,13 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         return RequestContext.<Long>builder()
                 .request(id)
                 .matchersSupplier(matchers)
+                .data(Map.of("courseId", Long.toString(courseId)))
                 .build();
+    }
+
+    RequestContext<Long> createGetSubmissionByIdContext(long userId) {
+        long courseId = ef.createCourse(userId);
+        return createGetSubmissionByIdContextWithCourse(courseId);
     }
 
     @Test
@@ -110,6 +115,22 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
 
                 securePerform(get("/submissions/{id}", id))
                         .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getSubmissionById__withCourseToken__valid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                var ctx = createGetSubmissionByIdContextWithCourse(getCourseId());
+                long id = ctx.getRequest();
+                ResultMatcher[] matchers = ctx.getMatchers();
+
+                securePerform(get("/submissions/{id}", id))
+                        .andExpect(status().isOk())
+                        .andExpectAll(matchers);
             }
         };
     }
@@ -236,6 +257,31 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
     }
 
     @Test
+    void getSubmissionsByCourse__withCourseToken__valid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                long courseId1 = getCourseId();
+                long courseId2 = ef.createCourse(getOwnerId());
+                long studentId1 = ef.createStudent(ef.bag().withCourseId(courseId1));
+                long studentId2 = ef.createStudent(ef.bag().withCourseId(courseId1));
+                long studentId3 = ef.createStudent(ef.bag().withCourseId(courseId2));
+
+                var ctx1 = createGetSubmissionsByCourseContext(courseId1, studentId1);
+                var ctx2 = createGetSubmissionsByCourseContext(courseId1, studentId2);
+                createGetSubmissionsByCourseContext(courseId2, studentId3);
+
+                securePerform(get("/submissions/course/{id}", courseId1)
+                        .queryParam("sort", "student,asc"))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx1.getMatchers("$[0]"))
+                        .andExpectAll(ctx2.getMatchers("$[1]"));
+            }
+        };
+    }
+
+    @Test
     void getSubmissionsByCourse__notAuthenticated__invalid() throws Exception {
         long id = ef.createCourse();
         mvc.perform(get("/submissions/course/{id}", id)).andExpect(status().isUnauthorized());
@@ -333,6 +379,32 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
             void run() throws Exception {
                 securePerform(get("/submissions/task/{id}", id))
                         .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getSubmissionsByTask__withCourseToken__valid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                long courseId = getCourseId();
+                long taskId1 = ef.createTask(ef.bag().withCourseId(courseId));
+                long taskId2 = ef.createTask(ef.bag().withCourseId(courseId));
+                long studentId1 = ef.createStudent(ef.bag().withCourseId(courseId));
+                long studentId2 = ef.createStudent(ef.bag().withCourseId(courseId));
+                long studentId3 = ef.createStudent(ef.bag().withCourseId(courseId));
+
+                var ctx1 = createGetSubmissionsByTaskContext(taskId1, studentId1);
+                var ctx2 = createGetSubmissionsByTaskContext(taskId1, studentId2);
+                createGetSubmissionsByTaskContext(taskId2, studentId3);
+
+                securePerform(get("/submissions/task/{id}", taskId1)
+                        .queryParam("sort", "student,asc"))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx1.getMatchers("$[0]"))
+                        .andExpectAll(ctx2.getMatchers("$[1]"));
             }
         };
     }
@@ -449,6 +521,35 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
     }
 
     @Test
+    void getSubmissionsByStudentAndCourse__withCourseToken__valid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                long courseId1 = getCourseId();
+                long courseId2 = ef.createCourse(getOwnerId());
+                long task1 = ef.createTask(ef.bag().withCourseId(courseId1));
+                long task2 = ef.createTask(ef.bag().withCourseId(courseId1));
+                long task3 = ef.createTask(ef.bag().withCourseId(courseId2));
+                long studentId1 = ef.createStudent(ef.bag().withCourseId(courseId1));
+                long studentId2 = ef.createStudent(ef.bag().withCourseId(courseId1));
+                long studentId3 = ef.createStudent(ef.bag().withCourseId(courseId2));
+
+                var ctx1 = createGetSubmissionsByStudentAndCourseContext(task1, studentId1);
+                var ctx2 = createGetSubmissionsByStudentAndCourseContext(task2, studentId1);
+                createGetSubmissionsByStudentAndCourseContext(task2, studentId2);
+                createGetSubmissionsByStudentAndCourseContext(task3, studentId3);
+
+                securePerform(get("/submissions/course/{id}/student/{id2}", courseId1, studentId1)
+                        .queryParam("sort", "task,asc"))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx1.getMatchers("$[0]"))
+                        .andExpectAll(ctx2.getMatchers("$[1]"));
+            }
+        };
+    }
+
+    @Test
     void getSubmissionsByStudentAndCourse__notAuthenticated__invalid() throws Exception {
         long courseId = ef.createCourse();
         long taskId = ef.createTask(ef.bag().withCourseId(courseId));
@@ -548,6 +649,26 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
+                long taskId = ef.createTask(ef.bag().withCourseId(courseId));
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                var ctx = getCreateSubmissionRequest(taskId, studentId);
+
+                ObjectNode request = ctx.getRequest();
+
+                securePerform(post("/submissions/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void createSubmission__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                long courseId = getCourseId();
                 long taskId = ef.createTask(ef.bag().withCourseId(courseId));
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 var ctx = getCreateSubmissionRequest(taskId, studentId);
@@ -751,6 +872,32 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
+                long taskId = ef.createTask(ef.bag().withCourseId(courseId));
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                long submissionId = ef.createSubmission(
+                        ef.bag().withTaskId(taskId).withStudentId(studentId)
+                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                );
+
+                int newAdditionalScore = 10;
+
+                RequestContext<ObjectNode> ctx = getPutSubmissionRequest(taskId, studentId, newAdditionalScore);
+                ObjectNode request = ctx.getRequest();
+
+                securePerform(put("/submissions/{id}", submissionId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void putSubmission__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                long courseId = getCourseId();
                 long taskId = ef.createTask(ef.bag().withCourseId(courseId));
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
@@ -1061,6 +1208,32 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
     }
 
     @Test
+    void patchSubmission__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                long courseId = getCourseId();
+                long taskId = ef.createTask(ef.bag().withCourseId(courseId));
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                long submissionId = ef.createSubmission(
+                        ef.bag().withTaskId(taskId).withStudentId(studentId)
+                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                );
+
+                int newAdditionalScore = 10;
+
+                RequestContext<ObjectNode> ctx = getPatchSubmissionRequest(taskId, studentId, newAdditionalScore);
+                ObjectNode request = ctx.getRequest();
+
+                securePerform(patch("/submissions/{id}", submissionId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
     void patchSubmission__taskChange__invalid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
@@ -1277,6 +1450,19 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
             @Override
             void run() throws Exception {
                 long submissionId = ef.createSubmission();
+
+                securePerform(delete("/submissions/{id}", submissionId))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void deleteSubmission__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                long submissionId = ef.createSubmission(ef.bag().withCourseId(getCourseId()));
 
                 securePerform(delete("/submissions/{id}", submissionId))
                         .andExpect(status().isForbidden());

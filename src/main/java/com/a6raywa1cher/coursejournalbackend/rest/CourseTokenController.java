@@ -45,7 +45,7 @@ public class CourseTokenController {
     @PostMapping("/tokens/resolve")
     @PostAuthorize("""
             @accessChecker.readCourseAccess(returnObject.id, authentication) and
-            @accessChecker.courseTokenAuth(authentication)""")
+            hasAuthority('ANONYMOUS_COURSE_TOKEN')""")
     public CourseDto resolveToken(@RequestBody @Valid ResolveCourseTokenRestDto dto) {
         try {
             return service.resolveToken(dto.getToken());

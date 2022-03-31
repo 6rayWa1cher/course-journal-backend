@@ -41,10 +41,38 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
+    void getUsers__withCourseToken__valid() {
+        String newUserUsername = "aatjw";
+        userService.createUser(CreateEditUserDto.builder()
+                .username(newUserUsername)
+                .userRole(UserRole.TEACHER)
+                .build());
+        long userId = userService.createUser(CreateEditUserDto.builder()
+                .username(USERNAME)
+                .password(PASSWORD)
+                .userRole(UserRole.TEACHER)
+                .build()).getId();
+
+        new WithCourseToken(userId) {
+            @Override
+            void run() throws Exception {
+                securePerform(get("/users/").queryParam("sort", "id,desc"))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.totalElements").value(3))
+                        .andExpect(jsonPath("$.content[0].username").value(USERNAME))
+                        .andExpect(jsonPath("$.content[1].username").value(newUserUsername))
+                        .andExpect(jsonPath("$.content[2].username").value(ADMIN_USERNAME));
+            }
+        };
+    }
+
+    @Test
     void getUsers__notAuthenticated__invalid() throws Exception {
         mvc.perform(get("/users/").queryParam("sort", "id,desc"))
                 .andExpect(status().isUnauthorized());
     }
+
+    // ================================================================================================================
 
     @Test
     void getUserById__authenticated__valid() {
@@ -55,6 +83,24 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
                 .build()).getId();
 
         new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                securePerform(get("/users/{id}", userId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.username").value(newUserUsername));
+            }
+        };
+    }
+
+    @Test
+    void getUserById__withCourseToken__valid() {
+        String newUserUsername = "aatjw";
+        long userId = userService.createUser(CreateEditUserDto.builder()
+                .username(newUserUsername)
+                .userRole(UserRole.TEACHER)
+                .build()).getId();
+
+        new WithCourseToken() {
             @Override
             void run() throws Exception {
                 securePerform(get("/users/{id}", userId))
@@ -91,8 +137,28 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
         };
     }
 
+    // ================================================================================================================
+
     @Test
     void getUserByUsername__authenticated__valid() {
+        String newUserUsername = "aatjw";
+        userService.createUser(CreateEditUserDto.builder()
+                .username(newUserUsername)
+                .userRole(UserRole.TEACHER)
+                .build());
+
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                securePerform(get("/users/username/{username}", newUserUsername))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.username").value(newUserUsername));
+            }
+        };
+    }
+
+    @Test
+    void getUserByUsername__withCourseToken__valid() {
         String newUserUsername = "aatjw";
         userService.createUser(CreateEditUserDto.builder()
                 .username(newUserUsername)
@@ -135,6 +201,8 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
             }
         };
     }
+
+    // ================================================================================================================
 
     @Test
     void createUser__adminCreatingTeacher__valid() {
@@ -257,6 +325,48 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
+    void createUser__withCourseTokenCreating__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                String username = "abcdef";
+                String password = "qwerty";
+                String firstName = "cat";
+                String lastName = "dog";
+                String middleName = "bird";
+
+                securePerform(post("/users/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("username", username)
+                                .put("password", password)
+                                .put("userRole", "ADMIN")
+                                .put("firstName", firstName)
+                                .put("middleName", middleName)
+                                .put("lastName", lastName)
+                                .toString()))
+                        .andExpect(status().isForbidden());
+
+                securePerform(post("/users/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("username", username)
+                                .put("password", password)
+                                .put("userRole", "TEACHER")
+                                .put("firstName", firstName)
+                                .put("middleName", middleName)
+                                .put("lastName", lastName)
+                                .toString()))
+                        .andExpect(status().isForbidden());
+
+                securePerform(get("/users/"))
+                        .andExpect(status().isOk())
+                        .andExpect(content().string(not(containsString(username))));
+            }
+        };
+    }
+
+    @Test
     void createUser__conflictingUsernames__invalid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
@@ -281,6 +391,8 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
             }
         };
     }
+
+    // ================================================================================================================
 
     @Test
     void putUser__self__full__valid() {
@@ -399,6 +511,38 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
+    void putUser__withCourseToken__invalid() {
+        String prevUsername = "kt34wo";
+        String newUsername = "abcdef";
+        String newFirstName = "cat";
+        String newLastName = "dog";
+        String newPassword = "qwerty";
+
+        long userId = userService.createUser(
+                CreateEditUserDto.builder()
+                        .username(prevUsername)
+                        .userRole(UserRole.TEACHER)
+                        .build()
+        ).getId();
+
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                securePerform(put("/users/{id}", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("username", newUsername)
+                                .put("password", newPassword)
+                                .put("userRole", "TEACHER")
+                                .put("firstName", newFirstName)
+                                .put("lastName", newLastName)
+                                .toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
     void putUser__selfEscalation__invalid() {
         String newUsername = "abcdef";
         String newFirstName = "cat";
@@ -451,6 +595,8 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
             }
         };
     }
+
+    // ================================================================================================================
 
     @Test
     void patchUser__self__full__valid() {
@@ -556,6 +702,31 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
+    void patchUser__withCourseToken__invalid() {
+        String prevUsername = "kt34wo";
+        String newFirstName = "cat";
+
+        long userId = userService.createUser(
+                CreateEditUserDto.builder()
+                        .username(prevUsername)
+                        .userRole(UserRole.TEACHER)
+                        .build()
+        ).getId();
+
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                securePerform(patch("/users/{id}", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("firstName", newFirstName)
+                                .toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
     void patchUser__selfEscalation__invalid() {
         String newFirstName = "cat";
         String newLastName = "dog";
@@ -599,6 +770,8 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
             }
         };
     }
+
+    // ================================================================================================================'
 
     @Test
     void deleteUser__self__valid() {
@@ -647,6 +820,25 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
         ).getId();
 
         new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                securePerform(delete("/users/{id}", userId))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void deleteUser__withCourseToken__invalid() {
+        String otherUsername = "tfegbpijo";
+        long userId = userService.createUser(
+                CreateEditUserDto.builder()
+                        .username(otherUsername)
+                        .userRole(UserRole.TEACHER)
+                        .build()
+        ).getId();
+
+        new WithCourseToken() {
             @Override
             void run() throws Exception {
                 securePerform(delete("/users/{id}", userId))

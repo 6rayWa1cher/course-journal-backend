@@ -54,7 +54,7 @@ public class CourseController {
     }
 
     @GetMapping("/owner/{id}")
-    @PreAuthorize("@accessChecker.loggedInAsOrAdmin(#id, authentication)")
+    @PreAuthorize("@accessChecker.readUserAccess(#id, authentication)")
     public Page<CourseDto> findByOwner(@PathVariable long id,
                                        @RequestParam(required = false) @Pattern(regexp = COMMON_NAME) @Valid String name,
                                        @ParameterObject Pageable pageable) {
@@ -66,7 +66,7 @@ public class CourseController {
     }
 
     @PostMapping("/")
-    @PreAuthorize("@accessChecker.hasAuthority(#dto.owner, T(com.a6raywa1cher.coursejournalbackend.model.User), 'WRITE', authentication)")
+    @PreAuthorize("@accessChecker.createCourseAccess(#dto.owner, authentication)")
     @ResponseStatus(HttpStatus.CREATED)
     @Validated(OnCreate.class)
     public CourseDto create(@RequestBody @Valid CourseRestDto dto) {
@@ -88,7 +88,7 @@ public class CourseController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("@accessChecker.hasAuthority(#id, T(com.a6raywa1cher.coursejournalbackend.model.Course), 'WRITE', authentication)")
+    @PreAuthorize("@accessChecker.editCourseAccess(#id, authentication)")
     public void delete(@PathVariable long id) {
         service.delete(id);
     }
