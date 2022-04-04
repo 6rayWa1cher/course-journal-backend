@@ -1,15 +1,15 @@
 package com.a6raywa1cher.coursejournalbackend;
 
-import com.a6raywa1cher.coursejournalbackend.dto.CourseDto;
-import com.a6raywa1cher.coursejournalbackend.dto.CreateEditUserDto;
-import com.a6raywa1cher.coursejournalbackend.dto.StudentDto;
-import com.a6raywa1cher.coursejournalbackend.dto.TaskDto;
+import com.a6raywa1cher.coursejournalbackend.dto.*;
+import com.a6raywa1cher.coursejournalbackend.model.AttendanceType;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.a6raywa1cher.coursejournalbackend.service.*;
 import com.github.javafaker.Faker;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestComponent;
+
+import java.time.ZonedDateTime;
 
 @TestComponent
 public class EntityFactory {
@@ -27,8 +27,10 @@ public class EntityFactory {
 
     private final StudentService studentService;
 
+    private final AttendanceService attendanceService;
+
     @Autowired
-    public EntityFactory(TaskService taskService, CourseService courseService, UserService userService, CriteriaService criteriaService, Faker faker, MapStructTestMapper mapper, StudentService studentService) {
+    public EntityFactory(TaskService taskService, CourseService courseService, UserService userService, CriteriaService criteriaService, Faker faker, MapStructTestMapper mapper, StudentService studentService, AttendanceService attendanceService) {
         this.taskService = taskService;
         this.courseService = courseService;
         this.userService = userService;
@@ -36,6 +38,7 @@ public class EntityFactory {
         this.faker = faker;
         this.mapper = mapper;
         this.studentService = studentService;
+        this.attendanceService = attendanceService;
     }
 
     public long createUser() {
@@ -112,6 +115,27 @@ public class EntityFactory {
         return studentService.create(dto).getId();
     }
 
+    public long createAttendance() { return createAttendance(bag()); }
+
+    public long createAttendance(Long attendanceId) { return createAttendance(bag().withAttendanceId(attendanceId)); }
+
+    public long createAttendance(EntityFactoryBag bag) {
+        AttendanceDto dto = AttendanceDto.builder()
+                .attendedAt(ZonedDateTime.now())
+                .attendanceType(TestUtils.randomAttendanceType())
+                .course(bag.getCourseId())
+                .student(bag.getStudentId())
+                .build();
+
+
+        AttendanceDto dtoFromBag = bag().getDto(AttendanceDto.class);
+        if (dtoFromBag != null) {
+            mapper.merge(dtoFromBag, dto);
+        }
+
+        return attendanceService.create(dto).getId();
+    }
+
     public EntityFactoryBag bag() {
         return new EntityFactoryBag(this);
     }
@@ -131,6 +155,8 @@ public class EntityFactory {
         private Long taskId;
 
         private Long studentId;
+
+        private Long attendanceId;
 
         private Object dto;
 
@@ -152,6 +178,11 @@ public class EntityFactory {
         public Long getStudentId() {
             if (studentId == null) studentId = ef.createStudent(this);
             return studentId;
+        }
+
+        public Long getAttendanceId() {
+            if (attendanceId == null) attendanceId = ef.createAttendance(this);
+            return attendanceId;
         }
 
         public <T> T getDto(Class<T> clazz) {

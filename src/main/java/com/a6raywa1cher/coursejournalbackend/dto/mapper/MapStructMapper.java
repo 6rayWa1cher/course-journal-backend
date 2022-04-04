@@ -116,4 +116,28 @@ public abstract class MapStructMapper {
     @Mapping(target = "course", ignore = true)
     @Mapping(target = "submissions", ignore = true)
     public abstract void patch(StudentDto dto, @MappingTarget Student target);
+
+
+// ================================================================================================================
+// Attendance
+// ================================================================================================================
+
+    @CreatedModifiedMapping
+    @Mapping(target = "attendedAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
+    @Mapping(target = "student", source = "student.id")
+    @Mapping(target = "course", source = "course.id")
+    public abstract AttendanceDto map(Attendance attendance);
+
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "student", ignore = true)
+    @Mapping(target = "course", ignore = true)
+    public abstract void put(AttendanceDto dto, @MappingTarget Attendance target);
+
+    @CreatedModifiedRestrictMapping
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "student", ignore = true)
+    @Mapping(target = "course", ignore = true)
+    public abstract void patch(AttendanceDto dto, @MappingTarget Attendance target);
 }

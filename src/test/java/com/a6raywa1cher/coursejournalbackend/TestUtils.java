@@ -1,11 +1,14 @@
 package com.a6raywa1cher.coursejournalbackend;
 
+import com.a6raywa1cher.coursejournalbackend.dto.AttendanceDto;
+import com.a6raywa1cher.coursejournalbackend.model.AttendanceType;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.Base64;
+import java.util.Random;
 
 public final class TestUtils {
     public static String basic(String login, String password) {
@@ -15,6 +18,11 @@ public final class TestUtils {
 
     public static String jwt(String accessToken) {
         return "Bearer " + accessToken;
+    }
+
+    public static AttendanceType randomAttendanceType() {
+        int pick = new Random().nextInt(AttendanceType.values().length);
+        return AttendanceType.values()[pick];
     }
 
     public static final class DateMatcher extends BaseMatcher<String> {

@@ -23,4 +23,7 @@ public interface MapStructTestMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void merge(CourseDto dto, @MappingTarget CourseDto target);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void merge(AttendanceDto dto, @MappingTarget AttendanceDto target);
 }
