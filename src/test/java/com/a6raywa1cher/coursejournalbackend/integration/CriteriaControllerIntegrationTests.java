@@ -79,6 +79,25 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
     }
 
     @Test
+    void getCriteriaById__withCourseToken__valid() {
+        String name = faker.lorem().sentence();
+
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                long id = criteriaService.create(CriteriaDto.builder()
+                        .name(name)
+                        .criteriaPercent(60)
+                        .task(ef.createTask(ef.bag().withCourseId(getCourseId())))
+                        .build()).getId();
+                securePerform(get("/criteria/{id}", id))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.name").value(name));
+            }
+        };
+    }
+
+    @Test
     void getCriteriaById__notAuthenticated__invalid() throws Exception {
         String name = faker.lorem().sentence();
         long id = criteriaService.create(CriteriaDto.builder()
@@ -199,6 +218,43 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
     }
 
     @Test
+    void getCriteriaByTask__withCourseToken__valid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                String sentence1 = faker.lorem().sentence();
+                String sentence2 = faker.lorem().sentence();
+
+                long taskId1 = ef.createTask(ef.bag().withCourseId(getCourseId()));
+                long taskId2 = ef.createTask(ef.createUser());
+
+                criteriaService.create(CriteriaDto.builder()
+                        .name(sentence2)
+                        .criteriaPercent(60)
+                        .task(taskId1)
+                        .build());
+
+                criteriaService.create(CriteriaDto.builder()
+                        .name(sentence1)
+                        .criteriaPercent(75)
+                        .task(taskId1)
+                        .build());
+
+                criteriaService.create(CriteriaDto.builder()
+                        .name(sentence1)
+                        .criteriaPercent(60)
+                        .task(taskId2)
+                        .build());
+
+                securePerform(get("/criteria/task/{id}", taskId1))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$[0].name").value(sentence2))
+                        .andExpect(jsonPath("$[1].name").value(sentence1));
+            }
+        };
+    }
+
+    @Test
     void getCriteriaByTask__notAuthenticated__invalid() throws Exception {
         long id = ef.createTask(ef.createUser());
         mvc.perform(get("/criteria/task/{id}", id)).andExpect(status().isUnauthorized());
@@ -275,6 +331,27 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
             void run() throws Exception {
                 String name = faker.lorem().sentence();
                 long taskId = ef.createTask(ef.createUser());
+                int criteriaPercent = 60;
+
+                securePerform(post("/criteria/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("name", name)
+                                .put("criteriaPercent", criteriaPercent)
+                                .put("task", taskId)
+                                .toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void createCriteria__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                String name = faker.lorem().sentence();
+                long taskId = ef.createTask(ef.bag().withCourseId(getCourseId()));
                 int criteriaPercent = 60;
 
                 securePerform(post("/criteria/")
@@ -423,6 +500,36 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
                 String name = faker.lorem().sentence();
                 int criteriaPercent = 45;
                 long taskId = ef.createTask();
+
+                String prevName = faker.lorem().sentence();
+                int prevCriteriaPercent = 60;
+
+                long criteriaId = criteriaService.create(CriteriaDto.builder()
+                        .name(prevName)
+                        .criteriaPercent(prevCriteriaPercent)
+                        .task(taskId)
+                        .build()).getId();
+
+                securePerform(put("/criteria/{id}", criteriaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("task", taskId)
+                                .put("name", name)
+                                .put("criteriaPercent", criteriaPercent)
+                                .toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void putCriteria__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                String name = faker.lorem().sentence();
+                int criteriaPercent = 45;
+                long taskId = ef.createTask(ef.bag().withCourseId(getCourseId()));
 
                 String prevName = faker.lorem().sentence();
                 int prevCriteriaPercent = 60;
@@ -676,6 +783,33 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
     }
 
     @Test
+    void patchCriteria__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                String name = faker.lorem().sentence();
+                long taskId = ef.createTask(ef.bag().withCourseId(getCourseId()));
+                int criteriaPercent = 60;
+
+                String prevName = faker.lorem().sentence();
+
+                long criteriaId = criteriaService.create(CriteriaDto.builder()
+                        .name(prevName)
+                        .criteriaPercent(criteriaPercent)
+                        .task(taskId)
+                        .build()).getId();
+
+                securePerform(patch("/criteria/{id}", criteriaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("name", name)
+                                .toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
     void patchCriteria__courseChange__invalid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
@@ -842,6 +976,27 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
             void run() throws Exception {
                 String name = faker.lorem().sentence();
                 long taskId = ef.createTask();
+                int criteriaPercent = 60;
+
+                long criteriaId = criteriaService.create(CriteriaDto.builder()
+                        .name(name)
+                        .criteriaPercent(criteriaPercent)
+                        .task(taskId)
+                        .build()).getId();
+
+                securePerform(delete("/criteria/{id}", criteriaId))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void deleteCriteria__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                String name = faker.lorem().sentence();
+                long taskId = ef.createTask(ef.bag().withCourseId(getCourseId()));
                 int criteriaPercent = 60;
 
                 long criteriaId = criteriaService.create(CriteriaDto.builder()

@@ -13,6 +13,7 @@ public class NoConflictsInTaskNumbersValidator implements ConstraintValidator<No
         List<ReorderTasksRestDto.ReorderRequest>> {
     @Override
     public boolean isValid(List<ReorderTasksRestDto.ReorderRequest> value, ConstraintValidatorContext context) {
+        if (value == null) return true;
         List<Integer> values = value.stream().map(ReorderTasksRestDto.ReorderRequest::getNumber).toList();
         return values.size() == new HashSet<>(values).size();
     }

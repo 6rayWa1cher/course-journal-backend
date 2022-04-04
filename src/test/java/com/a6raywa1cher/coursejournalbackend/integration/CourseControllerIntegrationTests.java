@@ -1,19 +1,25 @@
 package com.a6raywa1cher.coursejournalbackend.integration;
 
+import com.a6raywa1cher.coursejournalbackend.RequestContext;
 import com.a6raywa1cher.coursejournalbackend.dto.CourseDto;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
 import com.a6raywa1cher.coursejournalbackend.model.repo.UserRepository;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 
-import static org.hamcrest.Matchers.containsString;
+import java.util.function.Function;
+
+import static com.a6raywa1cher.coursejournalbackend.TestUtils.getIdFromResult;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
 public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
@@ -168,6 +174,19 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
+    void getCoursesByOwner__withCourseToken__invalid() {
+        long id = ef.createUser();
+
+        new WithCourseToken(ef.createCourse(id), true) {
+            @Override
+            void run() throws Exception {
+                securePerform(get("/courses/owner/{id}", id).queryParam("sort", "id,desc"))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
     void getCoursesByOwner__notAuthenticated__invalid() throws Exception {
         long id = ef.createUser();
         mvc.perform(get("/courses/owner/{id}", id)).andExpect(status().isUnauthorized());
@@ -229,6 +248,24 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
+    void getCourseById__withCourseToken__valid() {
+        String name = faker.lorem().sentence();
+        long id = courseService.create(CourseDto.builder()
+                .name(name)
+                .owner(ef.createUser())
+                .build()).getId();
+
+        new WithCourseToken(id, true) {
+            @Override
+            void run() throws Exception {
+                securePerform(get("/courses/{id}", id))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.name").value(name));
+            }
+        };
+    }
+
+    @Test
     void getCourseById__notAuthenticated__invalid() throws Exception {
         String name = faker.lorem().sentence();
         long id = courseService.create(CourseDto.builder()
@@ -260,7 +297,24 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     // ================================================================================================================
 
     @Test
-    void getCourseByName__authenticated__valid() {
+    void getCourseByName__self__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                String name = faker.lorem().sentence();
+                courseService.create(CourseDto.builder()
+                        .name(name)
+                        .owner(getIdAsLong())
+                        .build());
+
+                securePerform(get("/courses/name").queryParam("query", name.substring(1)))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getCourseByName__otherAsAdmin__valid() {
         String name = faker.lorem().sentence();
         courseService.create(CourseDto.builder()
                 .name(name)
@@ -274,6 +328,40 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.totalElements").value(1))
                         .andExpect(jsonPath("$.content[0].name").value(name));
+            }
+        };
+    }
+
+    @Test
+    void getCourseByName__otherAsTeacher__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                String name = faker.lorem().sentence();
+                courseService.create(CourseDto.builder()
+                        .name(name)
+                        .owner(ef.createUser())
+                        .build());
+
+                securePerform(get("/courses/name").queryParam("query", name.substring(1)))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getCourseByName__withCourseToken__invalid() {
+        String name = faker.lorem().sentence();
+        long id = courseService.create(CourseDto.builder()
+                .name(name)
+                .owner(ef.createUser())
+                .build()).getId();
+
+        new WithCourseToken(id, true) {
+            @Override
+            void run() throws Exception {
+                securePerform(get("/courses/name").queryParam("query", name.substring(1)))
+                        .andExpect(status().isForbidden());
             }
         };
     }
@@ -311,30 +399,46 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
     // ================================================================================================================
 
+    RequestContext<ObjectNode> getCreateCourseContext(long ownerId, String name) {
+        ObjectNode request = objectMapper.createObjectNode()
+                .put("name", name)
+                .put("owner", ownerId);
+
+        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
+                jsonPath(prefix + ".id").isNumber(),
+                jsonPath(prefix + ".name").value(name),
+                jsonPath(prefix + ".owner").value(ownerId)
+        };
+
+        return RequestContext.<ObjectNode>builder()
+                .request(request)
+                .matchersSupplier(matchers)
+                .build();
+    }
+
     @Test
     void createCourse__self__valid() {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                String ownerId = getId();
+                long ownerId = getIdAsLong();
 
-                securePerform(post("/courses/")
+                var ctx = getCreateCourseContext(ownerId, name);
+                ObjectNode request = ctx.getRequest();
+
+                MvcResult mvcResult = securePerform(post("/courses/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", name)
-                                .put("owner", Long.parseLong(ownerId))
-                                .toString()))
+                        .content(request.toString()))
                         .andExpect(status().isCreated())
-                        .andExpectAll(
-                                jsonPath("$.id").isNumber(),
-                                jsonPath("$.name").value(name),
-                                jsonPath("$.owner").value(ownerId)
-                        );
+                        .andExpectAll(ctx.getMatchers())
+                        .andReturn();
 
-                securePerform(get("/courses/owner/{id}", ownerId))
+                long id = getIdFromResult(mvcResult);
+
+                securePerform(get("/courses/{id}", id))
                         .andExpect(status().isOk())
-                        .andExpect(content().string(containsString(name)));
+                        .andExpectAll(ctx.getMatchers());
             }
         };
     }
@@ -347,22 +451,21 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createUser();
 
-                securePerform(post("/courses/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", name)
-                                .put("owner", ownerId)
-                                .toString()))
-                        .andExpect(status().isCreated())
-                        .andExpectAll(
-                                jsonPath("$.id").isNumber(),
-                                jsonPath("$.name").value(name),
-                                jsonPath("$.owner").value(ownerId)
-                        );
+                var ctx = getCreateCourseContext(ownerId, name);
+                ObjectNode request = ctx.getRequest();
 
-                securePerform(get("/courses/owner/{id}", ownerId))
+                MvcResult mvcResult = securePerform(post("/courses/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isCreated())
+                        .andExpectAll(ctx.getMatchers())
+                        .andReturn();
+
+                long id = getIdFromResult(mvcResult);
+
+                securePerform(get("/courses/{id}", id))
                         .andExpect(status().isOk())
-                        .andExpect(content().string(containsString(name)));
+                        .andExpectAll(ctx.getMatchers());
             }
         };
     }
@@ -375,12 +478,32 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createUser();
 
+                var ctx = getCreateCourseContext(ownerId, name);
+                ObjectNode request = ctx.getRequest();
+
                 securePerform(post("/courses/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", name)
-                                .put("owner", ownerId)
-                                .toString()))
+                        .content(request.toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void createCourse__withCourseToken__invalid() {
+        long ownerId = ef.createUser();
+
+        new WithCourseToken(ownerId) {
+            @Override
+            void run() throws Exception {
+                String name = faker.lorem().sentence();
+
+                var ctx = getCreateCourseContext(ownerId, name);
+                ObjectNode request = ctx.getRequest();
+
+                securePerform(post("/courses/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
                         .andExpect(status().isForbidden());
             }
         };
@@ -392,22 +515,19 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                String ownerId = getId();
+                long ownerId = ef.createUser();
+
+                ef.createCourse(ef.bag()
+                        .withUserId(ownerId)
+                        .withDto(CourseDto.builder().name(name).build())
+                );
+
+                var ctx = getCreateCourseContext(ownerId, name);
+                ObjectNode request = ctx.getRequest();
 
                 securePerform(post("/courses/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", name)
-                                .put("owner", Long.parseLong(ownerId))
-                                .toString()))
-                        .andExpect(status().isCreated());
-
-                securePerform(post("/courses/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", name)
-                                .put("owner", Long.parseLong(ownerId))
-                                .toString()))
+                        .content(request.toString()))
                         .andExpect(status().isConflict());
             }
         };
@@ -415,12 +535,15 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void createCourse__notAuthenticated__invalid() throws Exception {
+        String name = faker.lorem().sentence();
+        long ownerId = ef.createUser();
+
+        var ctx = getCreateCourseContext(ownerId, name);
+        ObjectNode request = ctx.getRequest();
+
         mvc.perform(post("/courses/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", faker.lorem().sentence())
-                                .put("owner", ef.createUser())
-                                .toString()))
+                        .content(request.toString()))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -509,6 +632,32 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createUser();
+
+                long courseId = courseService.create(CourseDto.builder()
+                        .name(name)
+                        .owner(ownerId)
+                        .build()).getId();
+
+                String newName = faker.lorem().sentence();
+
+                securePerform(put("/courses/{id}", courseId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("name", newName)
+                                .put("owner", ownerId)
+                                .toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void putCourse__withCourseToken__invalid() {
+        long ownerId = ef.createUser();
+        new WithCourseToken(ownerId) {
+            @Override
+            void run() throws Exception {
+                String name = faker.lorem().sentence();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)
@@ -860,6 +1009,31 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
+    void patchCourse__withCourseToken__invalid() {
+        long ownerId = ef.createUser();
+        new WithCourseToken(ownerId) {
+            @Override
+            void run() throws Exception {
+                String name = faker.lorem().sentence();
+
+                long courseId = courseService.create(CourseDto.builder()
+                        .name(name)
+                        .owner(ownerId)
+                        .build()).getId();
+
+                String newName = faker.lorem().sentence();
+
+                securePerform(patch("/courses/{id}", courseId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("name", newName)
+                                .toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
     void patchCourse__ownershipTransferAsAdmin__valid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
@@ -1132,6 +1306,25 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createUser();
+
+                long courseId = courseService.create(CourseDto.builder()
+                        .name(name)
+                        .owner(ownerId)
+                        .build()).getId();
+
+                securePerform(delete("/courses/{id}", courseId))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void deleteCourse__withCourseToken__invalid() {
+        long ownerId = ef.createUser();
+        new WithCourseToken(ownerId) {
+            @Override
+            void run() throws Exception {
+                String name = faker.lorem().sentence();
 
                 long courseId = courseService.create(CourseDto.builder()
                         .name(name)

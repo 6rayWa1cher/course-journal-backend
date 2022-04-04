@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -48,27 +47,27 @@ public class UserController {
     }
 
     @PostMapping("/")
-    @Secured("ROLE_ADMIN")
+    @PreAuthorize("@accessChecker.createUserAccess(#dto.userRole, authentication)")
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto createUser(@RequestBody @Valid CreateUserDto dto) {
         return userService.createUser(mapper.map(dto));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("@accessChecker.editUserAccess(#id, #dto.userRole, authentication)")
+    @PreAuthorize("@accessChecker.editUserAccessWithRole(#id, #dto.userRole, authentication)")
     public UserDto updateUser(@RequestBody @Valid EditUserDto dto, @PathVariable long id) {
         return userService.updateUser(id, mapper.map(dto));
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("@accessChecker.editUserAccess(#id, #dto.userRole, authentication)")
+    @PreAuthorize("@accessChecker.editUserAccessWithRole(#id, #dto.userRole, authentication)")
     @Validated(OnUpdate.class)
     public UserDto patchUser(@RequestBody @Valid EditUserDto dto, @PathVariable long id) {
         return userService.patchUser(id, mapper.map(dto));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("@accessChecker.isUserModificationAuthorized(#id, authentication)")
+    @PreAuthorize("@accessChecker.editUserAccess(#id, authentication)")
     public void deleteUser(@PathVariable long id) {
         userService.delete(id);
     }

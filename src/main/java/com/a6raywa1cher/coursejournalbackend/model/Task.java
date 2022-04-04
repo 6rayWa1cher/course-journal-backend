@@ -11,6 +11,7 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,7 +21,7 @@ import java.util.Objects;
 @Setter
 @ToString
 @RequiredArgsConstructor
-public class Task {
+public class Task implements IdEntity<Long> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
@@ -54,7 +55,14 @@ public class Task {
 
     @OneToMany(mappedBy = "task", orphanRemoval = true, cascade = CascadeType.ALL)
     @ToString.Exclude
-    private List<Submission> submissions;
+    private List<Submission> submissions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "task", orphanRemoval = true, cascade = CascadeType.ALL)
+    @ToString.Exclude
+    private List<Criteria> criteria = new ArrayList<>();
+
+    @Column(name = "deadlines_enabled")
+    private Boolean deadlinesEnabled;
 
     @Column(name = "soft_deadline_at")
     private LocalDateTime softDeadlineAt;

@@ -106,6 +106,35 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
     }
 
     @Test
+    void getStudentById__withCourseToken__valid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                String firstName = faker.name().firstName();
+                String lastName = faker.name().lastName();
+                long courseId = getCourseId();
+
+                long id = studentService.create(StudentDto.builder()
+                        .firstName(firstName)
+                        .lastName(lastName)
+                        .course(courseId)
+                        .build()).getId();
+
+                ResultMatcher[] matchers = {
+                        jsonPath("$.id").value(id),
+                        jsonPath("$.course").value(courseId),
+                        jsonPath("$.firstName").value(firstName),
+                        jsonPath("$.lastName").value(lastName),
+                };
+
+                securePerform(get("/students/{id}", id))
+                        .andExpect(status().isOk())
+                        .andExpectAll(matchers);
+            }
+        };
+    }
+
+    @Test
     void getStudentById__notAuthenticated__invalid() throws Exception {
         String firstName = faker.name().firstName();
         String lastName = faker.name().lastName();
@@ -236,6 +265,46 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
     }
 
     @Test
+    void getStudentByCourse__withCourseToken__valid() {
+        long ownerId = ef.createUser();
+        long courseId1 = ef.createCourse(ownerId);
+        long courseId2 = ef.createCourse(ownerId);
+        new WithCourseToken(courseId1, true) {
+            @Override
+            void run() throws Exception {
+
+                String firstName1 = "A" + faker.name().firstName();
+                String firstName2 = "B" + faker.name().firstName();
+
+                studentService.create(StudentDto.builder()
+                        .firstName(firstName2)
+                        .lastName(faker.name().lastName())
+                        .course(courseId1)
+                        .build());
+
+                studentService.create(StudentDto.builder()
+                        .firstName(firstName1)
+                        .lastName(faker.name().lastName())
+                        .course(courseId1)
+                        .build());
+
+                studentService.create(StudentDto.builder()
+                        .firstName(firstName1)
+                        .lastName(faker.name().lastName())
+                        .course(courseId2)
+                        .build());
+
+                securePerform(get("/students/course/{id}", courseId1)
+                        .queryParam("sort", "firstName,asc"))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.totalElements").value(2))
+                        .andExpect(jsonPath("$.content[0].firstName").value(firstName1))
+                        .andExpect(jsonPath("$.content[1].firstName").value(firstName2));
+            }
+        };
+    }
+
+    @Test
     void getStudentByCourse__notAuthenticated__invalid() throws Exception {
         long id = ef.createCourse();
         mvc.perform(get("/students/course/{id}", id)).andExpect(status().isUnauthorized());
@@ -333,6 +402,44 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
     }
 
     @Test
+    void getStudentByCourseNotPaged__withCourseToken__valid() {
+        long ownerId = ef.createUser();
+        long courseId1 = ef.createCourse(ownerId);
+        long courseId2 = ef.createCourse(ownerId);
+        new WithCourseToken(courseId1, true) {
+            @Override
+            void run() throws Exception {
+                String lastName1 = "A" + faker.name().lastName();
+                String lastName2 = "B" + faker.name().lastName();
+
+                studentService.create(StudentDto.builder()
+                        .firstName(faker.name().firstName())
+                        .lastName(lastName2)
+                        .course(courseId1)
+                        .build());
+
+                studentService.create(StudentDto.builder()
+                        .firstName(faker.name().firstName())
+                        .lastName(lastName1)
+                        .course(courseId1)
+                        .build());
+
+                studentService.create(StudentDto.builder()
+                        .firstName(faker.name().firstName())
+                        .lastName(lastName2)
+                        .course(courseId2)
+                        .build());
+
+                securePerform(get("/students/course/{id}/all", courseId1))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpect(jsonPath("$[0].lastName").value(lastName1))
+                        .andExpect(jsonPath("$[1].lastName").value(lastName2));
+            }
+        };
+    }
+
+    @Test
     void getStudentByCourseNotPaged__notAuthenticated__invalid() throws Exception {
         long id = ef.createCourse();
         mvc.perform(get("/students/course/{id}/all", id)).andExpect(status().isUnauthorized());
@@ -414,6 +521,24 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
+                var ctx = getCreateStudentRequest(courseId);
+
+                ObjectNode request = ctx.getRequest();
+
+                securePerform(post("/students/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void createStudent__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                long courseId = getCourseId();
                 var ctx = getCreateStudentRequest(courseId);
 
                 ObjectNode request = ctx.getRequest();
@@ -545,6 +670,24 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
     }
 
     @Test
+    void batchCreateStudent__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                long courseId = getCourseId();
+                RequestContext<ObjectNode> ctx = getBatchCreateStudentRequest(courseId);
+
+                ObjectNode request = ctx.getRequest();
+
+                securePerform(post("/students/batch")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
     void batchCreateStudent__notAuthenticated__invalid() throws Exception {
         long courseId = ef.createCourse();
         RequestContext<ObjectNode> ctx = getBatchCreateStudentRequest(courseId);
@@ -635,6 +778,25 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+
+                RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId);
+                ObjectNode request = ctx.getRequest();
+
+                securePerform(put("/students/{id}", studentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void putStudent__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                long courseId = getCourseId();
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
 
                 RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId);
@@ -819,6 +981,35 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
     }
 
     @Test
+    void patchStudent__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                long courseId = getCourseId();
+
+                String lastName = faker.name().lastName();
+                String middleName = faker.name().firstName();
+
+                long studentId = ef.createStudent(ef.bag()
+                        .withCourseId(courseId)
+                        .withDto(StudentDto.builder()
+                                .lastName(lastName)
+                                .middleName(middleName)
+                                .build()
+                        ));
+
+                RequestContext<ObjectNode> ctx = getPatchStudentRequest(courseId, middleName, lastName);
+                ObjectNode request = ctx.getRequest();
+
+                securePerform(patch("/students/{id}", studentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
     void patchStudent__courseChange__invalid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
@@ -941,6 +1132,19 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long studentId = ef.createStudent();
+
+                securePerform(delete("/students/{id}", studentId))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void deleteStudent__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                long studentId = ef.createStudent(ef.bag().withCourseId(getCourseId()));
 
                 securePerform(delete("/students/{id}", studentId))
                         .andExpect(status().isForbidden());

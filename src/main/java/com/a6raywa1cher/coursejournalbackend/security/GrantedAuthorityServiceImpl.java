@@ -30,6 +30,7 @@ public class GrantedAuthorityServiceImpl implements GrantedAuthorityService {
         User user = (User) iUser;
         Set<GrantedAuthority> set = new HashSet<>();
         set.add(new SimpleGrantedAuthority("ROLE_" + user.getUserRole()));
+        set.add(new SimpleGrantedAuthority(Permission.getPermissionForUser(user, ActionType.READ)));
         set.add(new SimpleGrantedAuthority(Permission.getPermissionForUser(user, ActionType.WRITE)));
         if (user.getUserRole() == UserRole.TEACHER) {
             List<Long> byOwner = courseRepository.findByOwner(user);

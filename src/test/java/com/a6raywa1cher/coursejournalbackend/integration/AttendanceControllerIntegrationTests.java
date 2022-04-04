@@ -19,7 +19,8 @@ import java.util.function.Function;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
 public class AttendanceControllerIntegrationTests extends AbstractIntegrationTests {
@@ -779,7 +780,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     }
 
     @Test
-    void putAttendance__notAuthorised__invalid() throws Exception {
+    void putAttendance__notAuthenticated__invalid() throws Exception {
         long[] info = getNeededInfo();
         long studentId = info[0];
         long courseId = info[1];
@@ -789,7 +790,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         ObjectNode request = context.getRequest();
 
         mvc.perform(put("/attendance/{id}", attendanceId)
-                .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
                 .content(request.toString()))
                 .andExpect(status().isUnauthorized());
     }
@@ -974,7 +975,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     }
 
     @Test
-    void patchAttendance__notAuthorised__invalid() throws Exception {
+    void patchAttendance__notAuthenticated__invalid() throws Exception {
         long[] info = getNeededInfo();
         long studentId = info[0];
         long courseId = info[1];

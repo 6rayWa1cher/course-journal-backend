@@ -37,6 +37,7 @@ public abstract class MapStructMapper {
     @Mapping(target = "owner", ignore = true)
     @Mapping(target = "students", ignore = true)
     @Mapping(target = "tasks", ignore = true)
+    @Mapping(target = "courseToken", ignore = true)
     public abstract void put(CourseDto dto, @MappingTarget Course target);
 
     @CreatedModifiedRestrictMapping
@@ -45,6 +46,7 @@ public abstract class MapStructMapper {
     @Mapping(target = "owner", ignore = true)
     @Mapping(target = "students", ignore = true)
     @Mapping(target = "tasks", ignore = true)
+    @Mapping(target = "courseToken", ignore = true)
     public abstract void patch(CourseDto dto, @MappingTarget Course target);
 
     // ================================================================================================================
@@ -61,6 +63,7 @@ public abstract class MapStructMapper {
     @CreatedModifiedRestrictMapping
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "course", ignore = true)
+    @Mapping(target = "criteria", ignore = true)
     @Mapping(target = "submissions", ignore = true)
     @Mapping(target = "announcementAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
     @Mapping(target = "softDeadlineAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
@@ -71,6 +74,7 @@ public abstract class MapStructMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "course", ignore = true)
+    @Mapping(target = "criteria", ignore = true)
     @Mapping(target = "submissions", ignore = true)
     @Mapping(target = "announcementAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
     @Mapping(target = "softDeadlineAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
@@ -117,10 +121,9 @@ public abstract class MapStructMapper {
     @Mapping(target = "submissions", ignore = true)
     public abstract void patch(StudentDto dto, @MappingTarget Student target);
 
-
-// ================================================================================================================
-// Attendance
-// ================================================================================================================
+    // ================================================================================================================
+    // Attendance
+    // ================================================================================================================
 
     @CreatedModifiedMapping
     @Mapping(target = "attendedAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
@@ -134,10 +137,47 @@ public abstract class MapStructMapper {
     @Mapping(target = "course", ignore = true)
     public abstract void put(AttendanceDto dto, @MappingTarget Attendance target);
 
+
     @CreatedModifiedRestrictMapping
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "student", ignore = true)
     @Mapping(target = "course", ignore = true)
     public abstract void patch(AttendanceDto dto, @MappingTarget Attendance target);
+
+    // ================================================================================================================
+    // Submission
+    // ================================================================================================================
+
+    @CreatedModifiedMapping
+    @Mapping(target = "task", source = "task.id")
+    @Mapping(target = "student", source = "student.id")
+    @Mapping(target = "submittedAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
+    @Mapping(target = "satisfiedCriteria", qualifiedByName = {"MapperHelper", "ExtractIds"})
+    public abstract SubmissionDto map(Submission submission);
+
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "mainScore", ignore = true)
+    @Mapping(target = "satisfiedCriteria", ignore = true)
+    @Mapping(target = "task", ignore = true)
+    @Mapping(target = "student", ignore = true)
+    public abstract void put(SubmissionDto dto, @MappingTarget Submission target);
+
+    @CreatedModifiedRestrictMapping
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "mainScore", ignore = true)
+    @Mapping(target = "satisfiedCriteria", ignore = true)
+    @Mapping(target = "task", ignore = true)
+    @Mapping(target = "student", ignore = true)
+    public abstract void patch(SubmissionDto dto, @MappingTarget Submission target);
+
+    // ================================================================================================================
+    // CourseToken
+    // ================================================================================================================
+
+    @CreatedModifiedMapping
+    @Mapping(target = "course", source = "course.id")
+    public abstract CourseTokenDto map(CourseToken criteria);
 }

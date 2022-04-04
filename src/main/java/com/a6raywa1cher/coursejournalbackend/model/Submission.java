@@ -23,7 +23,7 @@ import java.util.Objects;
 @Setter
 @ToString
 @RequiredArgsConstructor
-public class Submission {
+public class Submission implements IdEntity<Long> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
@@ -31,11 +31,11 @@ public class Submission {
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "task_id")
+    @JoinColumn(name = "task_id", nullable = false, updatable = false)
     private Task task;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "student_id")
+    @JoinColumn(name = "student_id", nullable = false, updatable = false)
     private Student student;
 
     @Column(name = "submitted_at", nullable = false)
@@ -54,11 +54,11 @@ public class Submission {
     @ToString.Exclude
     private List<Criteria> satisfiedCriteria;
 
-    @Column(name = "main_score")
-    private Integer mainScore;
+    @Column(name = "main_score", precision = 3, scale = 2)
+    private Double mainScore;
 
-    @Column(name = "additional_score")
-    private Integer additionalScore;
+    @Column(name = "additional_score", precision = 3, scale = 2)
+    private Double additionalScore;
 
     @Column(name = "created_at")
     @CreatedDate

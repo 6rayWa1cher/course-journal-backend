@@ -29,7 +29,6 @@ public class TaskRestDto {
     @PositiveOrZero
     private Integer maxScore;
 
-
     @Min(0)
     @Max(100)
     private Integer maxPenaltyPercent;
@@ -37,6 +36,8 @@ public class TaskRestDto {
     private Boolean announced;
 
     private ZonedDateTime announcementAt;
+
+    private Boolean deadlinesEnabled;
 
     private ZonedDateTime softDeadlineAt;
 

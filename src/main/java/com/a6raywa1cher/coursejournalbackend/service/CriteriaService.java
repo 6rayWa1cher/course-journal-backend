@@ -11,6 +11,8 @@ public interface CriteriaService {
 
     Optional<Criteria> findRawById(long id);
 
+    List<Criteria> findRawById(List<Long> ids);
+
     List<CriteriaDto> getByTaskId(long taskId);
 
     CriteriaDto create(CriteriaDto dto);

@@ -1,5 +1,6 @@
 package com.a6raywa1cher.coursejournalbackend.dto.mapper;
 
+import com.a6raywa1cher.coursejournalbackend.model.IdEntity;
 import org.mapstruct.Named;
 import org.mapstruct.TargetType;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,6 +11,7 @@ import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @Component
 @Named("MapperHelper")
@@ -51,5 +53,11 @@ public class MapperHelper {
     public String encodePassword(String rawPassword) {
         if (rawPassword == null) return null;
         return passwordEncoder.encode(rawPassword);
+    }
+
+    @Named("ExtractIds")
+    public <T, J extends IdEntity<T>> List<T> extractIds(List<J> entities) {
+        if (entities == null) return null;
+        return entities.stream().map(IdEntity::getId).toList();
     }
 }

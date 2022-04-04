@@ -1,11 +1,13 @@
 package com.a6raywa1cher.coursejournalbackend;
 
-import com.a6raywa1cher.coursejournalbackend.dto.AttendanceDto;
 import com.a6raywa1cher.coursejournalbackend.model.AttendanceType;
+import com.jayway.jsonpath.JsonPath;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.Random;
@@ -25,6 +27,14 @@ public final class TestUtils {
         return AttendanceType.values()[pick];
     }
 
+    public static String ctbearer(String accessToken) {
+        return "ctbearer " + accessToken;
+    }
+
+    public static long getIdFromResult(MvcResult mvcResult) throws Exception {
+        return JsonPath.<Integer>read(mvcResult.getResponse().getContentAsString(), "$.id");
+    }
+
     public static final class DateMatcher extends BaseMatcher<String> {
         private final ZonedDateTime date;
 
@@ -34,12 +44,48 @@ public final class TestUtils {
 
         @Override
         public boolean matches(Object actual) {
-            return ZonedDateTime.parse((String) actual).isEqual(date);
+            return Duration.between(date, ZonedDateTime.parse((String) actual)).toMillis() < 1;
         }
 
         @Override
         public void describeTo(Description description) {
             description.appendValue(date);
+        }
+    }
+
+    public static final class GreaterThanMatcher extends BaseMatcher<Integer> {
+        private final int value;
+
+        public GreaterThanMatcher(int value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean matches(Object actual) {
+            return ((int) actual) > value;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendValue(value);
+        }
+    }
+
+    public static final class NotEqualsMatcher extends BaseMatcher<Integer> {
+        private final int value;
+
+        public NotEqualsMatcher(int value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean matches(Object actual) {
+            return ((int) actual) != value;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendValue(value);
         }
     }
 }
