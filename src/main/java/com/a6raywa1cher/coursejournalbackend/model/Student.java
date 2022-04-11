@@ -30,6 +30,9 @@ public class Student implements IdEntity<Long> {
     @ManyToOne(optional = false)
     private Course course;
 
+    @ManyToOne(optional = false)
+    private Group group;
+
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
