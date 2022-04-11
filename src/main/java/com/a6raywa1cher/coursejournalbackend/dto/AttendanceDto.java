@@ -4,6 +4,7 @@ import com.a6raywa1cher.coursejournalbackend.model.AttendanceType;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 
 @Data
@@ -15,7 +16,9 @@ public class AttendanceDto {
 
     private Long course;
 
-    private ZonedDateTime attendedAt;
+    private Integer attendedClass;
+
+    private LocalDate attendedDate;
 
     private ZonedDateTime createdAt;
 

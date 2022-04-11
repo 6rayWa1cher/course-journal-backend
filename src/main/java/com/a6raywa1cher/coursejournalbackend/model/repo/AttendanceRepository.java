@@ -1,9 +1,28 @@
 package com.a6raywa1cher.coursejournalbackend.model.repo;
 
 import com.a6raywa1cher.coursejournalbackend.model.Attendance;
-import org.springframework.data.repository.CrudRepository;
+import com.a6raywa1cher.coursejournalbackend.model.Course;
+import com.a6raywa1cher.coursejournalbackend.model.Student;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
 @Repository
-public interface AttendanceRepository extends CrudRepository<Attendance, Long> {
+public interface AttendanceRepository extends PagingAndSortingRepository<Attendance, Long> {
+    @Query("from Attendance where student = :student")
+    List<Attendance> getAllByStudent(@Param("student") Student student, Sort sort);
+
+    @Query("from Attendance where course = :course")
+    List<Attendance> getAllByCourse(@Param("course") Course course, Sort sort);
+
+    @Query("from Attendance where student = :student and course = :course")
+    List<Attendance> getAllByStudentAndCourse(@Param("student") Student student, @Param("course") Course course, Sort sort);
+
+    Optional<Attendance> findByStudentAndAttendedDateAndAttendedClass(Student student, LocalDate attendedDate, Integer attendedClass);
 }

@@ -17,14 +17,15 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 // 3. 1 с дополнением - добавить Int уважительных состояний ++
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
 @Table(
         name = "attendance",
-        uniqueConstraints = @UniqueConstraint(name = "one_attendance_per_course_date_student",
-                columnNames = {"course_id", "attended_at", "student_id"})
+        uniqueConstraints = @UniqueConstraint(name = "one_attendance_per_class_date_student",
+                columnNames = {"attended_class", "attended_date", "student_id"})
 )
 
 @Getter
@@ -46,9 +47,13 @@ public class Attendance {
     @JoinColumn(name = "student_id")
     private Student student;
 
-    @Column(name = "attended_at")
+    @Column(name = "attended_class")
     @ReadOnlyProperty
-    private LocalDateTime attendedAt;
+    private Integer attendedClass;
+
+    @Column(name = "attended_date")
+    @ReadOnlyProperty
+    private LocalDate attendedDate;
 
     @Column(name = "created_at")
     @CreatedDate

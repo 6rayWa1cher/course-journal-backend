@@ -126,7 +126,6 @@ public abstract class MapStructMapper {
     // ================================================================================================================
 
     @CreatedModifiedMapping
-    @Mapping(target = "attendedAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
     @Mapping(target = "student", source = "student.id")
     @Mapping(target = "course", source = "course.id")
     public abstract AttendanceDto map(Attendance attendance);
@@ -135,6 +134,8 @@ public abstract class MapStructMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "student", ignore = true)
     @Mapping(target = "course", ignore = true)
+    @Mapping(target = "attendedClass", ignore = true)
+    @Mapping(target = "attendedDate", ignore = true)
     public abstract void put(AttendanceDto dto, @MappingTarget Attendance target);
 
 
@@ -143,6 +144,8 @@ public abstract class MapStructMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "student", ignore = true)
     @Mapping(target = "course", ignore = true)
+    @Mapping(target = "attendedClass", ignore = true)
+    @Mapping(target = "attendedDate", ignore = true)
     public abstract void patch(AttendanceDto dto, @MappingTarget Attendance target);
 
     // ================================================================================================================
@@ -162,6 +165,7 @@ public abstract class MapStructMapper {
     @Mapping(target = "satisfiedCriteria", ignore = true)
     @Mapping(target = "task", ignore = true)
     @Mapping(target = "student", ignore = true)
+    @Mapping(target = "submittedAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
     public abstract void put(SubmissionDto dto, @MappingTarget Submission target);
 
     @CreatedModifiedRestrictMapping
@@ -171,6 +175,7 @@ public abstract class MapStructMapper {
     @Mapping(target = "satisfiedCriteria", ignore = true)
     @Mapping(target = "task", ignore = true)
     @Mapping(target = "student", ignore = true)
+    @Mapping(target = "submittedAt", qualifiedByName = {"MapperHelper", "ToLocalDateTime"})
     public abstract void patch(SubmissionDto dto, @MappingTarget Submission target);
 
     // ================================================================================================================

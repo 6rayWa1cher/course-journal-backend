@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.TestComponent;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.Random;
 import java.util.stream.Stream;
 
 @TestComponent
@@ -155,18 +156,18 @@ public class EntityFactory {
 
     public long createAttendance() { return createAttendance(bag()); }
 
-    public long createAttendance(Long attendanceId) { return createAttendance(bag().withAttendanceId(attendanceId)); }
+    public long createAttendance(Long userId) { return createAttendance(bag().withUserId(userId)); }
 
     public long createAttendance(EntityFactoryBag bag) {
         AttendanceDto dto = AttendanceDto.builder()
-                .attendedAt(ZonedDateTime.now())
+                .attendedClass(faker.number().numberBetween(1, 6))
                 .attendanceType(TestUtils.randomAttendanceType())
                 .course(bag.getCourseId())
                 .student(bag.getStudentId())
                 .build();
 
 
-        AttendanceDto dtoFromBag = bag().getDto(AttendanceDto.class);
+        AttendanceDto dtoFromBag = bag.getDto(AttendanceDto.class);
         if (dtoFromBag != null) {
             mapper.merge(dtoFromBag, dto);
         }

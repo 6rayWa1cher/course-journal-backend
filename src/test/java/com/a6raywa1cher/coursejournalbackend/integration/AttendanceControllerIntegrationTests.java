@@ -8,13 +8,15 @@ import com.a6raywa1cher.coursejournalbackend.service.AttendanceService;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
 import com.a6raywa1cher.coursejournalbackend.service.StudentService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.function.Function;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -33,41 +35,36 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     @Autowired
     StudentService studentService;
 
-    private long[] getNeededInfo(){
-        long[] result;
-        result = new long[2];
-        result[0] = ef.createStudent();
-        result[1] = ef.createCourse();
-        return result;
-    };
-
     @Test
     void getAttendanceById__self__valid() {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                ZonedDateTime attendedAt = ZonedDateTime.now();
+                Integer attendedClass = faker.number().numberBetween(1, 6);
+                LocalDate attendedDate = LocalDate.now();
                 long courseId = ef.createCourse(getIdAsLong());
-                long studentId = ef.createStudent(getIdAsLong());
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 AttendanceType attendanceType = TestUtils.randomAttendanceType();
 
                 long id = attendanceService.create(AttendanceDto.builder()
                         .student(studentId)
                         .course(courseId)
-                        .attendedAt(attendedAt)
+                        .attendedClass(attendedClass)
                         .attendanceType(attendanceType)
+                        .attendedDate(attendedDate)
                         .build()).getId();
 
                 ResultMatcher[] matchers = {
                         jsonPath("$.id").value(id),
                         jsonPath("$.student").value(studentId),
-                        jsonPath("$.attendedAt").value(new TestUtils.DateMatcher(attendedAt)),
-                        jsonPath("$.attendanceType").value(attendanceType)
+                        jsonPath("$.attendedClass").value(attendedClass),
+                        jsonPath("$.attendanceType").value(attendanceType.toString()),
+                        jsonPath("$.attendedDate").value(attendedDate.toString())
                 };
 
-                securePerform(get("/attendance/{id}", id))
-                        .andExpect(status().isOk())
-                        .andExpectAll(matchers);
+                securePerform(get("/attendances/{id}", id))
+                        .andExpectAll(matchers)
+                        .andExpect(status().isOk());
             }
         };
     }
@@ -77,26 +74,29 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                ZonedDateTime attendedAt = ZonedDateTime.now();
+                LocalDate attendedDate = LocalDate.now();
+                Integer attendedClass = faker.number().numberBetween(1, 6);
                 long courseId = ef.createCourse(getIdAsLong());
-                long studentId = ef.createStudent(getIdAsLong());
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 AttendanceType attendanceType = TestUtils.randomAttendanceType();
 
                 long id = attendanceService.create(AttendanceDto.builder()
                         .student(studentId)
                         .course(courseId)
-                        .attendedAt(attendedAt)
+                        .attendedClass(attendedClass)
                         .attendanceType(attendanceType)
+                        .attendedDate(attendedDate)
                         .build()).getId();
 
                 ResultMatcher[] matchers = {
                         jsonPath("$.id").value(id),
                         jsonPath("$.student").value(studentId),
-                        jsonPath("$.attendedAt").value(new TestUtils.DateMatcher(attendedAt)),
-                        jsonPath("$.attendanceType").value(attendanceType)
+                        jsonPath("$.attendedClass").value(attendedClass),
+                        jsonPath("$.attendanceType").value(attendanceType.toString()),
+                        jsonPath("$.attendedDate").value(attendedDate.toString())
                 };
 
-                securePerform(get("/attendance/{id}", id))
+                securePerform(get("/attendances/{id}", id))
                         .andExpect(status().isOk())
                         .andExpectAll(matchers);
             }
@@ -108,19 +108,21 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws  Exception {
-                ZonedDateTime attendedAt = ZonedDateTime.now();
-                long courseId = ef.createCourse(getIdAsLong());
-                long studentId = ef.createStudent(getIdAsLong());
+                LocalDate attendedDate = LocalDate.now();
+                Integer attendedClass = faker.number().numberBetween(1, 6);
+                long courseId = ef.createCourse();
+                long studentId = ef.createStudent();
                 AttendanceType attendanceType = TestUtils.randomAttendanceType();
 
                 long id = attendanceService.create(AttendanceDto.builder()
                         .student(studentId)
                         .course(courseId)
-                        .attendedAt(attendedAt)
+                        .attendedClass(attendedClass)
                         .attendanceType(attendanceType)
+                        .attendedDate(attendedDate)
                         .build()).getId();
 
-                securePerform(get("/attendance/{id}", id))
+                securePerform(get("/attendances/{id}", id))
                         .andExpect(status().isForbidden());
             }
         };
@@ -128,40 +130,44 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void getAttendanceById__notAuthenticated__invalid() throws Exception {
-        ZonedDateTime attendedAt = ZonedDateTime.now();
+        Integer attendedClass = faker.number().numberBetween(1, 6);
         long courseId = ef.createCourse();
         long studentId = ef.createStudent();
+        LocalDate attendedDate = LocalDate.now();
         AttendanceType attendanceType = TestUtils.randomAttendanceType();
 
         long id = attendanceService.create(AttendanceDto.builder()
                 .student(studentId)
                 .course(courseId)
-                .attendedAt(attendedAt)
+                .attendedClass(attendedClass)
                 .attendanceType(attendanceType)
+                .attendedDate(attendedDate)
                 .build()).getId();
 
-        mvc.perform(get("/attendance/{id}", id))
+        mvc.perform(get("/attendances/{id}", id))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void getAttendanceById__notExists__invalid() {
-        ZonedDateTime attendedAt = ZonedDateTime.now();
+        Integer attendedClass = faker.number().numberBetween(1, 6);
         long courseId = ef.createCourse();
         long studentId = ef.createStudent();
+        LocalDate attendedDate = LocalDate.now();
         AttendanceType attendanceType = TestUtils.randomAttendanceType();
 
         long id = attendanceService.create(AttendanceDto.builder()
                 .student(studentId)
                 .course(courseId)
-                .attendedAt(attendedAt)
+                .attendedClass(attendedClass)
                 .attendanceType(attendanceType)
+                .attendedDate(attendedDate)
                 .build()).getId();
 
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                securePerform(get("/attendance/{id}", id + 1000))
+                securePerform(get("/attendances/{id}", id + 1000))
                         .andExpect(status().isNotFound());
             }
         };
@@ -169,48 +175,57 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     // =================================================================================================================
 
+    RequestContext<Long> createGetAttendanceByStudentContext(long studentId, long courseId, Integer attendedClass) {
+        LocalDate attendedDate = LocalDate.now().minusDays(1);
+        AttendanceType attendanceType = TestUtils.randomAttendanceType();
+
+        long id = attendanceService.create(AttendanceDto.builder()
+                .attendedDate(attendedDate)
+                .attendanceType(attendanceType)
+                .attendedClass(attendedClass)
+                .course(courseId)
+                .student(studentId)
+                .build()).getId();
+
+        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
+                jsonPath(prefix + ".id").value(id),
+                jsonPath(prefix + ".student").value(studentId),
+                jsonPath(prefix + ".course").value(courseId),
+                jsonPath(prefix + ".attendedDate").value(attendedDate.toString()),
+                jsonPath(prefix + ".attendedClass").value(attendedClass),
+                jsonPath(prefix + ".attendanceType").value(attendanceType.toString()),
+        };
+
+        return RequestContext.<Long>builder()
+                .request(id)
+                .matchersSupplier(matchers)
+                .build();
+    }
+
     @Test
     void getAttendanceByStudentId__self__valid() {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                ZonedDateTime attendedAt1 = ZonedDateTime.now();
-                ZonedDateTime attendedAt2 = attendedAt1.plusYears(10);
-
-                AttendanceType attendanceType = TestUtils.randomAttendanceType();
+                long courseId1 = ef.createCourse(getIdAsLong());
+                long courseId2 = ef.createCourse(getIdAsLong());
+                long courseId3 = ef.createCourse(getIdAsLong());
 
                 long studentId1 = ef.createStudent(getIdAsLong());
                 long studentId2 = ef.createStudent(getIdAsLong());
 
-                long courseId = ef.createCourse(getIdAsLong());
+                int attendedClass = faker.number().numberBetween(1, 6);
 
-                attendanceService.create(AttendanceDto.builder()
-                        .student(studentId1)
-                        .course(courseId)
-                        .attendedAt(attendedAt1)
-                        .attendanceType(attendanceType)
-                        .build());
+                var context1 = createGetAttendanceByStudentContext(studentId1, courseId1, attendedClass);
+                var context2 = createGetAttendanceByStudentContext(studentId1, courseId2, attendedClass + 1 );
+                createGetAttendanceByStudentContext(studentId2, courseId3, attendedClass + 2);
 
-                attendanceService.create(AttendanceDto.builder()
-                        .student(studentId1)
-                        .course(courseId)
-                        .attendedAt(attendedAt2)
-                        .attendanceType(attendanceType)
-                        .build());
-
-                attendanceService.create(AttendanceDto.builder()
-                        .student(studentId2)
-                        .course(courseId)
-                        .attendedAt(attendedAt1)
-                        .attendanceType(attendanceType)
-                        .build());
-
-                securePerform(get("/attendance/student/{id}", studentId1)
-                        .queryParam("sort", "attendedAt,asc"))
+                securePerform(get("/attendances/student/{id}", studentId1)
+                        .queryParam("sort", "course,asc"))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.totalElements").value(2))
-                        .andExpect(jsonPath("$.content[0].attendedAt").value(new TestUtils.DateMatcher(attendedAt1)))
-                        .andExpect(jsonPath("$.content[1].attendedAt").value(new TestUtils.DateMatcher(attendedAt2)));
+                       .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(context1.getMatchers("$[0]"))
+                        .andExpectAll(context2.getMatchers("$[1]"));
             }
         };
     }
@@ -220,43 +235,27 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                ZonedDateTime attendedAt1 = ZonedDateTime.now();
-                ZonedDateTime attendedAt2 = attendedAt1.plusYears(10);
-
-                AttendanceType attendanceType = TestUtils.randomAttendanceType();
+                long userId = ef.createUser();
+                long courseId1 = ef.createCourse(userId);
+                long courseId2 = ef.createCourse(userId);
+                long courseId3 = ef.createCourse(userId);
 
                 long studentId1 = ef.createStudent(getIdAsLong());
                 long studentId2 = ef.createStudent(getIdAsLong());
 
-                long courseId = ef.createCourse(getIdAsLong());
+                int attendedClass = faker.number().numberBetween(1, 6);
 
-                attendanceService.create(AttendanceDto.builder()
-                        .student(studentId1)
-                        .course(courseId)
-                        .attendedAt(attendedAt1)
-                        .attendanceType(attendanceType)
-                        .build());
+                var context1 = createGetAttendanceByStudentContext(studentId1, courseId1, attendedClass);
+                var context2 = createGetAttendanceByStudentContext(studentId1, courseId2, attendedClass + 1 );
+                createGetAttendanceByStudentContext(studentId2, courseId3, attendedClass + 2);
 
-                attendanceService.create(AttendanceDto.builder()
-                        .student(studentId1)
-                        .course(courseId)
-                        .attendedAt(attendedAt2)
-                        .attendanceType(attendanceType)
-                        .build());
 
-                attendanceService.create(AttendanceDto.builder()
-                        .student(studentId2)
-                        .course(courseId)
-                        .attendedAt(attendedAt1)
-                        .attendanceType(attendanceType)
-                        .build());
-
-                securePerform(get("/attendance/student/{id}", studentId1)
-                        .queryParam("sort", "attendedAt,asc"))
+                securePerform(get("/attendances/student/{id}", studentId1)
+                        .queryParam("sort", "course,asc"))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.totalElements").value(2))
-                        .andExpect(jsonPath("$.content[0].attendedAt").value(new TestUtils.DateMatcher(attendedAt1)))
-                        .andExpect(jsonPath("$.content[1].attendedAt").value(new TestUtils.DateMatcher(attendedAt2)));
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(context1.getMatchers("$[0]"))
+                        .andExpectAll(context2.getMatchers("$[1]"));
             }
         };
     }
@@ -268,7 +267,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                securePerform(get("/attendance/student/{id}", id))
+                securePerform(get("/attendances/student/{id}", id))
                     .andExpect(status().isForbidden());
             }
         };
@@ -277,99 +276,91 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     @Test
     void getAttendanceByStudent__notAuthenticated__invalid() throws Exception {
         long id = ef.createStudent();
-        mvc.perform(get("/attendance/student/{id}", id)).andExpect(status().isUnauthorized());
+        mvc.perform(get("/attendances/student/{id}", id)).andExpect(status().isUnauthorized());
     }
 
     // =================================================================================================================
+
+    RequestContext<Long> createGetAttendanceByCourseContext(long studentId, long courseId, Integer attendedClass) {
+        LocalDate attendedDate = LocalDate.now().minusDays(1);
+        AttendanceType attendanceType = TestUtils.randomAttendanceType();
+
+        long id = attendanceService.create(AttendanceDto.builder()
+                .attendedDate(attendedDate)
+                .attendanceType(attendanceType)
+                .attendedClass(attendedClass)
+                .course(courseId)
+                .student(studentId)
+                .build()).getId();
+
+        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
+                jsonPath(prefix + ".id").value(id),
+                jsonPath(prefix + ".student").value(studentId),
+                jsonPath(prefix + ".course").value(courseId),
+                jsonPath(prefix + ".attendedDate").value(attendedDate.toString()),
+                jsonPath(prefix + ".attendedClass").value(attendedClass),
+                jsonPath(prefix + ".attendanceType").value(attendanceType.toString()),
+        };
+
+        return RequestContext.<Long>builder()
+                .request(id)
+                .matchersSupplier(matchers)
+                .build();
+    }
 
     @Test
     void getAttendanceByCourse__self__valid() {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                ZonedDateTime attendedAt1 = ZonedDateTime.now();
-                ZonedDateTime attendedAt2 = attendedAt1.plusYears(10);
-
-                AttendanceType attendanceType = TestUtils.randomAttendanceType();
-
-                long studentId = ef.createStudent(getIdAsLong());
-
                 long courseId1 = ef.createCourse(getIdAsLong());
                 long courseId2 = ef.createCourse(getIdAsLong());
 
-                attendanceService.create(AttendanceDto.builder()
-                        .student(studentId)
-                        .course(courseId1)
-                        .attendedAt(attendedAt1)
-                        .attendanceType(attendanceType)
-                        .build());
+                long studentId1 = ef.createStudent(getIdAsLong());
+                long studentId2 = ef.createStudent(getIdAsLong());
+                long studentId3 = ef.createStudent(getIdAsLong());
 
-                attendanceService.create(AttendanceDto.builder()
-                        .student(studentId)
-                        .course(courseId1)
-                        .attendedAt(attendedAt2)
-                        .attendanceType(attendanceType)
-                        .build());
+                int attendedClass = faker.number().numberBetween(1, 6);
 
-                attendanceService.create(AttendanceDto.builder()
-                        .student(studentId)
-                        .course(courseId2)
-                        .attendedAt(attendedAt1)
-                        .attendanceType(attendanceType)
-                        .build());
+                var context1 = createGetAttendanceByCourseContext(studentId1, courseId1, attendedClass);
+                var context2 = createGetAttendanceByCourseContext(studentId2, courseId1, attendedClass + 1 );
+                createGetAttendanceByCourseContext(studentId3, courseId2, attendedClass + 2);
 
-                securePerform(get("/attendance/course/{id}", courseId1)
-                        .queryParam("sort", "attendedAt,asc"))
+                securePerform(get("/attendances/course/{id}", courseId1)
+                        .queryParam("sort", "student,asc"))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.totalElements").value(2))
-                        .andExpect(jsonPath("$.content[0].attendedAt").value(new TestUtils.DateMatcher(attendedAt1)))
-                        .andExpect(jsonPath("$.content[1].attendedAt").value(new TestUtils.DateMatcher(attendedAt2)));
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(context1.getMatchers("$[0]"))
+                        .andExpectAll(context2.getMatchers("$[1]"));
             }
         };
     }
 
     @Test
     void getAttendanceByCourse__otherAsAdmin__valid() {
-        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD) {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                ZonedDateTime attendedAt1 = ZonedDateTime.now();
-                ZonedDateTime attendedAt2 = attendedAt1.plusYears(10);
+                long userId = ef.createUser();
+                long courseId1 = ef.createCourse(userId);
+                long courseId2 = ef.createCourse(userId);
 
-                AttendanceType attendanceType = TestUtils.randomAttendanceType();
+                long studentId1 = ef.createStudent(getIdAsLong());
+                long studentId2 = ef.createStudent(getIdAsLong());
+                long studentId3 = ef.createStudent(getIdAsLong());
 
-                long studentId = ef.createStudent(getIdAsLong());
+                int attendedClass = faker.number().numberBetween(1, 6);
 
-                long courseId1 = ef.createCourse(getIdAsLong());
-                long courseId2 = ef.createCourse(getIdAsLong());
+                var context1 = createGetAttendanceByCourseContext(studentId1, courseId1, attendedClass);
+                var context2 = createGetAttendanceByCourseContext(studentId2, courseId1, attendedClass + 1 );
+                createGetAttendanceByCourseContext(studentId3, courseId2, attendedClass + 2);
 
-                attendanceService.create(AttendanceDto.builder()
-                        .student(studentId)
-                        .course(courseId1)
-                        .attendedAt(attendedAt1)
-                        .attendanceType(attendanceType)
-                        .build());
-
-                attendanceService.create(AttendanceDto.builder()
-                        .student(studentId)
-                        .course(courseId1)
-                        .attendedAt(attendedAt2)
-                        .attendanceType(attendanceType)
-                        .build());
-
-                attendanceService.create(AttendanceDto.builder()
-                        .student(studentId)
-                        .course(courseId2)
-                        .attendedAt(attendedAt1)
-                        .attendanceType(attendanceType)
-                        .build());
-
-                securePerform(get("/attendance/course/{id}", courseId1)
-                        .queryParam("sort", "attendedAt,asc"))
+                securePerform(get("/attendances/course/{id}", courseId1)
+                        .queryParam("sort", "student,asc"))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.totalElements").value(2))
-                        .andExpect(jsonPath("$.content[0].attendedAt").value(new TestUtils.DateMatcher(attendedAt1)))
-                        .andExpect(jsonPath("$.content[1].attendedAt").value(new TestUtils.DateMatcher(attendedAt2)));
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(context1.getMatchers("$[0]"))
+                        .andExpectAll(context2.getMatchers("$[1]"));
             }
         };
     }
@@ -381,7 +372,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                securePerform(get("/attendance/course/{id}", id))
+                securePerform(get("/attendances/course/{id}", id))
                         .andExpect(status().isForbidden());
             }
         };
@@ -390,30 +381,32 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     @Test
     void getAttendanceByCourse__notAuthenticated__invalid() throws Exception {
         long id = ef.createCourse();
-
-        mvc.perform(get("/attendance/course/{id}", id))
-                .andExpect(status().isForbidden());
+        mvc.perform(get("/attendances/course/{id}", id)).andExpect(status().isUnauthorized());
     }
 
     // =================================================================================================================
 
     RequestContext<ObjectNode> getCreateAttendanceRequest(long studentId, long courseId) {
-        ZonedDateTime attendedAt = ZonedDateTime.now();
+        Integer attendedClass = faker.number().numberBetween(1, 6);
+
+        LocalDate attendedDate = LocalDate.now();
 
         AttendanceType attendanceType = TestUtils.randomAttendanceType();
 
         ObjectNode request = objectMapper.createObjectNode()
                 .put("student", studentId)
                 .put("course", courseId)
-                .put("attendedAt", String.valueOf(attendedAt))
+                .put("attendedClass", String.valueOf(attendedClass))
+                .put("attendedDate", String.valueOf(attendedDate))
                 .put("attendanceType", String.valueOf(attendanceType));
 
         Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
                 jsonPath("$.id").isNumber(),
                 jsonPath("$.student").value(studentId),
                 jsonPath("$.course").value(courseId),
-                jsonPath("$.attendedAt").value(new TestUtils.DateMatcher(attendedAt)),
-                jsonPath("$.attendanceType").value(attendanceType)
+                jsonPath("$.attendedClass").value(attendedClass),
+                jsonPath("$.attendanceType").value(attendanceType.toString()),
+                jsonPath("$.attendedDate").value(attendedDate.toString())
         };
 
         return new RequestContext<>(request, matchers);
@@ -424,16 +417,23 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent(getIdAsLong());
                 long courseId = ef.createCourse(getIdAsLong());
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 var context = getCreateAttendanceRequest(studentId, courseId);
 
                 ObjectNode request = context.getRequest();
-
-                securePerform(post("/attendance/")
+                
+                MvcResult mvcResult = securePerform(post("/attendances/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isCreated())
+                        .andExpectAll(context.getMatchers())
+                        .andReturn();
+
+                int id = JsonPath.read(mvcResult.getResponse().getContentAsString(), "$.id");
+
+                securePerform(get("/attendances/{id}", id))
+                        .andExpect(status().isOk())
                         .andExpectAll(context.getMatchers());
             }
         };
@@ -444,16 +444,23 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent(getIdAsLong());
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 var context = getCreateAttendanceRequest(studentId, courseId);
 
                 ObjectNode request = context.getRequest();
 
-                securePerform(post("/attendance/")
+                MvcResult mvcResult = securePerform(post("/attendances/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isCreated())
+                        .andExpectAll(context.getMatchers())
+                        .andReturn();
+
+                int id = JsonPath.read(mvcResult.getResponse().getContentAsString(), "$.id");
+
+                securePerform(get("/attendances/{id}", id))
+                        .andExpect(status().isOk())
                         .andExpectAll(context.getMatchers());
             }
         };
@@ -464,14 +471,14 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent();
                 long courseId = ef.createCourse();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
 
                 var context = getCreateAttendanceRequest(studentId, courseId);
 
                 ObjectNode request = context.getRequest();
 
-                securePerform(post("/attendance/")
+                securePerform(post("/attendances/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isForbidden());
@@ -480,15 +487,49 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     }
 
     @Test
+    void createAttendance__studentAndAttendedDateAndAttendedClassNotUnique__invalid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            void run() throws Exception {
+                long courseId = ef.createCourse();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                LocalDate attendedDate = LocalDate.now();
+                int attendedClass = faker.number().numberBetween(1, 6);
+                AttendanceType attendanceType = TestUtils.randomAttendanceType();
+
+                attendanceService.create(AttendanceDto.builder()
+                        .student(studentId)
+                        .course(courseId)
+                        .attendedDate(attendedDate)
+                        .attendedClass(attendedClass)
+                        .attendanceType(attendanceType)
+                        .build());
+
+                ObjectNode request = objectMapper.createObjectNode()
+                        .put("student", studentId)
+                        .put("course", courseId)
+                        .put("attendedClass", String.valueOf(attendedClass))
+                        .put("attendedDate", String.valueOf(attendedDate))
+                        .put("attendanceType", String.valueOf(attendanceType));
+
+                securePerform(post("/attendances/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isConflict());
+                
+            }
+        };
+    }
+
+    @Test
     void createAttendance__notAuthenticated__invalid() throws Exception {
-        long studentId = ef.createStudent();
         long courseId = ef.createCourse();
+        long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
 
         var context = getCreateAttendanceRequest(studentId, courseId);
 
         ObjectNode request = context.getRequest();
 
-        mvc.perform(post("/attendance/")
+        mvc.perform(post("/attendances/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request.toString()))
                 .andExpect(status().isUnauthorized());
@@ -497,61 +538,66 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     // =================================================================================================================
 
     RequestContext<ObjectNode> getBatchCreateAttendanceRequest(long studentId, long courseId) {
-        ZonedDateTime attendedAt1 = ZonedDateTime.now();
+        Integer attendedClass1 = faker.number().numberBetween(1, 5);
         AttendanceType attendanceType1 = TestUtils.randomAttendanceType();
 
-        ZonedDateTime attendedAt2 = attendedAt1.plusYears(10);
+        LocalDate attendedDate = LocalDate.now();
+
+        Integer attendedClass2 = attendedClass1 + 1;
         AttendanceType attendanceType2 = TestUtils.randomAttendanceType();
 
         ObjectNode request = objectMapper.createObjectNode()
-                .put("student", studentId)
                 .put("course", courseId);
 
         request.putArray("attendances")
                 .add(objectMapper.createObjectNode()
-                        .put("attendedAt", String.valueOf(attendedAt1))
+                        .put("student", studentId)
+                        .put("attendedDate", String.valueOf(attendedDate))
+                        .put("attendedClass", String.valueOf(attendedClass1))
                         .put("attendanceType", String.valueOf(attendanceType1)))
                 .add(objectMapper.createObjectNode()
-                        .put("attendedAt", String.valueOf(attendedAt2))
+                        .put("student", studentId)
+                        .put("attendedDate", String.valueOf(attendedDate))
+                        .put("attendedClass", String.valueOf(attendedClass2))
                         .put("attendanceType", String.valueOf(attendanceType2)));
         return new RequestContext<>(request, prefix -> new ResultMatcher[]{
-                jsonPath(prefix + "[0].attendedAt").value(new TestUtils.DateMatcher(attendedAt1)),
-                jsonPath(prefix + "[0].attendedAt").value(new TestUtils.DateMatcher(attendedAt1)),
-                jsonPath(prefix + "[0].attendedAt").value(new TestUtils.DateMatcher(attendedAt1)),
-                jsonPath(prefix + "[1].attendedAt").value(new TestUtils.DateMatcher(attendedAt2)),
-                jsonPath(prefix + "[1].attendedAt").value(new TestUtils.DateMatcher(attendedAt2)),
-                jsonPath(prefix + "[1].attendedAt").value(new TestUtils.DateMatcher(attendedAt2))
+                jsonPath("[0].attendedClass").value(attendedClass1),
+                jsonPath("[0].attendedDate").value(attendedDate.toString()),
+                jsonPath("[0].attendanceType").value(attendanceType1.toString()),
+                jsonPath("[1].attendedClass").value(attendedClass2),
+                jsonPath("[1].attendedDate").value(attendedDate.toString()),
+                jsonPath("[1].attendanceType").value(attendanceType2.toString())
         });
-    };
+    }
 
     @Test
     void batchCreateAttendance__self__valid() {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent(getIdAsLong());
                 long courseId = ef.createCourse(getIdAsLong());
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 RequestContext<ObjectNode> context = getBatchCreateAttendanceRequest(studentId, courseId);
 
                 ObjectNode request = context.getRequest();
 
-                securePerform(post("/attendanse/batch")
+                securePerform(post("/attendances/batch")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isCreated())
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers());
 
-                securePerform(get("/attendance/student/{id}", studentId)
-                        .queryParam("sort", "attendedAt,asc"))
+                securePerform(get("/attendances/student/{id}", studentId)
+                        .queryParam("sort", "attendedClass,asc"))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.totalElements").value(2))
+                       .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers("$.content"));
 
-                securePerform(get("/attendance/course/{id}", courseId)
-                        .queryParam("sort", "attendedAt,asc"))
+                securePerform(get("/attendances/course/{id}", courseId)
+                        .queryParam("sort", "attendedClass,asc"))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.totalElements").value(2))
+                       .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers("$.content"));
             }
         };
@@ -562,29 +608,30 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent(getIdAsLong());
-                long courseId = ef.createCourse(getIdAsLong());
+                long userId = ef.createUser();
+                long courseId = ef.createCourse(userId);
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 RequestContext<ObjectNode> context = getBatchCreateAttendanceRequest(studentId, courseId);
 
                 ObjectNode request = context.getRequest();
 
-                securePerform(post("/attendanse/batch")
+                securePerform(post("/attendances/batch")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isCreated())
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers());
 
-                securePerform(get("/attendance/student/{id}", studentId)
-                        .queryParam("sort", "attendedAt,asc"))
+                securePerform(get("/attendances/student/{id}", studentId)
+                        .queryParam("sort", "attendedClass,asc"))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.totalElements").value(2))
+                        .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers("$.content"));
 
-                securePerform(get("/attendance/course/{id}", courseId)
-                        .queryParam("sort", "attendedAt,asc"))
+                securePerform(get("/attendances/course/{id}", courseId)
+                        .queryParam("sort", "attendedClass,asc"))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.totalElements").value(2))
+                        .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers("$.content"));
             }
         };
@@ -595,13 +642,14 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent();
-                long courseId = ef.createCourse();
+                long userId = ef.createUser();
+                long courseId = ef.createCourse(userId);
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 RequestContext<ObjectNode> context = getBatchCreateAttendanceRequest(studentId, courseId);
 
                 ObjectNode request = context.getRequest();
 
-                securePerform(post("/attendance/batch")
+                securePerform(post("/attendances/batch")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isForbidden());
@@ -617,7 +665,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
         ObjectNode request = context.getRequest();
 
-        mvc.perform(post("/attendance/batch")
+        mvc.perform(post("/attendances/batch")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request.toString()))
                 .andExpect(status().isUnauthorized());
@@ -625,27 +673,29 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     // =================================================================================================================
 
-    RequestContext<ObjectNode> getPutAttendanceRequest(long studentId, long courseId) {
-        ZonedDateTime attendedAt = ZonedDateTime.now();
+    RequestContext<ObjectNode> getPutAttendanceRequest(long studentId, long courseId,
+                                                       LocalDate attendedDate, Integer attendedClass) {
         AttendanceType attendanceType = TestUtils.randomAttendanceType();
 
         ObjectNode request = objectMapper.createObjectNode()
                 .put("student", studentId)
                 .put("course", courseId)
-                .put("attendedAt", String.valueOf(attendedAt))
-                .put("attendanceType", String.valueOf(attendanceType));
+                .put("attendedClass", String.valueOf(attendedClass))
+                .put("attendanceType", String.valueOf(attendanceType))
+                .put("attendedDate", String.valueOf(attendedDate));
 
         Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
                 jsonPath("$.id").isNumber(),
                 jsonPath("$.student").value(studentId),
                 jsonPath("$.course").value(courseId),
-                jsonPath("$.attendedAt").value(attendanceType),
-                jsonPath("$.attendanceType").value(attendanceType)
+                jsonPath("$.attendedClass").value(attendedClass),
+                jsonPath("$.attendanceType").value(attendanceType.toString()),
+                jsonPath("$.attendedDate").value(attendedDate.toString())
         };
 
         return new RequestContext<>(request, matchers);
 
-    };
+    }
 
     @Test
     void putAttendance__self__valid() {
@@ -653,19 +703,28 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(getIdAsLong());
-                long studentId = ef.createStudent(getIdAsLong());
-                long attendanceId = ef.createAttendance(ef.bag().withCourseId(courseId).withStudentId(studentId));
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                LocalDate attendedDate = LocalDate.now();
+                AttendanceType attendanceType = TestUtils.randomAttendanceType();
+                Integer attendedClass = faker.number().numberBetween(1, 6);
+                long attendanceId = attendanceService.create(AttendanceDto.builder()
+                                .course(courseId)
+                                .student(studentId)
+                                .attendedDate(attendedDate)
+                                .attendedClass(attendedClass)
+                                .attendanceType(attendanceType)
+                        .build()).getId();
 
-                RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId, courseId);
+                RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId, courseId, attendedDate, attendedClass);
                 ObjectNode request = context.getRequest();
 
-                securePerform(put("/attendance/{id}", attendanceId)
+                securePerform(put("/attendances/{id}", attendanceId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isOk())
                         .andExpectAll(context.getMatchers());
 
-                securePerform(get("/attendance/{id}", attendanceId))
+                securePerform(get("/attendances/{id}", attendanceId))
                         .andExpect(status().isOk())
                         .andExpectAll(context.getMatchers());
             }
@@ -677,20 +736,30 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
-                long studentId = ef.createStudent(getIdAsLong());
-                long attendanceId = ef.createAttendance(ef.bag().withCourseId(courseId).withStudentId(studentId));
+                long userId = ef.createUser();
+                long courseId = ef.createCourse(userId);
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                LocalDate attendedDate = LocalDate.now();
+                AttendanceType attendanceType = TestUtils.randomAttendanceType();
+                Integer attendedClass = faker.number().numberBetween(1, 6);
+                long attendanceId = attendanceService.create(AttendanceDto.builder()
+                        .course(courseId)
+                        .student(studentId)
+                        .attendedDate(attendedDate)
+                        .attendedClass(attendedClass)
+                        .attendanceType(attendanceType)
+                        .build()).getId();
 
-                RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId, courseId);
+                RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId, courseId, attendedDate, attendedClass);
                 ObjectNode request = context.getRequest();
 
-                securePerform(put("/attendance/{id}", attendanceId)
+                securePerform(put("/attendances/{id}", attendanceId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isOk())
                         .andExpectAll(context.getMatchers());
 
-                securePerform(get("/attendance/{id}", attendanceId))
+                securePerform(get("/attendances/{id}", attendanceId))
                         .andExpect(status().isOk())
                         .andExpectAll(context.getMatchers());
             }
@@ -702,14 +771,24 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent();
                 long courseId = ef.createCourse();
-                long attendanceId = ef.createAttendance(ef.bag().withStudentId(studentId).withCourseId(courseId));
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                LocalDate attendedDate = LocalDate.now();
+                AttendanceType attendanceType = TestUtils.randomAttendanceType();
+                Integer attendedClass = faker.number().numberBetween(1, 6);
 
-                RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId, courseId);
+                long attendanceId = attendanceService.create(AttendanceDto.builder()
+                        .course(courseId)
+                        .student(studentId)
+                        .attendedDate(attendedDate)
+                        .attendedClass(attendedClass)
+                        .attendanceType(attendanceType)
+                        .build()).getId();
+
+                RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId, courseId, attendedDate, attendedClass);
                 ObjectNode request = context.getRequest();
 
-                securePerform(put("/attendance/{id}", attendanceId)
+                securePerform(put("/attendances/{id}", attendanceId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isForbidden());
@@ -722,15 +801,24 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long studentId1 = ef.createStudent();
-                long studentId2 = ef.createStudent();
                 long courseId = ef.createCourse();
-                long attendanceId = ef.createAttendance(ef.bag().withStudentId(studentId1).withCourseId(courseId));
+                long studentId1 = ef.createStudent(ef.bag().withCourseId(courseId));
+                long studentId2 = ef.createStudent(ef.bag().withCourseId(courseId));
+                LocalDate attendedDate = LocalDate.now();
+                AttendanceType attendanceType = TestUtils.randomAttendanceType();
+                Integer attendedClass = faker.number().numberBetween(1, 6);
+                long attendanceId = attendanceService.create(AttendanceDto.builder()
+                        .course(courseId)
+                        .student(studentId1)
+                        .attendedDate(attendedDate)
+                        .attendedClass(attendedClass)
+                        .attendanceType(attendanceType)
+                        .build()).getId();
 
-                RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId2, courseId);
+                RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId2, courseId, attendedDate, attendedClass);
                 ObjectNode request = context.getRequest();
 
-                securePerform(put("attendance/{id}", attendanceId)
+                securePerform(put("/attendances/{id}", attendanceId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isBadRequest());
@@ -743,15 +831,24 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent();
                 long courseId1 = ef.createCourse();
                 long courseId2 = ef.createCourse();
-                long attendanceId = ef.createAttendance(ef.bag().withStudentId(studentId).withCourseId(courseId1));
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId1));
+                LocalDate attendedDate = LocalDate.now();
+                AttendanceType attendanceType = TestUtils.randomAttendanceType();
+                Integer attendedClass = faker.number().numberBetween(1, 6);
+                long attendanceId = attendanceService.create(AttendanceDto.builder()
+                        .course(courseId1)
+                        .student(studentId)
+                        .attendedDate(attendedDate)
+                        .attendedClass(attendedClass)
+                        .attendanceType(attendanceType)
+                        .build()).getId();
 
-                RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId, courseId2);
+                RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId, courseId2, attendedDate, attendedClass);
                 ObjectNode request = context.getRequest();
 
-                securePerform(put("attendance/{id}", attendanceId)
+                securePerform(put("/attendances/{id}", attendanceId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isBadRequest());
@@ -764,14 +861,24 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent();
                 long courseId = ef.createCourse();
-                long attendanceId = ef.createAttendance(ef.bag().withStudentId(studentId).withCourseId(courseId));
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                LocalDate attendedDate = LocalDate.now();
+                AttendanceType attendanceType = TestUtils.randomAttendanceType();
+                Integer attendedClass = faker.number().numberBetween(1, 6);
 
-                RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId, courseId);
+                long attendanceId = attendanceService.create(AttendanceDto.builder()
+                        .course(courseId)
+                        .student(studentId)
+                        .attendedDate(attendedDate)
+                        .attendedClass(attendedClass)
+                        .attendanceType(attendanceType)
+                        .build()).getId();
+
+                RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId, courseId, attendedDate, attendedClass);
                 ObjectNode request = context.getRequest();
 
-                securePerform(put("/attendance/{id}", attendanceId + 1000)
+                securePerform(put("/attendances/{id}", attendanceId + 1000)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isNotFound());
@@ -781,15 +888,24 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void putAttendance__notAuthenticated__invalid() throws Exception {
-        long[] info = getNeededInfo();
-        long studentId = info[0];
-        long courseId = info[1];
-        long attendanceId = ef.createCourse(ef.bag().withStudentId(studentId).withCourseId(courseId));
+        long courseId = ef.createCourse();
+        long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+        LocalDate attendedDate = LocalDate.now();
+        AttendanceType attendanceType = TestUtils.randomAttendanceType();
+        Integer attendedClass = faker.number().numberBetween(1, 6);
 
-        RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId, courseId);
+        long attendanceId = attendanceService.create(AttendanceDto.builder()
+                .course(courseId)
+                .student(studentId)
+                .attendedDate(attendedDate)
+                .attendedClass(attendedClass)
+                .attendanceType(attendanceType)
+                .build()).getId();
+
+        RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId, courseId, attendedDate, attendedClass);
         ObjectNode request = context.getRequest();
 
-        mvc.perform(put("/attendance/{id}", attendanceId)
+        mvc.perform(put("/attendances/{id}", attendanceId)
                         .contentType(MediaType.APPLICATION_JSON)
                 .content(request.toString()))
                 .andExpect(status().isUnauthorized());
@@ -797,51 +913,58 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     // =================================================================================================================
 
-    RequestContext<ObjectNode> getPatchAttendanceRequest(long studentId, long courseId, ZonedDateTime attendedAt) {
-        AttendanceType attendanceType = TestUtils.randomAttendanceType();
+    RequestContext<ObjectNode> getPatchAttendanceRequest(long studentId, long courseId) {
+        AttendanceType attendanceType = AttendanceType.SERIOUS_REASON;
 
         ObjectNode request = objectMapper.createObjectNode()
                 .put("student", studentId)
                 .put("course", courseId)
-                .put("attendedAt", String.valueOf(attendedAt));
+                .put("attendanceType", String.valueOf(attendanceType));
 
         Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
                 jsonPath("$.id").isNumber(),
                 jsonPath("$.student").value(studentId),
                 jsonPath("$.course").value(courseId),
-                jsonPath("$.attendedAt").value(new TestUtils.DateMatcher(attendedAt)),
-                jsonPath("$.attendanceType").value(attendanceType)
+                jsonPath("$.attendedClass").isNotEmpty(),
+                jsonPath("$.attendanceType").value(attendanceType.toString()),
+                jsonPath("$.attendedDate").isNotEmpty()
         };
 
         return new RequestContext<>(request, matchers);
-    };
+    }
 
     @Test
     void patchAttendance__self__valid() {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent(getIdAsLong());
                 long courseId = ef.createCourse(getIdAsLong());
-                ZonedDateTime attendedAt = ZonedDateTime.now();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                int attendedClass = faker.number().numberBetween(1, 6);
+                LocalDate attendedDate = LocalDate.now();
+                AttendanceType attendanceType = AttendanceType.ATTENDED;
 
                 long attendanceId = ef.createAttendance(ef.bag()
                         .withStudentId(studentId)
                         .withCourseId(courseId)
                         .withDto(AttendanceDto.builder()
-                                .attendedAt(attendedAt)
+                                .attendedClass(attendedClass)
+                                .attendedDate(attendedDate)
+                                .attendanceType(attendanceType)
                                 .build()
-                        ));
-                RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId, courseId, attendedAt);
+                        )
+                );
+
+                RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId, courseId);
                 ObjectNode request = context.getRequest();
 
-                securePerform(patch("/attendance/{id}", attendanceId)
+                securePerform(patch("/attendances/{id}", attendanceId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isOk())
                         .andExpectAll(context.getMatchers());
 
-                securePerform(get("/attendance/{id}", attendanceId))
+                securePerform(get("/attendances/{id}", attendanceId))
                         .andExpect(status().isOk())
                         .andExpectAll(context.getMatchers());
             }
@@ -853,28 +976,34 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent();
-                long courseId = ef.createCourse();
-                ZonedDateTime attendedAt = ZonedDateTime.now();
+                long userId = ef.createUser();
+                long courseId = ef.createCourse(userId);
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                int attendedClass = faker.number().numberBetween(1, 6);
+                LocalDate attendedDate = LocalDate.now();
+                AttendanceType attendanceType = AttendanceType.ATTENDED;
 
                 long attendanceId = ef.createAttendance(ef.bag()
-                        .withCourseId(courseId)
                         .withStudentId(studentId)
+                        .withCourseId(courseId)
                         .withDto(AttendanceDto.builder()
-                                .attendedAt(attendedAt)
+                                .attendedClass(attendedClass)
+                                .attendedDate(attendedDate)
+                                .attendanceType(attendanceType)
                                 .build()
-                        ));
+                        )
+                );
 
-                RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId, courseId, attendedAt);
+                RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId, courseId);
                 ObjectNode request = context.getRequest();
 
-                securePerform(patch("/attendance/{id}", attendanceId)
+                securePerform(patch("/attendances/{id}", attendanceId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isOk())
                         .andExpectAll(context.getMatchers());
 
-                securePerform(get("/attendance/{id}", attendanceId))
+                securePerform(get("/attendances/{id}", attendanceId))
                         .andExpect(status().isOk())
                         .andExpectAll(context.getMatchers());
             }
@@ -886,22 +1015,27 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent();
                 long courseId = ef.createCourse();
-                ZonedDateTime attendedAt = ZonedDateTime.now();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                int attendedClass = faker.number().numberBetween(1, 6);
+                LocalDate attendedDate = LocalDate.now();
+                AttendanceType attendanceType = AttendanceType.ATTENDED;
 
                 long attendanceId = ef.createAttendance(ef.bag()
                         .withStudentId(studentId)
                         .withCourseId(courseId)
                         .withDto(AttendanceDto.builder()
-                                .attendedAt(attendedAt)
+                                .attendedClass(attendedClass)
+                                .attendedDate(attendedDate)
+                                .attendanceType(attendanceType)
                                 .build()
-                        ));
+                        )
+                );
 
-                RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId, courseId, attendedAt);
+                RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId, courseId);
                 ObjectNode request = context.getRequest();
 
-                securePerform(patch("/attendance/{id}", attendanceId)
+                securePerform(patch("/attendances/{id}", attendanceId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isForbidden());
@@ -914,16 +1048,28 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long studentId1 = ef.createStudent();
-                long studentId2 = ef.createStudent();
-                long courseId = ef.createCourse();
-                long attendanceId = ef.createAttendance(ef.bag().withStudentId(studentId1).withCourseId(courseId));
-                ZonedDateTime attendedAt = ZonedDateTime.now();
+                long courseId = ef.createCourse(getIdAsLong());
+                long studentId1 = ef.createStudent(ef.bag().withCourseId(courseId));
+                long studentId2 = ef.createStudent(ef.bag().withCourseId(courseId));
+                int attendedClass = faker.number().numberBetween(1, 6);
+                LocalDate attendedDate = LocalDate.now();
+                AttendanceType attendanceType = AttendanceType.ATTENDED;
 
-                RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId2, courseId, attendedAt);
+                long attendanceId = ef.createAttendance(ef.bag()
+                        .withStudentId(studentId1)
+                        .withCourseId(courseId)
+                        .withDto(AttendanceDto.builder()
+                                .attendedClass(attendedClass)
+                                .attendedDate(attendedDate)
+                                .attendanceType(attendanceType)
+                                .build()
+                        )
+                );
+
+                RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId2, courseId);
                 ObjectNode request = context.getRequest();
 
-                securePerform(put("attendance/{id}", attendanceId)
+                securePerform(put("/attendances/{id}", attendanceId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isBadRequest());
@@ -936,16 +1082,28 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent();
                 long courseId1 = ef.createCourse();
                 long courseId2 = ef.createCourse();
-                long attendanceId = ef.createAttendance(ef.bag().withStudentId(studentId).withCourseId(courseId1));
-                ZonedDateTime attendedAt = ZonedDateTime.now();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId1));
+                LocalDate attendedDate = LocalDate.now();
+                int attendedClass = faker.number().numberBetween(1, 6);
+                AttendanceType attendanceType = AttendanceType.ATTENDED;
 
-                RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId, courseId2, attendedAt);
+                long attendanceId = ef.createAttendance(ef.bag()
+                        .withStudentId(studentId)
+                        .withCourseId(courseId1)
+                        .withDto(AttendanceDto.builder()
+                                .attendedClass(attendedClass)
+                                .attendedDate(attendedDate)
+                                .attendanceType(attendanceType)
+                                .build()
+                        )
+                );
+
+                RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId, courseId2);
                 ObjectNode request = context.getRequest();
 
-                securePerform(put("attendance/{id}", attendanceId)
+                securePerform(put("/attendances/{id}", attendanceId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isBadRequest());
@@ -958,15 +1116,27 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent();
                 long courseId = ef.createCourse();
-                long attendanceId = ef.createAttendance(ef.bag().withStudentId(studentId).withCourseId(courseId));
-                ZonedDateTime attendedAt = ZonedDateTime.now();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                LocalDate attendedDate = LocalDate.now();
+                int attendedClass = faker.number().numberBetween(1, 6);
+                AttendanceType attendanceType = AttendanceType.ATTENDED;
 
-                RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId, courseId, attendedAt);
+                long attendanceId = ef.createAttendance(ef.bag()
+                        .withStudentId(studentId)
+                        .withCourseId(courseId)
+                        .withDto(AttendanceDto.builder()
+                                .attendedClass(attendedClass)
+                                .attendedDate(attendedDate)
+                                .attendanceType(attendanceType)
+                                .build()
+                        )
+                );
+
+                RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId, courseId);
                 ObjectNode request = context.getRequest();
 
-                securePerform(put("/attendance/{id}", attendanceId + 1000)
+                securePerform(put("/attendances/{id}", attendanceId + 1000)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isNotFound());
@@ -976,16 +1146,27 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void patchAttendance__notAuthenticated__invalid() throws Exception {
-        long[] info = getNeededInfo();
-        long studentId = info[0];
-        long courseId = info[1];
-        long attendanceId = ef.createCourse(ef.bag().withStudentId(studentId).withCourseId(courseId));
-        ZonedDateTime attendedAt = ZonedDateTime.now();
+        long studentId = ef.createStudent();
+        long courseId = ef.createCourse();
+        LocalDate attendedDate = LocalDate.now();
+        int attendedClass = faker.number().numberBetween(1, 6);
+        AttendanceType attendanceType = AttendanceType.ATTENDED;
 
-        RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId, courseId, attendedAt);
+        long attendanceId = ef.createAttendance(ef.bag()
+                .withStudentId(studentId)
+                .withCourseId(courseId)
+                .withDto(AttendanceDto.builder()
+                        .attendedClass(attendedClass)
+                        .attendedDate(attendedDate)
+                        .attendanceType(attendanceType)
+                        .build()
+                )
+        );
+
+        RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId, courseId);
         ObjectNode request = context.getRequest();
 
-        mvc.perform(put("/attendance/{id}", attendanceId)
+        mvc.perform(put("/attendances/{id}", attendanceId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                 .andExpect(status().isUnauthorized());
@@ -1000,10 +1181,10 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
             void run() throws Exception {
                 long attendanceId = ef.createAttendance(getIdAsLong());
 
-                securePerform(delete("/attendance/{id}", attendanceId))
+                securePerform(delete("/attendances/{id}", attendanceId))
                         .andExpectAll(status().isOk());
 
-                securePerform(get("/attendance/{id}", attendanceId))
+                securePerform(get("/attendances/{id}", attendanceId))
                         .andExpectAll(status().isNotFound());
             }
         };
@@ -1011,15 +1192,15 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void deleteAttendance__otherAsAdmin__valid() {
-        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD) {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
                 long attendanceId = ef.createAttendance(getIdAsLong());
 
-                securePerform(delete("/attendance/{id}", attendanceId))
+                securePerform(delete("/attendances/{id}", attendanceId))
                         .andExpectAll(status().isOk());
 
-                securePerform(get("/attendance/{id}", attendanceId))
+                securePerform(get("/attendances/{id}", attendanceId))
                         .andExpectAll(status().isNotFound());
             }
         };
@@ -1032,7 +1213,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
             void run() throws Exception {
                 long attendanceId = ef.createAttendance();
 
-                securePerform(delete("/attendance/{id}", attendanceId))
+                securePerform(delete("/attendances/{id}", attendanceId))
                         .andExpectAll(status().isForbidden());
             }
         };
@@ -1045,7 +1226,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
             void run() throws Exception {
                 long attendanceId = ef.createAttendance(getIdAsLong());
 
-                securePerform(delete("/attendance/{id}", attendanceId + 1000))
+                securePerform(delete("/attendances/{id}", attendanceId + 1000))
                         .andExpectAll(status().isNotFound());
             }
         };
@@ -1055,7 +1236,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     void deleteAttendance__notAuthenticated__invalid() throws Exception {
         long attendanceId = ef.createAttendance();
 
-        mvc.perform(delete("/attendance/{id}", attendanceId))
+        mvc.perform(delete("/attendances/{id}", attendanceId))
                 .andExpect(status().isUnauthorized());
     }
 }

@@ -42,6 +42,18 @@ public interface MapStructRestDtoMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    AttendanceDto map(AttendanceRestDto dto);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "course", ignore = true)
+    AttendanceDto map(BatchCreateAttendancesDto.AttendanceInfo attendanceInfo);
+
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
     @Mapping(target = "mainScore", ignore = true)
     SubmissionDto map(SubmissionRestDto dto);
 

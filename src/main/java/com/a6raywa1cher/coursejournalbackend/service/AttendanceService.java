@@ -2,6 +2,7 @@ package com.a6raywa1cher.coursejournalbackend.service;
 
 import com.a6raywa1cher.coursejournalbackend.dto.AttendanceDto;
 import com.a6raywa1cher.coursejournalbackend.model.Attendance;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,9 +12,11 @@ public interface AttendanceService {
 
     Optional<Attendance> findRawById(long id);
 
-    List<AttendanceDto> getByStudentId(long id);
+    List<AttendanceDto> getByStudentAndCourseIds(long studentId, long courseId, Sort sort);
 
-    List<AttendanceDto> getByCourseId(long id);
+    List<AttendanceDto> getByStudentId(long studentId, Sort sort);
+
+    List<AttendanceDto> getByCourseId(long courseId, Sort sort);
 
     AttendanceDto create(AttendanceDto dto);
 

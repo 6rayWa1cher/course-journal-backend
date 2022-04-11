@@ -2,6 +2,7 @@ package com.a6raywa1cher.coursejournalbackend.security;
 
 import com.a6raywa1cher.coursejournalbackend.model.*;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
+import com.a6raywa1cher.coursejournalbackend.rest.dto.AttendanceRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.CourseRestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -42,6 +43,8 @@ public class AccessChecker {
             return getPermissionForCourse(criteria.getTask().getCourse(), type);
         } else if (entity instanceof User user) {
             return getPermissionForUser(user, type);
+        } else if (entity instanceof Attendance attendance) {
+            return getPermissionForCourse(attendance.getCourse(), type);
         } else if (entity instanceof Submission submission) {
             return getPermissionForCourse(submission.getTask().getCourse(), type);
         } else if (entity instanceof CourseToken courseToken) {
@@ -180,5 +183,18 @@ public class AccessChecker {
 
     public boolean editUserAccessWithRole(Long id, UserRole userRole, Authentication authentication) {
         return editUserAccess(id, authentication) && isValidUserRoleRequest(userRole, authentication);
+    }
+
+
+    public boolean readAttendanceAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Attendance.class, ActionType.READ, authentication);
+    }
+
+    public boolean createAttendanceAccess(Long courseId, Authentication authentication) {
+        return hasAuthority(courseId, Course.class, ActionType.WRITE, authentication);
+    }
+
+    public boolean editAttendanceAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Attendance.class, ActionType.WRITE, authentication);
     }
 }
