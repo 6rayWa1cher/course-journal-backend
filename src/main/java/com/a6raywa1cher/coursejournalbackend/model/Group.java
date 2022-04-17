@@ -26,7 +26,7 @@ public class Group implements IdEntity<Long> {
     private Long id;
 
     @Column(name = "faculty", nullable = false)
-    private String facultyName;
+    private String faculty;
 
     @Column(name = "name", nullable = false)
     private String name;
