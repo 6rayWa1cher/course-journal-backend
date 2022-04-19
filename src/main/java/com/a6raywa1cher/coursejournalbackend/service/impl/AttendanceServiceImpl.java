@@ -79,47 +79,18 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     public AttendanceDto create(AttendanceDto dto) {
-        Attendance attendance = new Attendance();
-        Student student = getStudentById(dto.getStudent());
         Course course = getCourseById(dto.getCourse());
-        LocalDate attendedDate = dto.getAttendedDate();
-        Integer attendedClass = dto.getAttendedClass();
-        LocalDateTime createAndModifyDateTime = LocalDateTime.now();
 
-        assertUniqueByStudentAttendedDateAndAttendedClass(student, attendedDate, attendedClass);
-        mapper.put(dto, attendance);
-
-        attendance.setStudent(student);
-        attendance.setCourse(course);
-        attendance.setAttendedDate(attendedDate);
-        attendance.setAttendedClass(attendedClass);
-        attendance.setCreatedAt(createAndModifyDateTime);
-        attendance.setLastModifiedAt(createAndModifyDateTime);
-        return mapper.map(repository.save(attendance));
+        return mapper.map(repository.save(getAttendanceByDtoAndCourse(dto, course)));
     }
 
     @Override
     public List<AttendanceDto> batchCreate(List<AttendanceDto> dtoList) {
         List<Attendance> attendances = new ArrayList<>();
         Course course = extractCourse(dtoList);
-        LocalDateTime createAndModifyDateTime = LocalDateTime.now();
 
         for (AttendanceDto dto : dtoList) {
-            Attendance attendance = new Attendance();
-            Student student = getStudentById(dto.getStudent());
-            Integer attendedClass = dto.getAttendedClass();
-            LocalDate attendedDate = dto.getAttendedDate();
-
-            mapper.put(dto, attendance);
-
-            attendance.setStudent(student);
-            attendance.setCourse(course);
-            attendance.setAttendedClass(attendedClass);
-            attendance.setAttendedDate(attendedDate);
-            attendance.setCreatedAt(createAndModifyDateTime);
-            attendance.setLastModifiedAt(createAndModifyDateTime);
-
-            attendances.add(attendance);
+            attendances.add(getAttendanceByDtoAndCourse(dto, course));
         }
 
         return StreamSupport.stream(repository.saveAll(attendances).spliterator(), false)
@@ -200,19 +171,19 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     private void assertNoStudentChanged(Student oldStudent, Student newStudent) {
         if (!Objects.equals(oldStudent, newStudent)) {
-            throw new TransferNotAllowedException(Student.class, "course", oldStudent.getId(), newStudent.getId());
+            throw new TransferNotAllowedException(Attendance.class, "attendance", oldStudent.getId(), newStudent.getId());
         }
     }
 
     private void assertNoAttendanceDateChanged(LocalDate oldDate, LocalDate newDate) {
         if (!Objects.equals(oldDate, newDate)) {
-            throw new TransferNotAllowedException(Student.class, "course", oldDate.toString(), newDate.toString());
+            throw new TransferNotAllowedException(Attendance.class, "attendance", oldDate.toString(), newDate.toString());
         }
     }
 
     private void assertNoAttendanceClassChanged(Integer oldClass, Integer newClass) {
         if (!Objects.equals(oldClass, newClass)) {
-            throw new TransferNotAllowedException(Student.class, "course", oldClass.toString(), newClass.toString());
+            throw new TransferNotAllowedException(Attendance.class, "attendance", oldClass.toString(), newClass.toString());
         }
     }
 
@@ -225,4 +196,24 @@ public class AttendanceServiceImpl implements AttendanceService {
         }
         return getCourseById(courseIds.iterator().next());
     }
+
+    private Attendance getAttendanceByDtoAndCourse(AttendanceDto dto, Course course) {
+        Attendance attendance = new Attendance();
+        Student student = getStudentById(dto.getStudent());
+        Integer attendedClass = dto.getAttendedClass();
+        LocalDate attendedDate = dto.getAttendedDate();
+        LocalDateTime createAndModifyDateTime = LocalDateTime.now();
+
+        assertUniqueByStudentAttendedDateAndAttendedClass(student, attendedDate, attendedClass);
+        mapper.put(dto, attendance);
+
+        attendance.setStudent(student);
+        attendance.setCourse(course);
+        attendance.setAttendedClass(attendedClass);
+        attendance.setAttendedDate(attendedDate);
+        attendance.setCreatedAt(createAndModifyDateTime);
+        attendance.setLastModifiedAt(createAndModifyDateTime);
+
+        return attendance;
+    };
 }

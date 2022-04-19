@@ -40,7 +40,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                Integer attendedClass = faker.number().numberBetween(1, 6);
+                int attendedClass = faker.number().numberBetween(1, 6);
                 LocalDate attendedDate = LocalDate.now();
                 long courseId = ef.createCourse(getIdAsLong());
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
@@ -75,7 +75,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
             @Override
             void run() throws Exception {
                 LocalDate attendedDate = LocalDate.now();
-                Integer attendedClass = faker.number().numberBetween(1, 6);
+                int attendedClass = faker.number().numberBetween(1, 6);
                 long courseId = ef.createCourse(getIdAsLong());
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 AttendanceType attendanceType = TestUtils.randomAttendanceType();
@@ -109,7 +109,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
             @Override
             void run() throws  Exception {
                 LocalDate attendedDate = LocalDate.now();
-                Integer attendedClass = faker.number().numberBetween(1, 6);
+                int attendedClass = faker.number().numberBetween(1, 6);
                 long courseId = ef.createCourse();
                 long studentId = ef.createStudent();
                 AttendanceType attendanceType = TestUtils.randomAttendanceType();
@@ -130,7 +130,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void getAttendanceById__notAuthenticated__invalid() throws Exception {
-        Integer attendedClass = faker.number().numberBetween(1, 6);
+        int attendedClass = faker.number().numberBetween(1, 6);
         long courseId = ef.createCourse();
         long studentId = ef.createStudent();
         LocalDate attendedDate = LocalDate.now();
@@ -150,7 +150,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void getAttendanceById__notExists__invalid() {
-        Integer attendedClass = faker.number().numberBetween(1, 6);
+        int attendedClass = faker.number().numberBetween(1, 6);
         long courseId = ef.createCourse();
         long studentId = ef.createStudent();
         LocalDate attendedDate = LocalDate.now();
@@ -175,7 +175,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     // =================================================================================================================
 
-    RequestContext<Long> createGetAttendanceByStudentContext(long studentId, long courseId, Integer attendedClass) {
+    RequestContext<Long> createGetAttendanceByStudentContext(long studentId, long courseId, int attendedClass) {
         LocalDate attendedDate = LocalDate.now().minusDays(1);
         AttendanceType attendanceType = TestUtils.randomAttendanceType();
 
@@ -281,7 +281,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     // =================================================================================================================
 
-    RequestContext<Long> createGetAttendanceByCourseContext(long studentId, long courseId, Integer attendedClass) {
+    RequestContext<Long> createGetAttendanceByCourseContext(long studentId, long courseId, int attendedClass) {
         LocalDate attendedDate = LocalDate.now().minusDays(1);
         AttendanceType attendanceType = TestUtils.randomAttendanceType();
 
@@ -387,7 +387,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     // =================================================================================================================
 
     RequestContext<ObjectNode> getCreateAttendanceRequest(long studentId, long courseId) {
-        Integer attendedClass = faker.number().numberBetween(1, 6);
+        int attendedClass = faker.number().numberBetween(1, 6);
 
         LocalDate attendedDate = LocalDate.now();
 
@@ -538,12 +538,12 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     // =================================================================================================================
 
     RequestContext<ObjectNode> getBatchCreateAttendanceRequest(long studentId, long courseId) {
-        Integer attendedClass1 = faker.number().numberBetween(1, 5);
+        int attendedClass1 = faker.number().numberBetween(1, 5);
         AttendanceType attendanceType1 = TestUtils.randomAttendanceType();
 
         LocalDate attendedDate = LocalDate.now();
 
-        Integer attendedClass2 = attendedClass1 + 1;
+        int attendedClass2 = attendedClass1 + 1;
         AttendanceType attendanceType2 = TestUtils.randomAttendanceType();
 
         ObjectNode request = objectMapper.createObjectNode()
@@ -674,7 +674,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     // =================================================================================================================
 
     RequestContext<ObjectNode> getPutAttendanceRequest(long studentId, long courseId,
-                                                       LocalDate attendedDate, Integer attendedClass) {
+                                                       LocalDate attendedDate, int attendedClass) {
         AttendanceType attendanceType = TestUtils.randomAttendanceType();
 
         ObjectNode request = objectMapper.createObjectNode()
@@ -706,7 +706,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 LocalDate attendedDate = LocalDate.now();
                 AttendanceType attendanceType = TestUtils.randomAttendanceType();
-                Integer attendedClass = faker.number().numberBetween(1, 6);
+                int attendedClass = faker.number().numberBetween(1, 6);
                 long attendanceId = attendanceService.create(AttendanceDto.builder()
                                 .course(courseId)
                                 .student(studentId)
@@ -741,7 +741,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 LocalDate attendedDate = LocalDate.now();
                 AttendanceType attendanceType = TestUtils.randomAttendanceType();
-                Integer attendedClass = faker.number().numberBetween(1, 6);
+                int attendedClass = faker.number().numberBetween(1, 6);
                 long attendanceId = attendanceService.create(AttendanceDto.builder()
                         .course(courseId)
                         .student(studentId)
@@ -775,7 +775,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 LocalDate attendedDate = LocalDate.now();
                 AttendanceType attendanceType = TestUtils.randomAttendanceType();
-                Integer attendedClass = faker.number().numberBetween(1, 6);
+                int attendedClass = faker.number().numberBetween(1, 6);
 
                 long attendanceId = attendanceService.create(AttendanceDto.builder()
                         .course(courseId)
@@ -806,7 +806,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId2 = ef.createStudent(ef.bag().withCourseId(courseId));
                 LocalDate attendedDate = LocalDate.now();
                 AttendanceType attendanceType = TestUtils.randomAttendanceType();
-                Integer attendedClass = faker.number().numberBetween(1, 6);
+                int attendedClass = faker.number().numberBetween(1, 6);
                 long attendanceId = attendanceService.create(AttendanceDto.builder()
                         .course(courseId)
                         .student(studentId1)
@@ -836,7 +836,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId1));
                 LocalDate attendedDate = LocalDate.now();
                 AttendanceType attendanceType = TestUtils.randomAttendanceType();
-                Integer attendedClass = faker.number().numberBetween(1, 6);
+                int attendedClass = faker.number().numberBetween(1, 6);
                 long attendanceId = attendanceService.create(AttendanceDto.builder()
                         .course(courseId1)
                         .student(studentId)
@@ -857,6 +857,70 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     }
 
     @Test
+    void putAttendance__dateChange__invalid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                LocalDate attendedDate1 = LocalDate.now();
+                AttendanceType attendanceType = TestUtils.randomAttendanceType();
+                int attendedClass = faker.number().numberBetween(1, 6);
+                LocalDate attendedDate2 = attendedDate1.plusDays(1);
+
+                long attendanceId = ef.createAttendance(ef.bag()
+                        .withCourseId(courseId)
+                        .withStudentId(studentId)
+                        .withDto(AttendanceDto.builder()
+                                .attendedDate(attendedDate1)
+                                .attendanceType(attendanceType)
+                                .attendedClass(attendedClass)
+                                .build()));
+
+                RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId, courseId, attendedDate2, attendedClass);
+                ObjectNode request = context.getRequest();
+
+                securePerform(put("/attendances/{id}", attendanceId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isBadRequest());
+            }
+        };
+    }
+
+    @Test
+    void putAttendance__classChange__invalid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                LocalDate attendedDate = LocalDate.now();
+                AttendanceType attendanceType = TestUtils.randomAttendanceType();
+                int attendedClass1 = faker.number().numberBetween(1, 5);
+                int attendedClass2 = attendedClass1 + 1;
+
+                long attendanceId = ef.createAttendance(ef.bag()
+                        .withCourseId(courseId)
+                        .withStudentId(studentId)
+                        .withDto(AttendanceDto.builder()
+                                .attendedDate(attendedDate)
+                                .attendanceType(attendanceType)
+                                .attendedClass(attendedClass1)
+                                .build()));
+
+                RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId, courseId, attendedDate, attendedClass2);
+                ObjectNode request = context.getRequest();
+
+                securePerform(put("/attendances/{id}", attendanceId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isBadRequest());
+            }
+        };
+    }
+
+    @Test
     void putAttendance__notExists__invalid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
@@ -865,7 +929,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 LocalDate attendedDate = LocalDate.now();
                 AttendanceType attendanceType = TestUtils.randomAttendanceType();
-                Integer attendedClass = faker.number().numberBetween(1, 6);
+                int attendedClass = faker.number().numberBetween(1, 6);
 
                 long attendanceId = attendanceService.create(AttendanceDto.builder()
                         .course(courseId)
@@ -892,7 +956,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
         LocalDate attendedDate = LocalDate.now();
         AttendanceType attendanceType = TestUtils.randomAttendanceType();
-        Integer attendedClass = faker.number().numberBetween(1, 6);
+        int attendedClass = faker.number().numberBetween(1, 6);
 
         long attendanceId = attendanceService.create(AttendanceDto.builder()
                 .course(courseId)
@@ -928,6 +992,28 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 jsonPath("$.attendedClass").isNotEmpty(),
                 jsonPath("$.attendanceType").value(attendanceType.toString()),
                 jsonPath("$.attendedDate").isNotEmpty()
+        };
+
+        return new RequestContext<>(request, matchers);
+    }
+
+    RequestContext<ObjectNode> getPatchAttendanceRequest(long studentId, long courseId, Integer attendedClass, LocalDate attendedDate) {
+        AttendanceType attendanceType = AttendanceType.SERIOUS_REASON;
+
+        ObjectNode request = objectMapper.createObjectNode()
+                .put("student", studentId)
+                .put("course", courseId)
+                .put("attendedDate", attendedDate.toString())
+                .put("attendedClass", attendedClass)
+                .put("attendanceType", String.valueOf(attendanceType));
+
+        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
+                jsonPath("$.id").isNumber(),
+                jsonPath("$.student").value(studentId),
+                jsonPath("$.course").value(courseId),
+                jsonPath("$.attendedClass").value(attendedClass),
+                jsonPath("$.attendanceType").value(attendanceType.toString()),
+                jsonPath("$.attendedDate").value(attendedDate.toString())
         };
 
         return new RequestContext<>(request, matchers);
@@ -1101,6 +1187,73 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 );
 
                 RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId, courseId2);
+                ObjectNode request = context.getRequest();
+
+                securePerform(put("/attendances/{id}", attendanceId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isBadRequest());
+            }
+        };
+    }
+
+    @Test
+    void patchAttendance__dateChange__invalid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                LocalDate attendedDate1 = LocalDate.now();
+                LocalDate attendedDate2 = attendedDate1.plusDays(1);
+                int attendedClass = faker.number().numberBetween(1, 6);
+                AttendanceType attendanceType = AttendanceType.ATTENDED;
+
+                long attendanceId = ef.createAttendance(ef.bag()
+                        .withStudentId(studentId)
+                        .withCourseId(courseId)
+                        .withDto(AttendanceDto.builder()
+                                .attendedClass(attendedClass)
+                                .attendedDate(attendedDate1)
+                                .attendanceType(attendanceType)
+                                .build()
+                        )
+                );
+
+                RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId, courseId, attendedClass, attendedDate2);
+                ObjectNode request = context.getRequest();
+
+                securePerform(put("/attendances/{id}", attendanceId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isBadRequest());
+            }
+        };
+    }
+
+    void patchAttendance__classChange__invalid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                LocalDate attendedDate = LocalDate.now();
+                int attendedClass1 = faker.number().numberBetween(1, 5);
+                int attendedClass2 = attendedClass1 + 1;
+                AttendanceType attendanceType = AttendanceType.ATTENDED;
+
+                long attendanceId = ef.createAttendance(ef.bag()
+                        .withStudentId(studentId)
+                        .withCourseId(courseId)
+                        .withDto(AttendanceDto.builder()
+                                .attendedClass(attendedClass1)
+                                .attendedDate(attendedDate)
+                                .attendanceType(attendanceType)
+                                .build()
+                        )
+                );
+
+                RequestContext<ObjectNode> context = getPatchAttendanceRequest(studentId, courseId, attendedClass2, attendedDate);
                 ObjectNode request = context.getRequest();
 
                 securePerform(put("/attendances/{id}", attendanceId)

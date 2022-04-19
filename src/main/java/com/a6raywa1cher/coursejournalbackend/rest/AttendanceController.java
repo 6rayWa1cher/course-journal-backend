@@ -6,6 +6,7 @@ import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchCreateAttendancesDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchCreateStudentDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.MapStructRestDtoMapper;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnCreate;
+import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnPatch;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnUpdate;
 import com.a6raywa1cher.coursejournalbackend.service.AttendanceService;
 import org.springdoc.api.annotations.ParameterObject;
@@ -61,14 +62,14 @@ public class AttendanceController {
     @PutMapping("/{id}")
     @PreAuthorize("@accessChecker.editAttendanceAccess(#id, authentication)")
     @Validated(OnUpdate.class)
-    public AttendanceDto update(@RequestBody @Validated AttendanceRestDto dto, @PathVariable long id) {
+    public AttendanceDto update(@RequestBody @Valid AttendanceRestDto dto, @PathVariable long id) {
         return service.update(id, mapper.map(dto));
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("@accessChecker.editAttendanceAccess(#id, authentication)")
-    @Validated(OnUpdate.class)
-    public AttendanceDto patch(@RequestBody @Validated AttendanceRestDto dto, @PathVariable long id) {
+    @Validated(OnPatch.class)
+    public AttendanceDto patch(@RequestBody @Valid AttendanceRestDto dto, @PathVariable long id) {
         return service.patch(id, mapper.map(dto));
     }
 

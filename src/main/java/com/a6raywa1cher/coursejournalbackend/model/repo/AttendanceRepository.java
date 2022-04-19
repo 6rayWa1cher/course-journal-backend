@@ -15,13 +15,10 @@ import java.util.Optional;
 
 @Repository
 public interface AttendanceRepository extends PagingAndSortingRepository<Attendance, Long> {
-    @Query("from Attendance where student = :student")
     List<Attendance> getAllByStudent(@Param("student") Student student, Sort sort);
 
-    @Query("from Attendance where course = :course")
     List<Attendance> getAllByCourse(@Param("course") Course course, Sort sort);
 
-    @Query("from Attendance where student = :student and course = :course")
     List<Attendance> getAllByStudentAndCourse(@Param("student") Student student, @Param("course") Course course, Sort sort);
 
     Optional<Attendance> findByStudentAndAttendedDateAndAttendedClass(Student student, LocalDate attendedDate, Integer attendedClass);
