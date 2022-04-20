@@ -3,7 +3,6 @@ package com.a6raywa1cher.coursejournalbackend.rest;
 import com.a6raywa1cher.coursejournalbackend.dto.AttendanceDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.AttendanceRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchCreateAttendancesDto;
-import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchCreateStudentDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.MapStructRestDtoMapper;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnCreate;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnPatch;
@@ -41,6 +40,12 @@ public class AttendanceController {
     @GetMapping("/course/{id}")
     @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
     public List<AttendanceDto> getByCourse(@PathVariable long id, @ParameterObject Sort sort) { return service.getByCourseId(id, sort); }
+
+    @GetMapping("/course/{courseId}/student/{studentId}")
+    @PreAuthorize("@accessChecker.readCourseAccess(#courseId, authentication)")
+    public List<AttendanceDto> getByCourseAndStudent(@PathVariable long courseId, @PathVariable long studentId, @ParameterObject Sort sort) {
+        return service.getByCourseAndStudentIds(courseId, studentId, sort);
+    }
 
     @PostMapping("/")
     @PreAuthorize("@accessChecker.createAttendanceAccess(#dto.course, authentication)")

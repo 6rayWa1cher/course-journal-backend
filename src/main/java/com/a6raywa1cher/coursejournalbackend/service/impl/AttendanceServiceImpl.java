@@ -69,9 +69,9 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
 
     @Override
-    public List<AttendanceDto> getByStudentAndCourseIds(long studentId, long courseId, Sort sort) {
-        Student student = getStudentById(studentId);
+    public List<AttendanceDto> getByCourseAndStudentIds(long courseId, long studentId, Sort sort) {
         Course course = getCourseById(courseId);
+        Student student = getStudentById(studentId);
         return repository.getAllByStudentAndCourse(student, course, sort).stream()
                 .map(mapper::map)
                 .toList();

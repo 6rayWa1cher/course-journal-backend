@@ -12,7 +12,7 @@ public interface AttendanceService {
 
     Optional<Attendance> findRawById(long id);
 
-    List<AttendanceDto> getByStudentAndCourseIds(long studentId, long courseId, Sort sort);
+    List<AttendanceDto> getByCourseAndStudentIds(long courseId, long studentId, Sort sort);
 
     List<AttendanceDto> getByStudentId(long studentId, Sort sort);
 

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MvcResult;
@@ -383,6 +384,123 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         long id = ef.createCourse();
         mvc.perform(get("/attendances/course/{id}", id)).andExpect(status().isUnauthorized());
     }
+
+    // =================================================================================================================
+
+    RequestContext<Long> createGetAttendanceByCourseAndStudentContext(long courseId, long studentId, int attendedClass) {
+        LocalDate attendedDate = LocalDate.now().minusDays(1);
+        AttendanceType attendanceType = TestUtils.randomAttendanceType();
+
+        long id = attendanceService.create(AttendanceDto.builder()
+                .attendedDate(attendedDate)
+                .attendanceType(attendanceType)
+                .attendedClass(attendedClass)
+                .course(courseId)
+                .student(studentId)
+                .build()).getId();
+
+        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
+                jsonPath(prefix + ".id").value(id),
+                jsonPath(prefix + ".student").value(studentId),
+                jsonPath(prefix + ".course").value(courseId),
+                jsonPath(prefix + ".attendedDate").value(attendedDate.toString()),
+                jsonPath(prefix + ".attendedClass").value(attendedClass),
+                jsonPath(prefix + ".attendanceType").value(attendanceType.toString()),
+        };
+
+        return RequestContext.<Long>builder()
+                .request(id)
+                .matchersSupplier(matchers)
+                .build();
+    }
+
+    @Test
+    void getAttendanceByCourseAndStudent__self__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                long courseId1 = ef.createCourse(getIdAsLong());
+                long courseId2 = ef.createCourse(getIdAsLong());
+
+                long studentId1 = ef.createStudent(ef.bag().withCourseId(courseId1));
+                long studentId2 = ef.createStudent(ef.bag().withCourseId(courseId2));
+
+                int attendedClass = 1;
+
+                var context1 = createGetAttendanceByCourseAndStudentContext(courseId1, studentId1, attendedClass);
+                var context2 = createGetAttendanceByCourseAndStudentContext(courseId1, studentId1, attendedClass + 1 );
+                createGetAttendanceByCourseAndStudentContext(courseId2, studentId1, attendedClass + 2);
+                createGetAttendanceByCourseAndStudentContext(courseId1, studentId2, attendedClass + 3);
+
+                securePerform(get("/attendances/course/{courseId}/student/{studentId}", courseId1, studentId1)
+                        .queryParam("sort", "attendedClass,asc"))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(context1.getMatchers("$[0]"))
+                        .andExpectAll(context2.getMatchers("$[1]"));
+            }
+        };
+    }
+
+    @Test
+    void getAttendanceByCourseAndStudent__otherAsAdmin__valid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                long courseId1 = ef.createCourse();
+                long courseId2 = ef.createCourse();
+
+                long studentId1 = ef.createStudent(ef.bag().withCourseId(courseId1));
+                long studentId2 = ef.createStudent(ef.bag().withCourseId(courseId2));
+
+                int attendedClass = faker.number().numberBetween(1, 6);
+
+                var context1 = createGetAttendanceByCourseContext(studentId1, courseId1, attendedClass);
+                var context2 = createGetAttendanceByCourseContext(studentId1, courseId1, attendedClass + 1 );
+                createGetAttendanceByCourseContext(studentId1, courseId2, attendedClass + 2);
+                createGetAttendanceByCourseContext(studentId2, courseId1, attendedClass + 3);
+
+                securePerform(get("/attendances/course/{id}/student/{id}", courseId1, studentId1)
+                        .queryParam("sort", "attendedClass,asc"))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(context1.getMatchers("$[0]"))
+                        .andExpectAll(context2.getMatchers("$[1]"));
+            }
+        };
+    }
+
+    @Test
+    void getAttendanceByCourseAndStudent__otherAsTeacher__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                long courseId1 = ef.createCourse();
+                long courseId2 = ef.createCourse();
+
+                long studentId1 = ef.createStudent(ef.bag().withCourseId(courseId1));
+                long studentId2 = ef.createStudent(ef.bag().withCourseId(courseId2));
+
+                int attendedClass = faker.number().numberBetween(1, 6);
+
+                createGetAttendanceByCourseContext(studentId1, courseId1, attendedClass);
+                createGetAttendanceByCourseContext(studentId1, courseId1, attendedClass + 1 );
+                createGetAttendanceByCourseContext(studentId1, courseId2, attendedClass + 2);
+                createGetAttendanceByCourseContext(studentId2, courseId1, attendedClass + 3);
+
+                securePerform(get("/attendances/course/{id}/student/{id}", courseId1, studentId1)
+                        .queryParam("sort", "attendedClass,asc"))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getAttendanceByCourseAndStudent__notAuthenticated__invalid() throws Exception {
+        long id = ef.createCourse();
+        mvc.perform(get("/attendances/course/{id}", id)).andExpect(status().isUnauthorized());
+    }
+
 
     // =================================================================================================================
 
