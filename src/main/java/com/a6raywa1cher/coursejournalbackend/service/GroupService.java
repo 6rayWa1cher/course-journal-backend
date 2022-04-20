@@ -16,6 +16,8 @@ public interface GroupService {
 
     List<GroupDto> getByCourse(long courseId, Sort sort);
 
+    List<GroupDto> getByFacultyNameAndCourse(String faculty, long courseId, Sort sort);
+
     GroupDto create(GroupDto dto);
 
     GroupDto update(long id, GroupDto dto);

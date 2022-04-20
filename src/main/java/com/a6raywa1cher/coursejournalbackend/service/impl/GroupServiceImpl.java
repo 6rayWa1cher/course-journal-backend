@@ -31,6 +31,10 @@ public class GroupServiceImpl implements GroupService {
         return null;
     }
 
+    public List<GroupDto> getByFacultyNameAndCourse(String faculty, long courseId, Sort sort) {
+        return null;
+    }
+
     @Override
     public GroupDto create(GroupDto dto) {
         return null;

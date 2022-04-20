@@ -185,4 +185,22 @@ public abstract class MapStructMapper {
     @CreatedModifiedMapping
     @Mapping(target = "course", source = "course.id")
     public abstract CourseTokenDto map(CourseToken criteria);
+
+    // ================================================================================================================
+    // Group
+    // ================================================================================================================
+
+    @CreatedModifiedMapping
+    @Mapping(target = "course", source = "course.id")
+    public abstract GroupDto map(GroupDto dto, @MappingTarget GroupDto target);
+
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "course", ignore = true)
+    public abstract void put(GroupDto dto, @MappingTarget GroupDto target);
+
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "course", ignore = true)
+    public abstract void patch(GroupDto dto, @MappingTarget GroupDto target);
 }
