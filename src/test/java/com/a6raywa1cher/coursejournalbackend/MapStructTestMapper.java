@@ -7,6 +7,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
+import javax.persistence.ManyToOne;
+
 @Mapper(uses = {MapperHelper.class}, componentModel = "spring")
 public interface MapStructTestMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -32,4 +34,7 @@ public interface MapStructTestMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void merge(SubmissionDto dto, @MappingTarget SubmissionDto target);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void merge(GroupDto dto, @MappingTarget GroupDto target);
 }

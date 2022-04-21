@@ -1,7 +1,9 @@
 package com.a6raywa1cher.coursejournalbackend.service.impl;
 
 import com.a6raywa1cher.coursejournalbackend.dto.GroupDto;
+import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
 import com.a6raywa1cher.coursejournalbackend.model.Group;
+import com.a6raywa1cher.coursejournalbackend.model.repo.GroupRepository;
 import com.a6raywa1cher.coursejournalbackend.service.GroupService;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,15 @@ import java.util.Optional;
 
 @Service
 public class GroupServiceImpl implements GroupService {
+    private final GroupRepository repository;
+
+    private final MapStructMapper mapper;
+
+    public GroupServiceImpl(GroupRepository repository, MapStructMapper mapper) {
+        this.repository = repository;
+        this.mapper = mapper;
+    }
+
     @Override
     public GroupDto getById(long id) {
         return null;

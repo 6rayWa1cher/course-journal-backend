@@ -12,9 +12,9 @@ public class GroupDto {
 
     private Long course;
 
-    private String name;
-
     private String faculty;
+
+    private String name;
 
     private ZonedDateTime createdAt;
 

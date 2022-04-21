@@ -11,7 +11,6 @@ import org.springframework.boot.test.context.TestComponent;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.Random;
 import java.util.stream.Stream;
 
 @TestComponent
@@ -36,10 +35,12 @@ public class EntityFactory {
 
     private final AttendanceService attendanceService;
 
+    private final GroupService groupService;
+
     @Autowired
     public EntityFactory(TaskService taskService, CourseService courseService, CourseTokenService courseTokenService, UserService userService,
                          CriteriaService criteriaService, SubmissionService submissionService, Faker faker,
-                         MapStructTestMapper mapper, StudentService studentService, AttendanceService attendanceService) {
+                         MapStructTestMapper mapper, StudentService studentService, AttendanceService attendanceService, GroupService groupService) {
         this.taskService = taskService;
         this.courseService = courseService;
         this.courseTokenService = courseTokenService;
@@ -50,6 +51,7 @@ public class EntityFactory {
         this.mapper = mapper;
         this.studentService = studentService;
         this.attendanceService = attendanceService;
+        this.groupService = groupService;
     }
 
     public long createUser() {
@@ -224,6 +226,29 @@ public class EntityFactory {
         }
 
         return submissionService.create(dto).getId();
+    }
+
+    public long createGroup() {
+        return createGroup(bag());
+    }
+
+    public long createGroup(Long userId) {
+        return createGroup(bag().withUserId(userId));
+    }
+
+    public long createGroup(EntityFactoryBag bag) {
+        GroupDto dto = GroupDto.builder()
+                .name(faker.lorem().sentence(1))
+                .faculty(faker.lorem().sentence(1))
+                .course(bag.getCourseId())
+                .build();
+
+        GroupDto dtoFromBag = bag.getDto(GroupDto.class);
+        if (dtoFromBag != null) {
+            mapper.merge(dtoFromBag, dto);
+        }
+
+        return groupService.create(dto).getId();
     }
 
     public EntityFactoryBag bag() {
