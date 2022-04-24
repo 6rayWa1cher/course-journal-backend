@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.Hibernate;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.ReadOnlyProperty;
@@ -11,6 +12,7 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(
@@ -28,8 +30,9 @@ public class Group implements IdEntity<Long> {
     @ReadOnlyProperty
     private Long id;
 
-    @Column(name = "faculty", nullable = false)
-    private String faculty;
+    @JoinColumn(name = "faculty", nullable = false)
+    @ManyToOne(optional = false)
+    private Faculty faculty;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -50,4 +53,17 @@ public class Group implements IdEntity<Long> {
     @LastModifiedDate
     @ReadOnlyProperty
     private LocalDateTime lastModifiedAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Group that = (Group) o;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

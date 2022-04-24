@@ -242,7 +242,7 @@ public class EntityFactory {
     public long createGroup(EntityFactoryBag bag) {
         GroupDto dto = GroupDto.builder()
                 .name(faker.lorem().sentence(1))
-                .faculty(faker.lorem().sentence(1))
+                .faculty(bag.getFacultyId())
                 .course(bag.getCourseId())
                 .build();
 
@@ -259,7 +259,7 @@ public class EntityFactory {
     }
 
     public long createFaculty(Long userId) {
-        return createFaculty(bag().getUserId());
+        return createFaculty(bag().withUserId(userId));
     }
 
     public long createFaculty(EntityFactoryBag bag) {
@@ -310,6 +310,8 @@ public class EntityFactory {
 
         private Long submissionId;
 
+        private Long facultyId;
+
         private Object dto;
 
         public Long getUserId() {
@@ -350,6 +352,11 @@ public class EntityFactory {
         public Long getSubmissionId() {
             if (submissionId == null) submissionId = ef.createSubmission(this);
             return submissionId;
+        }
+
+        public Long getFacultyId() {
+            if (facultyId == null) facultyId = ef.createFaculty(this);
+            return facultyId;
         }
 
         public <T> T getDto(Class<T> clazz) {

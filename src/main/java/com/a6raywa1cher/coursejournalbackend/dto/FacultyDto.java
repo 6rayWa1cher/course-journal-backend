@@ -14,8 +14,6 @@ public class FacultyDto {
 
     private String name;
 
-    private List<Group> groups;
-
     private ZonedDateTime createdAt;
 
     private ZonedDateTime lastModifiedAt;

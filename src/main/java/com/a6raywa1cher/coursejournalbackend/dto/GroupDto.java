@@ -12,7 +12,7 @@ public class GroupDto {
 
     private Long course;
 
-    private String faculty;
+    private Long faculty;
 
     private String name;
 

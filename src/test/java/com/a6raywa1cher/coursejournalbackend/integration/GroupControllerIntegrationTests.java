@@ -27,13 +27,12 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
     @Autowired
     GroupService groupService;
 
-    RequestContext<Long> createGetGroupByIdContextWithCourse(long courseId) {
-        String name = "ФИиИТ";
-        String faculty = "ПМиК";
+    RequestContext<Long> createGetGroupByIdContextWithCourse(long courseId, long facultyId) {
+        String name = faker.lorem().sentence(1);
 
         long id = groupService.create(GroupDto.builder()
                 .name(name)
-                .faculty(faculty)
+                .faculty(facultyId)
                 .course(courseId)
                 .build()).getId();
 
@@ -41,7 +40,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 jsonPath(prefix + ".id").value(id),
                 jsonPath(prefix + ".name").value(name),
                 jsonPath(prefix + ".course").value(courseId),
-                jsonPath(prefix + ".faculty").value(faculty)
+                jsonPath(prefix + ".faculty").value(facultyId)
         };
 
         return RequestContext.<Long>builder()
@@ -53,7 +52,8 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
 
     RequestContext<Long> createGetGroupByIdContext(long userId) {
         long courseId = ef.createCourse(userId);
-        return createGetGroupByIdContextWithCourse(courseId);
+        long facultyId = ef.createFaculty(userId);
+        return createGetGroupByIdContextWithCourse(courseId, facultyId);
     }
 
     @Test
@@ -112,7 +112,8 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithCourseToken() {
             @Override
             void run() throws Exception {
-                var context = createGetGroupByIdContextWithCourse(getCourseId());
+                long facultyId = ef.createFaculty();
+                var context = createGetGroupByIdContextWithCourse(getCourseId(), facultyId);
 
                 long id = context.getRequest();
                 ResultMatcher[] matchers = context.getMatchers();
@@ -151,10 +152,10 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
 
     // ================================================================================================================
 
-    RequestContext<Long> createGetGroupByFacultyContext(long courseId, String faculty, String name) {
+    RequestContext<Long> createGetGroupByFacultyContext(long courseId, long facultyId, String name) {
         long id = groupService.create(GroupDto.builder()
                 .course(courseId)
-                .faculty(faculty)
+                .faculty(facultyId)
                 .name(name)
                 .build()).getId();
 
@@ -162,7 +163,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 jsonPath(prefix + ".id").value(id),
                 jsonPath(prefix + ".name").value(name),
                 jsonPath(prefix + ".course").value(courseId),
-                jsonPath(prefix + ".faculty").value(faculty)
+                jsonPath(prefix + ".faculty").value(facultyId)
         };
 
         return RequestContext.<Long>builder()
@@ -177,18 +178,17 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(getIdAsLong());
+                long facultyId1 = ef.createFaculty();
+                long facultyId2 = ef.createFaculty();
 
-                String name1 = "A" + "ФИиИТ";
-                String name2 = "B" + "ПИ";
+                String name1 = "A" + faker.lorem().sentence(1);
+                String name2 = "B" + faker.lorem().sentence(1);
 
-                String faculty1 = "ПМиК";
-                String faculty2 = "МФ";
+                var context1 = createGetGroupByFacultyContext(courseId, facultyId1, name1);
+                var context2 = createGetGroupByFacultyContext(courseId, facultyId1, name2);
+                createGetGroupByFacultyContext(courseId, facultyId2, name1);
 
-                var context1 = createGetGroupByFacultyContext(courseId, name1, faculty1);
-                var context2 = createGetGroupByFacultyContext(courseId, name2, faculty1);
-                createGetGroupByFacultyContext(courseId, name1, faculty2);
-
-                securePerform(get("/groups/faculty/{id}", faculty1)
+                securePerform(get("/groups/faculty/{id}", facultyId1)
                         .queryParam("sort", "name,asc"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
@@ -204,18 +204,17 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(ef.createUser());
+                long facultyId1 = ef.createFaculty();
+                long facultyId2 = ef.createFaculty();
 
-                String name1 = "A" + "ФИиИТ";
-                String name2 = "B" + "ПИ";
+                String name1 = "A" + faker.lorem().sentence(1);
+                String name2 = "B" + faker.lorem().sentence(1);
 
-                String faculty1 = "ПМиК";
-                String faculty2 = "МФ";
+                var context1 = createGetGroupByFacultyContext(courseId, facultyId1, name1);
+                var context2 = createGetGroupByFacultyContext(courseId, facultyId1, name2);
+                createGetGroupByFacultyContext(courseId, facultyId2, name1);
 
-                var context1 = createGetGroupByFacultyContext(courseId, name1, faculty1);
-                var context2 = createGetGroupByFacultyContext(courseId, name2, faculty1);
-                createGetGroupByFacultyContext(courseId, name1, faculty2);
-
-                securePerform(get("/groups/faculty/{id}", faculty1)
+                securePerform(get("/groups/faculty/{id}", facultyId1)
                         .queryParam("sort", "name,asc"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
@@ -231,18 +230,17 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = getCourseId();
+                long facultyId1 = ef.createFaculty();
+                long facultyId2 = ef.createFaculty();
 
-                String name1 = "A" + "ФИиИТ";
-                String name2 = "B" + "ПИ";
+                String name1 = "A" + faker.lorem().sentence(1);
+                String name2 = "B" + faker.lorem().sentence(1);
 
-                String faculty1 = "ПМиК";
-                String faculty2 = "МФ";
+                var context1 = createGetGroupByFacultyContext(courseId, facultyId1, name1);
+                var context2 = createGetGroupByFacultyContext(courseId, facultyId1, name2);
+                createGetGroupByFacultyContext(courseId, facultyId2, name1);
 
-                var context1 = createGetGroupByFacultyContext(courseId, name1, faculty1);
-                var context2 = createGetGroupByFacultyContext(courseId, name2, faculty1);
-                createGetGroupByFacultyContext(courseId, name1, faculty2);
-
-                securePerform(get("/groups/faculty/{id}", faculty1)
+                securePerform(get("/groups/faculty/{id}", facultyId1)
                         .queryParam("sort", "name,asc"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
@@ -257,9 +255,9 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                String faculty = "ПМиК";
+                Long facultyId = ef.createFaculty();
 
-                securePerform(get("/groups/faculty/{id}", faculty)
+                securePerform(get("/groups/faculty/{id}", facultyId)
                         .queryParam("sort", "name,asc"))
                         .andExpect(status().isForbidden());
             }
@@ -272,12 +270,12 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
-                String name = "ФИиИТ";
-                String faculty = "ПМиК";
+                String name = faker.lorem().sentence(1);
+                long facultyId = ef.createFaculty();
 
-                var context = createGetGroupByFacultyContext(courseId, name, faculty);
+                var context = createGetGroupByFacultyContext(courseId, facultyId, name);
 
-                securePerform(get("/groups/faculty/{id}", faculty + "A")
+                securePerform(get("/groups/faculty/{id}", facultyId + 1000)
                         .queryParam("sort", "name,asc"))
                         .andExpect(status().isNotFound());
             }
@@ -286,20 +284,19 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void getGroupByFaculty__notAuthenticated__invalid() throws Exception {
-        String faculty = "ПМиК";
-        mvc.perform(get("/groups/faculty/{id}", faculty))
+        long facultyId = ef.createFaculty();
+        mvc.perform(get("/groups/faculty/{id}", facultyId))
                 .andExpect(status().isUnauthorized());
     }
 
 
     // ================================================================================================================
 
-    RequestContext<Long> createGetGroupByCourseContext(long courseId, String name) {
-        String faculty = "ПМиК";
+    RequestContext<Long> createGetGroupByCourseContext(long courseId, long facultyId, String name) {
 
         long id = groupService.create(GroupDto.builder()
                 .course(courseId)
-                .faculty(faculty)
+                .faculty(facultyId)
                 .name(name)
                 .build()).getId();
 
@@ -307,7 +304,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 jsonPath(prefix + ".id").value(id),
                 jsonPath(prefix + ".name").value(name),
                 jsonPath(prefix + ".course").value(courseId),
-                jsonPath(prefix + ".faculty").value(faculty)
+                jsonPath(prefix + ".faculty").value(facultyId)
         };
 
         return RequestContext.<Long>builder()
@@ -324,12 +321,15 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 long courseId1 = ef.createCourse(getIdAsLong());
                 long courseId2 = ef.createCourse(getIdAsLong());
 
-                String name1 = "A" + "ФИиИТ";
-                String name2 = "B" + "ПИ";
+                long facultyId1 = ef.createFaculty();
+                long facultyId2 = ef.createFaculty();
 
-                var context1 = createGetGroupByCourseContext(courseId1, name1);
-                var context2 = createGetGroupByCourseContext(courseId1, name2);
-                createGetGroupByCourseContext(courseId2, name1);
+                String name1 = "A" + faker.lorem().sentence(1);
+                String name2 = "B" + faker.lorem().sentence(1);
+
+                var context1 = createGetGroupByCourseContext(courseId1, facultyId1, name1);
+                var context2 = createGetGroupByCourseContext(courseId1, facultyId1, name2);
+                createGetGroupByCourseContext(courseId2, facultyId2, name1);
 
                 securePerform(get("/groups/course/{id}", courseId1)
                         .queryParam("sort", "name,asc"))
@@ -349,12 +349,15 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 long courseId1 = ef.createCourse(ef.createUser());
                 long courseId2 = ef.createCourse(ef.createUser());
 
-                String name1 = "A" + "ФИиИТ";
-                String name2 = "B" + "ПИ";
+                long facultyId1 = ef.createFaculty();
+                long facultyId2 = ef.createFaculty();
 
-                var context1 = createGetGroupByCourseContext(courseId1, name1);
-                var context2 = createGetGroupByCourseContext(courseId1, name2);
-                createGetGroupByCourseContext(courseId2, name1);
+                String name1 = "A" + faker.lorem().sentence(1);
+                String name2 = "B" + faker.lorem().sentence(1);
+
+                var context1 = createGetGroupByCourseContext(courseId1, facultyId1, name1);
+                var context2 = createGetGroupByCourseContext(courseId1, facultyId1, name2);
+                createGetGroupByCourseContext(courseId2, facultyId2, name1);
 
                 securePerform(get("/groups/course/{id}", courseId1)
                         .queryParam("sort", "name,asc"))
@@ -373,12 +376,16 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 long courseId1 = getCourseId();
                 long courseId2 = ef.createCourse(ef.createUser());
-                String name1 = "A" + "ФИиИТ";
-                String name2 = "B" + "ПИ";
 
-                var context1 = createGetGroupByCourseContext(courseId1, name1);
-                var context2 = createGetGroupByCourseContext(courseId1, name2);
-                createGetGroupByCourseContext(courseId2, name1);
+                long facultyId1 = ef.createFaculty();
+                long facultyId2 = ef.createFaculty();
+
+                String name1 = "A" + faker.lorem().sentence(1);
+                String name2 = "B" + faker.lorem().sentence(1);
+
+                var context1 = createGetGroupByCourseContext(courseId1, facultyId1, name1);
+                var context2 = createGetGroupByCourseContext(courseId1, facultyId1, name2);
+                createGetGroupByCourseContext(courseId2, facultyId2, name1);
 
                 securePerform(get("/groups/course/{id}", courseId1)
                         .queryParam("sort", "name,asc"))
@@ -410,9 +417,10 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
-                String name = "ФИиИТ";
+                long facultyId = ef.createFaculty();
+                String name = faker.lorem().sentence(1);
 
-                createGetGroupByCourseContext(courseId, name);
+                createGetGroupByCourseContext(courseId, facultyId, name);
 
                 securePerform(get("/groups/course/{id}", courseId + 1000)
                         .queryParam("sort", "name,asc"))
@@ -430,10 +438,10 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
 
     // ================================================================================================================
 
-    RequestContext<Long> createGetGroupByCourseAndFacultyContext(long courseId, String faculty, String name) {
+    RequestContext<Long> createGetGroupByCourseAndFacultyContext(long courseId, long facultyId, String name) {
         long id = groupService.create(GroupDto.builder()
                 .course(courseId)
-                .faculty(faculty)
+                .faculty(facultyId)
                 .name(name)
                 .build()).getId();
 
@@ -441,7 +449,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 jsonPath(prefix + ".id").value(id),
                 jsonPath(prefix + ".name").value(name),
                 jsonPath(prefix + ".course").value(courseId),
-                jsonPath(prefix + ".faculty").value(faculty)
+                jsonPath(prefix + ".faculty").value(facultyId)
         };
 
         return RequestContext.<Long>builder()
@@ -458,18 +466,19 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 long courseId1 = ef.createCourse(getIdAsLong());
                 long courseId2 = ef.createCourse(getIdAsLong());
 
-                String name1 = "A" + "ФИиИТ";
-                String name2 = "B" + "ПИ";
+                String name1 = "A" + faker.lorem().sentence(1);
+                String name2 = "B" + faker.lorem().sentence(1);
+                String name3 = "C" + faker.lorem().sentence(1);
 
-                String faculty1 = "ПМиК";
-                String faculty2 = "МФ";
+                long facultyId1 = ef.createFaculty();
+                long facultyId2 = ef.createFaculty();
 
-                var context1 = createGetGroupByCourseAndFacultyContext(courseId1, name1, faculty1);
-                var context2 = createGetGroupByCourseAndFacultyContext(courseId1, name2, faculty1);
-                createGetGroupByCourseAndFacultyContext(courseId2, name1, faculty1);
-                createGetGroupByCourseAndFacultyContext(courseId1, name1, faculty2);
+                var context1 = createGetGroupByCourseAndFacultyContext(courseId1, facultyId1, name1);
+                var context2 = createGetGroupByCourseAndFacultyContext(courseId1, facultyId1, name2);
+                createGetGroupByCourseAndFacultyContext(courseId2, facultyId1, name3);
+                createGetGroupByCourseAndFacultyContext(courseId1, facultyId2, name3);
 
-                securePerform(get("/groups/course/{courseId}/faculty/{facultyId}/", courseId1, faculty1)
+                securePerform(get("/groups/course/{courseId}/faculty/{facultyId}/", courseId1, facultyId1)
                         .queryParam("sort", "name,asc"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
@@ -489,18 +498,19 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 long courseId1 = ef.createCourse(userId);
                 long courseId2 = ef.createCourse(userId);
 
-                String name1 = "A" + "ФИиИТ";
-                String name2 = "B" + "ПИ";
+                String name1 = "A" + faker.lorem().sentence(1);
+                String name2 = "B" + faker.lorem().sentence(1);
+                String name3 = "C" + faker.lorem().sentence(1);
 
-                String faculty1 = "ПМиК";
-                String faculty2 = "МФ";
+                long facultyId1 = ef.createFaculty();
+                long facultyId2 = ef.createFaculty();
 
-                var context1 = createGetGroupByCourseAndFacultyContext(courseId1, name1, faculty1);
-                var context2 = createGetGroupByCourseAndFacultyContext(courseId1, name2, faculty1);
-                createGetGroupByCourseAndFacultyContext(courseId1, name1, faculty2);
-                createGetGroupByCourseAndFacultyContext(courseId2, name1, faculty1);
+                var context1 = createGetGroupByCourseAndFacultyContext(courseId1, facultyId1, name1);
+                var context2 = createGetGroupByCourseAndFacultyContext(courseId1, facultyId1, name2);
+                createGetGroupByCourseAndFacultyContext(courseId2, facultyId1, name3);
+                createGetGroupByCourseAndFacultyContext(courseId1, facultyId2, name3);
 
-                securePerform(get("/groups/course/{courseId}/faculty/{facultyId}", courseId1, faculty1)
+                securePerform(get("/groups/course/{courseId}/faculty/{facultyId}/", courseId1, facultyId1)
                         .queryParam("sort", "name,asc"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
@@ -518,18 +528,19 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 long courseId1 = getCourseId();
                 long courseId2 = ef.createCourse(getOwnerId());
 
-                String name1 = "A" + "ФИиИТ";
-                String name2 = "B" + "ПИ";
+                String name1 = "A" + faker.lorem().sentence(1);
+                String name2 = "B" + faker.lorem().sentence(1);
+                String name3 = "C" + faker.lorem().sentence(1);
 
-                String faculty1 = "ПМиК";
-                String faculty2 = "МФ";
+                long facultyId1 = ef.createFaculty();
+                long facultyId2 = ef.createFaculty();
 
-                var context1 = createGetGroupByCourseAndFacultyContext(courseId1, name1, faculty1);
-                var context2 = createGetGroupByCourseAndFacultyContext(courseId1, name2, faculty1);
-                createGetGroupByCourseAndFacultyContext(courseId1, name1, faculty2);
-                createGetGroupByCourseAndFacultyContext(courseId2, name1, faculty1);
+                var context1 = createGetGroupByCourseAndFacultyContext(courseId1, facultyId1, name1);
+                var context2 = createGetGroupByCourseAndFacultyContext(courseId1, facultyId1, name2);
+                createGetGroupByCourseAndFacultyContext(courseId2, facultyId1, name3);
+                createGetGroupByCourseAndFacultyContext(courseId1, facultyId2, name3);
 
-                securePerform(get("/groups/course/{courseId}/faculty/{facultyId}",  courseId1, faculty1)
+                securePerform(get("/groups/course/{courseId}/faculty/{facultyId}/", courseId1, facultyId1)
                         .queryParam("sort", "name,asc"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
@@ -544,10 +555,10 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                Long courseId = ef.createCourse();
-                String faculty = "ПМиК";
+                long courseId = ef.createCourse();
+                long facultyId = ef.createFaculty();
 
-                securePerform(get("/groups/course/{courseId}/faculty/{facultyId}", courseId, faculty)
+                securePerform(get("/groups/course/{courseId}/faculty/{facultyId}", courseId, facultyId)
                         .queryParam("sort", "name,asc"))
                         .andExpect(status().isForbidden());
             }
@@ -560,12 +571,12 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
-                String name = "ФИиИТ";
-                String faculty = "ПМиК";
+                String name = faker.lorem().sentence(1);
+                long facultyId = ef.createFaculty();
 
-                var context = createGetGroupByFacultyContext(courseId, name, faculty);
+                var context = createGetGroupByFacultyContext(courseId, facultyId, name);
 
-                securePerform(get("/groups/course/{courseId}/faculty/{facultyId}", courseId + 1000, faculty)
+                securePerform(get("/groups/course/{courseId}/faculty/{facultyId}", courseId + 1000, facultyId)
                         .queryParam("sort", "name,asc"))
                         .andExpect(status().isNotFound());
             }
@@ -578,12 +589,12 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
-                String name = "ФИиИТ";
-                String faculty = "ПМиК";
+                String name = faker.lorem().sentence(1);
+                long facultyId = ef.createFaculty();
 
-                var context = createGetGroupByFacultyContext(courseId, name, faculty);
+                var context = createGetGroupByFacultyContext(courseId, facultyId, name);
 
-                securePerform(get("/groups/course/{courseId}/faculty/{facultyId}", courseId, faculty + "A")
+                securePerform(get("/groups/course/{courseId}/faculty/{facultyId}", courseId, facultyId + "A")
                         .queryParam("sort", "name,asc"))
                         .andExpect(status().isNotFound());
             }
@@ -592,24 +603,24 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void getGroupByCourseAndFaculty__notAuthenticated__invalid() throws Exception {
-        Long courseId = ef.createCourse();
-        String faculty = "ПМиК";
-        mvc.perform(get("/groups/course/{courseId}/faculty/{facultyId}", courseId, faculty))
+        long courseId = ef.createCourse();
+        long facultyId = ef.createFaculty();
+        mvc.perform(get("/groups/course/{courseId}/faculty/{facultyId}", courseId, facultyId))
                 .andExpect(status().isUnauthorized());
     }
 
     // ================================================================================================================
 
-    RequestContext<ObjectNode> getCreateGroupContext(long courseId, String name, String faculty) {
+    RequestContext<ObjectNode> getCreateGroupContext(long courseId, long facultyId, String name) {
         ObjectNode request = objectMapper.createObjectNode()
                 .put("course", courseId)
-                .put("faculty", faculty)
+                .put("faculty", facultyId)
                 .put("name", name);
 
         Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
                 jsonPath(prefix + ".id").isNumber(),
                 jsonPath(prefix + ".course").value(courseId),
-                jsonPath(prefix + "faculty").value(faculty),
+                jsonPath(prefix + "faculty").value(facultyId),
                 jsonPath(prefix + "name").value(name)
         };
 
@@ -622,10 +633,10 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(getIdAsLong());
-                String faculty = faker.lorem().sentence(1);
+                long facultyId = ef.createFaculty();
                 String name = faker.lorem().sentence(1);
 
-                var context = getCreateGroupContext(courseId, name, faculty);
+                var context = getCreateGroupContext(courseId, facultyId, name);
 
                 ObjectNode request = context.getRequest();
 
@@ -651,10 +662,10 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(ef.createUser());
-                String faculty = faker.lorem().sentence(1);
+                long facultyId = ef.createFaculty();
                 String name = faker.lorem().sentence(1);
 
-                var context = getCreateGroupContext(courseId, name, faculty);
+                var context = getCreateGroupContext(courseId, facultyId, name);
 
                 ObjectNode request = context.getRequest();
 
@@ -680,10 +691,10 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(ef.createUser());
-                String faculty = faker.lorem().sentence(1);
+                long facultyId = ef.createFaculty();
                 String name = faker.lorem().sentence(1);
 
-                var context = getCreateGroupContext(courseId, name, faculty);
+                var context = getCreateGroupContext(courseId, facultyId, name);
 
                 ObjectNode request = context.getRequest();
 
@@ -702,7 +713,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 long courseId = getCourseId();
 
-                var context = getCreateGroupContext(courseId, name, faculty);
+                var context = getCreateGroupContext(courseId, facultyId, name);
 
                 ObjectNode request = context.getRequest();
 
@@ -728,15 +739,15 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(ef.createUser());
-                String faculty = faker.lorem().sentence(1);
+                long facultyId = ef.createFaculty();
                 String name = faker.lorem().sentence(1);
 
-                var context = getCreateGroupContext(courseId, name, faculty);
+                var context = getCreateGroupContext(courseId, facultyId, name);
 
                 ef.createGroup(ef.bag().withCourseId(courseId)
                         .withDto(GroupDto.builder()
                                 .name(name)
-                                .faculty(faculty)
+                                .faculty(facultyId)
                                 .build())
                 );
 
@@ -753,10 +764,10 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void createGroup__notAuthenticated__invalid() throws Exception {
         long courseId = ef.createCourse();
-        String faculty = faker.lorem().sentence(1);
+        long facultyId = ef.createFaculty();
         String name = faker.lorem().sentence(1);
 
-        var context = getCreateGroupContext(courseId, name, faculty);
+        var context = getCreateGroupContext(courseId, facultyId, name);
 
         ObjectNode request = context.getRequest();
 
@@ -768,35 +779,18 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
 
     // ================================================================================================================
 
-    RequestContext<ObjectNode> createPutGroupContext(long courseId, String name) {
-        String faculty = faker.lorem().sentence(1);
+    RequestContext<ObjectNode> createPutGroupContext(long courseId, long facultyId, String name) {
 
         ObjectNode request = objectMapper.createObjectNode()
                 .put("course", courseId)
                 .put("name", name)
-                .put("faculty", faculty);
+                .put("faculty", facultyId);
 
         Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
                 jsonPath(prefix + ".id").isNumber(),
                 jsonPath(prefix + ".course").value(courseId),
                 jsonPath(prefix + ".name").value(name),
-                jsonPath(prefix + ".faculty").value(faculty),
-        };
-
-        return new RequestContext<>(request, matchers);
-    }
-
-    RequestContext<ObjectNode> createPutGroupContextWithFaculty(long courseId, String name, String faculty) {
-        ObjectNode request = objectMapper.createObjectNode()
-                .put("course", courseId)
-                .put("name", name)
-                .put("faculty", faculty);
-
-        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
-                jsonPath(prefix + ".id").isNumber(),
-                jsonPath(prefix + ".course").value(courseId),
-                jsonPath(prefix + ".name").value(name),
-                jsonPath(prefix + ".faculty").value(faculty),
+                jsonPath(prefix + ".faculty").value(facultyId),
         };
 
         return new RequestContext<>(request, matchers);
@@ -808,6 +802,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(getIdAsLong());
+                long facultyId = ef.createFaculty();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
 
@@ -817,7 +812,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                                 .build()
                         ));
 
-                var context = createPutGroupContext(courseId, name2);
+                var context = createPutGroupContext(courseId, facultyId, name2);
                 ObjectNode request = context.getRequest();
 
                 securePerform(put("/groups/{id}", id)
@@ -839,16 +834,17 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
+                long facultyId = ef.createFaculty();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
-
+                
                 long id = ef.createGroup(ef.bag().withCourseId(courseId)
                         .withDto(GroupDto.builder()
                                 .name(name1)
                                 .build()
                         ));
 
-                var context = createPutGroupContext(courseId, name2);
+                var context = createPutGroupContext(courseId, facultyId, name2);
                 ObjectNode request = context.getRequest();
 
                 securePerform(put("/groups/{id}", id)
@@ -870,6 +866,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
+                long facultyId = ef.createFaculty();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
 
@@ -879,7 +876,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                                 .build()
                         ));
 
-                var context = createPutGroupContext(courseId, name2);
+                var context = createPutGroupContext(courseId, facultyId, name2);
                 ObjectNode request = context.getRequest();
 
                 securePerform(put("/groups/{id}", id)
@@ -896,6 +893,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(getOwnerId());
+                long facultyId = ef.createFaculty();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
 
@@ -905,7 +903,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                                 .build()
                         ));
 
-                var context = createPutGroupContext(courseId, name2);
+                var context = createPutGroupContext(courseId, facultyId, name2);
                 ObjectNode request = context.getRequest();
 
                 securePerform(put("/groups/{id}", id)
@@ -928,6 +926,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 long courseId1 = ef.createCourse();
                 long courseId2 = ef.createCourse();
+                long facultyId = ef.createFaculty();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
 
@@ -937,7 +936,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                                 .build()
                         ));
 
-                var context = createPutGroupContext(courseId2, name2);
+                var context = createPutGroupContext(courseId2, facultyId, name2);
                 ObjectNode request = context.getRequest();
 
                 securePerform(put("/groups/{id}", id)
@@ -956,17 +955,17 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 long courseId = ef.createCourse();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
-                String faculty1 = faker.lorem().sentence(1);
-                String faculty2 = faker.lorem().sentence(1);
+                long facultyId1 = ef.createFaculty();
+                long facultyId2 = ef.createFaculty();
 
                 long id = ef.createGroup(ef.bag().withCourseId(courseId)
                         .withDto(GroupDto.builder()
-                                .faculty(faculty1)
+                                .faculty(facultyId1)
                                 .name(name1)
                                 .build()
                         ));
 
-                var context = createPutGroupContextWithFaculty(courseId, name2, faculty2);
+                var context = createPutGroupContext(courseId, facultyId2, name2);
                 ObjectNode request = context.getRequest();
 
                 securePerform(put("/groups/{id}", id)
@@ -983,13 +982,14 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
+                long facutlyId = ef.createFaculty();
                 String name = faker.lorem().sentence(1);
                 long id = ef.createGroup(ef.bag().withCourseId(courseId)
                         .withDto(GroupDto.builder()
                                 .name(name)
                                 .build()));
 
-                RequestContext<ObjectNode> context = createPutGroupContext(courseId, name);
+                RequestContext<ObjectNode> context = createPutGroupContext(courseId, facutlyId, name);
                 ObjectNode request = context.getRequest();
 
                 securePerform(put("/groups/{id}", id + 1000)
@@ -1003,13 +1003,14 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void putGroup__notAuthenticated__invalid() throws Exception {
         long courseId = ef.createCourse();
+        long facultyId = ef.createFaculty();
         String name = faker.lorem().sentence(1);
         long id = ef.createGroup(ef.bag().withCourseId(courseId)
                 .withDto(GroupDto.builder()
                         .name(name)
                         .build()));
 
-        RequestContext<ObjectNode> context = createPutGroupContext(courseId, name);
+        RequestContext<ObjectNode> context = createPutGroupContext(courseId, facultyId, name);
         ObjectNode request = context.getRequest();
 
         mvc.perform(put("/groups/{id}", id)
@@ -1020,25 +1021,10 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
 
     // ================================================================================================================
 
-    RequestContext<ObjectNode> createPatchGroupContext(long courseId, String name) {
+    RequestContext<ObjectNode> createPatchGroupContext(long courseId, long facultyId, String name) {
         ObjectNode request = objectMapper.createObjectNode()
                 .put("course", courseId)
-                .put("name", name);
-
-        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
-                jsonPath(prefix + ".id").isNumber(),
-                jsonPath(prefix + ".course").value(courseId),
-                jsonPath(prefix + ".name").value(name),
-                jsonPath(prefix + ".faculty").isNotEmpty(),
-        };
-
-        return new RequestContext<>(request, matchers);
-    }
-
-    RequestContext<ObjectNode> createPatchGroupContextWithFaculty(long courseId, String name, String faculty) {
-        ObjectNode request = objectMapper.createObjectNode()
-                .put("course", courseId)
-                .put("faculty", faculty)
+                .put("faculty", facultyId)
                 .put("name", name);
 
         Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
@@ -1057,6 +1043,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(getIdAsLong());
+                long facultyId = ef.createFaculty();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
 
@@ -1066,7 +1053,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                                 .build()
                         ));
 
-                var context = createPatchGroupContext(courseId, name2);
+                var context = createPatchGroupContext(courseId, facultyId, name2);
                 ObjectNode request = context.getRequest();
 
                 securePerform(put("/groups/{id}", id)
@@ -1088,6 +1075,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
+                long facultyId = ef.createFaculty();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
 
@@ -1097,7 +1085,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                                 .build()
                         ));
 
-                var context = createPatchGroupContext(courseId, name2);
+                var context = createPatchGroupContext(courseId, facultyId, name2);
                 ObjectNode request = context.getRequest();
 
                 securePerform(put("/groups/{id}", id)
@@ -1119,6 +1107,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
+                long facultyId = ef.createFaculty();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
 
@@ -1128,7 +1117,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                                 .build()
                         ));
 
-                var context = createPatchGroupContext(courseId, name2);
+                var context = createPatchGroupContext(courseId, facultyId, name2);
                 ObjectNode request = context.getRequest();
 
                 securePerform(put("/groups/{id}", id)
@@ -1145,6 +1134,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(getOwnerId());
+                long facultyId = ef.createFaculty();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
 
@@ -1154,7 +1144,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                                 .build()
                         ));
 
-                var context = createPatchGroupContext(courseId, name2);
+                var context = createPatchGroupContext(courseId, facultyId, name2);
                 ObjectNode request = context.getRequest();
 
                 securePerform(put("/groups/{id}", id)
@@ -1177,6 +1167,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 long courseId1 = ef.createCourse();
                 long courseId2 = ef.createCourse();
+                long facultyId = ef.createFaculty();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
 
@@ -1186,7 +1177,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                                 .build()
                         ));
 
-                var context = createPatchGroupContext(courseId2, name2);
+                var context = createPatchGroupContext(courseId2, facultyId, name2);
                 ObjectNode request = context.getRequest();
 
                 securePerform(put("/groups/{id}", id)
@@ -1205,17 +1196,17 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 long courseId = ef.createCourse();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
-                String faculty1 = faker.lorem().sentence(1);
-                String faculty2 = faker.lorem().sentence(1);
+                long facultyId1 = ef.createFaculty();
+                long facultyId2 = ef.createFaculty();
 
                 long id = ef.createGroup(ef.bag().withCourseId(courseId)
                         .withDto(GroupDto.builder()
-                                .faculty(faculty1)
+                                .faculty(facultyId1)
                                 .name(name1)
                                 .build()
                         ));
 
-                var context = createPatchGroupContextWithFaculty(courseId, name2, faculty2);
+                var context = createPatchGroupContext(courseId, facultyId2, name2);
                 ObjectNode request = context.getRequest();
 
                 securePerform(put("/groups/{id}", id)
@@ -1232,13 +1223,14 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
+                long facultyId = ef.createFaculty();
                 String name = faker.lorem().sentence(1);
                 long id = ef.createGroup(ef.bag().withCourseId(courseId)
                         .withDto(GroupDto.builder()
                                 .name(name)
                                 .build()));
 
-                RequestContext<ObjectNode> context = createPatchGroupContext(courseId, name);
+                RequestContext<ObjectNode> context = createPatchGroupContext(courseId, facultyId, name);
                 ObjectNode request = context.getRequest();
 
                 securePerform(put("/groups/{id}", id + 1000)
@@ -1252,13 +1244,14 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void patchGroup__notAuthenticated__invalid() throws Exception {
         long courseId = ef.createCourse();
+        long facultyId = ef.createFaculty();
         String name = faker.lorem().sentence(1);
         long id = ef.createGroup(ef.bag().withCourseId(courseId)
                 .withDto(GroupDto.builder()
                         .name(name)
                         .build()));
 
-        RequestContext<ObjectNode> context = createPatchGroupContext(courseId, name);
+        RequestContext<ObjectNode> context = createPatchGroupContext(courseId, facultyId, name);
         ObjectNode request = context.getRequest();
 
         mvc.perform(put("/groups/{id}", id)

@@ -33,7 +33,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<GroupDto> getByFacultyName(String faculty, Sort sort) {
+    public List<GroupDto> getByFaculty(Long facultyId, Sort sort) {
         return null;
     }
 
@@ -42,7 +42,7 @@ public class GroupServiceImpl implements GroupService {
         return null;
     }
 
-    public List<GroupDto> getByFacultyNameAndCourse(String faculty, long courseId, Sort sort) {
+    public List<GroupDto> getByFacultyAndCourse(Long facultyId, long courseId, Sort sort) {
         return null;
     }
 
