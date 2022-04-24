@@ -112,6 +112,7 @@ public abstract class MapStructMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "course", ignore = true)
     @Mapping(target = "submissions", ignore = true)
+    @Mapping(target = "group", ignore = true)
     public abstract void put(StudentDto dto, @MappingTarget Student target);
 
     @CreatedModifiedRestrictMapping
@@ -119,6 +120,7 @@ public abstract class MapStructMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "course", ignore = true)
     @Mapping(target = "submissions", ignore = true)
+    @Mapping(target = "group", ignore = true)
     public abstract void patch(StudentDto dto, @MappingTarget Student target);
 
     // ================================================================================================================
@@ -192,33 +194,34 @@ public abstract class MapStructMapper {
 
     @CreatedModifiedMapping
     @Mapping(target = "course", source = "course.id")
-    @Mapping(target = "faculty", source = "faculty.id")
-    public abstract GroupDto map(GroupDto dto, @MappingTarget GroupDto target);
+    public abstract GroupDto map(Group group);
 
     @CreatedModifiedRestrictMapping
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "course", ignore = true)
     @Mapping(target = "faculty", ignore = true)
-    public abstract void put(GroupDto dto, @MappingTarget GroupDto target);
+    @Mapping(target = "students", ignore = true)
+    public abstract void put(GroupDto dto, @MappingTarget Group target);
 
     @CreatedModifiedRestrictMapping
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "course", ignore = true)
     @Mapping(target = "faculty", ignore = true)
-    public abstract void patch(GroupDto dto, @MappingTarget GroupDto target);
+    @Mapping(target = "students", ignore = true)
+    public abstract void patch(GroupDto dto, @MappingTarget Group target);
 
     // ================================================================================================================
     // Faculty
     // ================================================================================================================
 
     @CreatedModifiedMapping
-    public abstract FacultyDto map(FacultyDto dto, @MappingTarget FacultyDto target);
+    public abstract FacultyDto map(Faculty faculty);
 
     @CreatedModifiedRestrictMapping
     @Mapping(target = "id", ignore = true)
-    public abstract void put(FacultyDto dto, @MappingTarget FacultyDto target);
+    public abstract void put(FacultyDto dto, @MappingTarget Faculty target);
 
     @CreatedModifiedRestrictMapping
     @Mapping(target = "id", ignore = true)
-    public abstract void patch(FacultyDto dto, @MappingTarget FacultyDto target);
+    public abstract void patch(FacultyDto dto, @MappingTarget Faculty target);
 }

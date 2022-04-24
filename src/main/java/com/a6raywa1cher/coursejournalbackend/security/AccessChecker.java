@@ -197,4 +197,12 @@ public class AccessChecker {
     public boolean editAttendanceAccess(Long id, Authentication authentication) {
         return hasAuthority(id, Attendance.class, ActionType.WRITE, authentication);
     }
+
+    public boolean createFacultyAccess(Authentication authentication) {
+        return isAdmin(authentication);
+    }
+
+    public boolean editFacultyAccess(Authentication authentication) {
+        return isAdmin(authentication);
+    }
 }

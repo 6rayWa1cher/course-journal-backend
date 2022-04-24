@@ -37,10 +37,12 @@ public class EntityFactory {
 
     private final GroupService groupService;
 
+    private final FacultyService facultyService;
+
     @Autowired
     public EntityFactory(TaskService taskService, CourseService courseService, CourseTokenService courseTokenService, UserService userService,
                          CriteriaService criteriaService, SubmissionService submissionService, Faker faker,
-                         MapStructTestMapper mapper, StudentService studentService, AttendanceService attendanceService, GroupService groupService) {
+                         MapStructTestMapper mapper, StudentService studentService, AttendanceService attendanceService, GroupService groupService, FacultyService facultyService) {
         this.taskService = taskService;
         this.courseService = courseService;
         this.courseTokenService = courseTokenService;
@@ -52,6 +54,7 @@ public class EntityFactory {
         this.studentService = studentService;
         this.attendanceService = attendanceService;
         this.groupService = groupService;
+        this.facultyService = facultyService;
     }
 
     public long createUser() {
@@ -249,6 +252,27 @@ public class EntityFactory {
         }
 
         return groupService.create(dto).getId();
+    }
+
+    public long createFaculty() {
+        return createFaculty(bag());
+    }
+
+    public long createFaculty(Long userId) {
+        return createFaculty(bag().getUserId());
+    }
+
+    public long createFaculty(EntityFactoryBag bag) {
+        FacultyDto dto = FacultyDto.builder()
+                .name(faker.lorem().sentence(2))
+                .build();
+
+        FacultyDto dtoFromBag = bag.getDto(FacultyDto.class);
+        if (dtoFromBag != null) {
+            mapper.merge(dtoFromBag, dto);
+        }
+
+        return facultyService.create(dto).getId();
     }
 
     public EntityFactoryBag bag() {

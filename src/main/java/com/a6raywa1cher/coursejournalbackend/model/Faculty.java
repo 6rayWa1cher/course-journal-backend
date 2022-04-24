@@ -15,7 +15,7 @@ import java.util.List;
 @Entity
 @Table(
         name = "faculty",
-        uniqueConstraints = @UniqueConstraint(name = "one_name", columnNames = {"name"})
+        uniqueConstraints = @UniqueConstraint(name = "one_name_per_instance", columnNames = {"name"})
 )
 @Getter
 @Setter
