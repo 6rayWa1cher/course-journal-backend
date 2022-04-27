@@ -49,6 +49,8 @@ public class AccessChecker {
             return getPermissionForCourse(submission.getTask().getCourse(), type);
         } else if (entity instanceof CourseToken courseToken) {
             return getPermissionForCourse(courseToken.getCourse(), type);
+        } else if (entity instanceof Group group) {
+            return getPermissionForCourse(group.getCourse(), type);
         } else {
             throw new IllegalArgumentException("Unknown entity " + entity.getClass().getSimpleName());
         }
@@ -203,6 +205,18 @@ public class AccessChecker {
     }
 
     public boolean editFacultyAccess(Authentication authentication) {
+        return isAdmin(authentication);
+    }
+
+    public boolean createGroupAccess(Long courseId, Authentication authentication) {
+        return isAdmin(authentication);
+    }
+
+    public boolean readGroupAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Group.class, ActionType.READ, authentication);
+    }
+
+    public boolean editGroupAccess(Long id, Authentication authentication) {
         return isAdmin(authentication);
     }
 }

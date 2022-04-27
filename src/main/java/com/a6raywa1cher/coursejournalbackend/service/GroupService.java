@@ -12,11 +12,11 @@ public interface GroupService {
 
     Optional<Group> findRawById(long id);
 
-    List<GroupDto> getByFaculty(Long facultyId, Sort sort);
+    List<GroupDto> getByFaculty(long facultyId, Sort sort);
 
     List<GroupDto> getByCourse(long courseId, Sort sort);
 
-    List<GroupDto> getByFacultyAndCourse(Long facultyId, long courseId, Sort sort);
+    List<GroupDto> getByFacultyAndCourse(long facultyId, long courseId, Sort sort);
 
     GroupDto create(GroupDto dto);
 

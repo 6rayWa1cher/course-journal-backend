@@ -7,6 +7,7 @@ import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnCreate;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnPatch;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnUpdate;
 import com.a6raywa1cher.coursejournalbackend.service.FacultyService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -22,6 +23,7 @@ public class FacultyController {
 
     private final MapStructRestDtoMapper mapper;
 
+    @Autowired
     public FacultyController(FacultyService facultyService, MapStructRestDtoMapper mapper) {
         this.service = facultyService;
         this.mapper = mapper;

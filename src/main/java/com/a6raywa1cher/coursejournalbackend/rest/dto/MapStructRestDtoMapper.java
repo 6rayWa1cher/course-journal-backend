@@ -66,6 +66,10 @@ public interface MapStructRestDtoMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
-    @Mapping(target = "groups", ignore = true)
     FacultyDto map(FacultyRestDto dto);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
+    GroupDto map(GroupRestDto dto);
 }
