@@ -54,7 +54,7 @@ public class GroupConroller {
     }
 
     @PostMapping("/")
-    @PreAuthorize("@accessChecker.createGroupAccess(#dto.course, authentication)")
+    @PreAuthorize("@accessChecker.createGroupAccess(authentication)")
     @ResponseStatus(HttpStatus.CREATED)
     @Validated(OnCreate.class)
     public GroupDto create(@RequestBody @Valid GroupRestDto dto) {
@@ -62,21 +62,21 @@ public class GroupConroller {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("@accessChecker.editGroupAccess(#id, authentication)")
+    @PreAuthorize("@accessChecker.editGroupAccess(authentication)")
     @Validated(OnUpdate.class)
     public GroupDto update(@RequestBody @Valid GroupRestDto dto, @PathVariable long id) {
         return service.update(id, mapper.map(dto));
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("@accessChecker.editGroupAccess(#id, authentication)")
+    @PreAuthorize("@accessChecker.editGroupAccess(authentication)")
     @Validated(OnUpdate.class)
     public GroupDto patch(@RequestBody @Valid GroupRestDto dto, @PathVariable long id) {
         return service.patch(id, mapper.map(dto));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("@accessChecker.editGroupAccess(#id, authentication)")
+    @PreAuthorize("@accessChecker.editGroupAccess(authentication)")
     public void delete(@PathVariable long id) {
         service.delete(id);
     }

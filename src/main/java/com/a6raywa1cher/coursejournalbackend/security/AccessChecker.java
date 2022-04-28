@@ -210,11 +210,11 @@ public class AccessChecker {
         return isAdmin(authentication);
     }
 
-    public boolean createGroupAccess(Long courseId, Authentication authentication) {
+    public boolean createGroupAccess(Authentication authentication) {
         return isAdmin(authentication);
     }
 
-    public boolean editGroupAccess(Long id, Authentication authentication) {
+    public boolean editGroupAccess(Authentication authentication) {
         return isAdmin(authentication);
     }
 }
