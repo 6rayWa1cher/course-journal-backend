@@ -32,7 +32,6 @@ public class GroupConroller {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("@accessChecker.readGroupAccess(#id, authentication)")
     public GroupDto getById(@PathVariable long id) {
         return service.getById(id);
     }
@@ -44,7 +43,6 @@ public class GroupConroller {
     }
 
     @GetMapping("/faculty/{id}")
-    @PreAuthorize("@accessChecker.readGroupAccess(#id, authentication)")
     public List<GroupDto> getByFaculty(@PathVariable long id, @ParameterObject Sort sort) {
         return service.getByFaculty(id, sort);
     }
