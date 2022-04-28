@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Dockerfile dev" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
+  <configuration default="false" name="Dockerfile dev" type="docker-deploy" factoryName="dockerfile">
     <deployment type="dockerfile">
       <settings>
         <option name="imageTag" value="6raywa1cher/course-journal-backend:0.0.1-SNAPSHOT" />

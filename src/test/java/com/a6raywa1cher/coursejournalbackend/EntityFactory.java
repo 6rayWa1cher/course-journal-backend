@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.TestComponent;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.Random;
 import java.util.stream.Stream;
 
 @TestComponent
@@ -33,10 +34,12 @@ public class EntityFactory {
 
     private final StudentService studentService;
 
+    private final AttendanceService attendanceService;
+
     @Autowired
     public EntityFactory(TaskService taskService, CourseService courseService, CourseTokenService courseTokenService, UserService userService,
                          CriteriaService criteriaService, SubmissionService submissionService, Faker faker,
-                         MapStructTestMapper mapper, StudentService studentService) {
+                         MapStructTestMapper mapper, StudentService studentService, AttendanceService attendanceService) {
         this.taskService = taskService;
         this.courseService = courseService;
         this.courseTokenService = courseTokenService;
@@ -46,6 +49,7 @@ public class EntityFactory {
         this.faker = faker;
         this.mapper = mapper;
         this.studentService = studentService;
+        this.attendanceService = attendanceService;
     }
 
     public long createUser() {
@@ -150,6 +154,27 @@ public class EntityFactory {
         return studentService.create(dto).getId();
     }
 
+    public long createAttendance() { return createAttendance(bag()); }
+
+    public long createAttendance(Long userId) { return createAttendance(bag().withUserId(userId)); }
+
+    public long createAttendance(EntityFactoryBag bag) {
+        AttendanceDto dto = AttendanceDto.builder()
+                .attendedClass(faker.number().numberBetween(1, 6))
+                .attendanceType(TestUtils.randomAttendanceType())
+                .course(bag.getCourseId())
+                .student(bag.getStudentId())
+                .build();
+
+
+        AttendanceDto dtoFromBag = bag.getDto(AttendanceDto.class);
+        if (dtoFromBag != null) {
+            mapper.merge(dtoFromBag, dto);
+        }
+
+        return attendanceService.create(dto).getId();
+    }
+
     public long createCriteria() {
         return createCriteria(bag());
     }
@@ -205,6 +230,13 @@ public class EntityFactory {
         return new EntityFactoryBag(this);
     }
 
+    private ZonedDateTime getFakedZonedDateTime(ZonedDateTime from, ZonedDateTime to) {
+        Date fromDate = Date.from(from.toInstant());
+        Date toDate = Date.from(to.toInstant());
+        Date randomDate = faker.date().between(fromDate, toDate);
+        return ZonedDateTime.ofInstant(randomDate.toInstant(), ZoneId.systemDefault());
+    }
+
     @Data
     @With
     @Builder(access = AccessLevel.PRIVATE)
@@ -222,6 +254,8 @@ public class EntityFactory {
         private Long taskId;
 
         private Long studentId;
+
+        private Long attendanceId;
 
         private Long criteriaId;
 
@@ -254,6 +288,11 @@ public class EntityFactory {
             return studentId;
         }
 
+        public Long getAttendanceId() {
+            if (attendanceId == null) attendanceId = ef.createAttendance(this);
+            return attendanceId;
+        }
+
         public Long getCriteriaId() {
             if (criteriaId == null) criteriaId = ef.createCriteria(this);
             return criteriaId;
@@ -268,12 +307,5 @@ public class EntityFactory {
             if (dto == null) return null;
             return clazz.isAssignableFrom(dto.getClass()) ? clazz.cast(dto) : null;
         }
-    }
-
-    private ZonedDateTime getFakedZonedDateTime(ZonedDateTime from, ZonedDateTime to) {
-        Date fromDate = Date.from(from.toInstant());
-        Date toDate = Date.from(to.toInstant());
-        Date randomDate = faker.date().between(fromDate, toDate);
-        return ZonedDateTime.ofInstant(randomDate.toInstant(), ZoneId.systemDefault());
     }
 }

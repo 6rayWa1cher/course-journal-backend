@@ -6,8 +6,8 @@ import org.springframework.security.core.GrantedAuthority;
 import java.util.Collection;
 
 public class CourseTokenAuthentication extends AbstractAuthenticationToken {
-    private String token;
     private final Object principal;
+    private String token;
 
     public CourseTokenAuthentication(String token, Object principal) {
         super(null);
