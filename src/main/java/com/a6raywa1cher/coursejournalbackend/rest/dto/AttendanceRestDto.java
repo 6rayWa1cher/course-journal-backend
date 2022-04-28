@@ -24,7 +24,7 @@ public class AttendanceRestDto {
 
     @NotNull(groups = {OnCreate.class, OnUpdate.class})
     @Min(value = 1, message = "Class number cannot be less than 1")
-    @Max(value = 6, message = "Class number cannot be more than 6")
+    @Max(value = 16, message = "Class number cannot be more than 16")
     private Integer attendedClass;
 
     @NotNull(groups = {OnCreate.class, OnUpdate.class})

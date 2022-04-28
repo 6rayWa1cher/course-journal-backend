@@ -9,13 +9,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.ReadOnlyProperty;
 
-// уточнить формулу рассчёта пропусков
-
-// состояние прогула на выбор:
-// 1. Нету - пропуск, флаг уважительной причины
-// 2. Int состояний
-// 3. 1 с дополнением - добавить Int уважительных состояний ++
-
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
