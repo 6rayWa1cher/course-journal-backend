@@ -51,13 +51,13 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     RequestContext<Long> createGetGroupByIdContext(long userId) {
-        long courseId = ef.createCourse(userId);
-        long facultyId = ef.createFaculty(userId);
+        long courseId = ef.createCourse();
+        long facultyId = ef.createFaculty();
         return createGetGroupByIdContextWithCourse(courseId, facultyId);
     }
 
     @Test
-    void getGroupById__self__valid() {
+    void getGroupById__authenticated__valid() {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
@@ -69,40 +69,6 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 securePerform(get("/groups/{id}", id))
                         .andExpect(status().isOk())
                         .andExpectAll(matchers);
-            }
-        };
-    }
-
-    @Test
-    void getGroupById__otherAsAdmin__valid() {
-        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
-            @Override
-            void run() throws Exception {
-                var context = createGetGroupByIdContext(ef.createUser());
-
-                long id = context.getRequest();
-                ResultMatcher[] matchers = context.getMatchers();
-
-                securePerform(get("/groups/{id}", id))
-                        .andExpect(status().isOk())
-                        .andExpectAll(matchers);
-            }
-        };
-
-    }
-
-    @Test
-    void getGroupById__otherAsTeacher__invalid() {
-        new WithUser(USERNAME, PASSWORD) {
-            @Override
-            void run() throws Exception {
-                var context = createGetGroupByIdContext(ef.createUser());
-
-                long id = context.getRequest();
-                ResultMatcher[] matchers = context.getMatchers();
-
-                securePerform(get("/groups/{id}", id))
-                        .andExpect(status().isForbidden());
             }
         };
     }
@@ -173,37 +139,11 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
-    void getGroupByFaculty__self__valid() {
+    void getGroupByFaculty__authenticated__valid() {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
-                long facultyId1 = ef.createFaculty();
-                long facultyId2 = ef.createFaculty();
-
-                String name1 = "A" + faker.lorem().sentence(1);
-                String name2 = "B" + faker.lorem().sentence(1);
-
-                var context1 = createGetGroupByFacultyContext(courseId, facultyId1, name1);
-                var context2 = createGetGroupByFacultyContext(courseId, facultyId1, name2);
-                createGetGroupByFacultyContext(courseId, facultyId2, name1);
-
-                securePerform(get("/groups/faculty/{id}", facultyId1)
-                        .queryParam("sort", "name,asc"))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$", hasSize(2)))
-                        .andExpectAll(context1.getMatchers("$[0]"))
-                        .andExpectAll(context2.getMatchers("$[1]"));
-            }
-        };
-    }
-
-    @Test
-    void getGroupByFaculty__otherAsAdmin__valid() {
-        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
-            @Override
-            void run() throws Exception {
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse();
                 long facultyId1 = ef.createFaculty();
                 long facultyId2 = ef.createFaculty();
 
@@ -230,32 +170,6 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId = getCourseId();
-                long facultyId1 = ef.createFaculty();
-                long facultyId2 = ef.createFaculty();
-
-                String name1 = "A" + faker.lorem().sentence(1);
-                String name2 = "B" + faker.lorem().sentence(1);
-
-                var context1 = createGetGroupByFacultyContext(courseId, facultyId1, name1);
-                var context2 = createGetGroupByFacultyContext(courseId, facultyId1, name2);
-                createGetGroupByFacultyContext(courseId, facultyId2, name1);
-
-                securePerform(get("/groups/faculty/{id}", facultyId1)
-                        .queryParam("sort", "name,asc"))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$", hasSize(2)))
-                        .andExpectAll(context1.getMatchers("$[0]"))
-                        .andExpectAll(context2.getMatchers("$[1]"));
-            }
-        };
-    }
-
-    @Test
-    void getGroupByFaculty__otherAsTeacher__invalid() {
-        new WithUser(USERNAME, PASSWORD) {
-            @Override
-            void run() throws Exception {
-                long courseId = ef.createCourse();
                 long facultyId1 = ef.createFaculty();
                 long facultyId2 = ef.createFaculty();
 
