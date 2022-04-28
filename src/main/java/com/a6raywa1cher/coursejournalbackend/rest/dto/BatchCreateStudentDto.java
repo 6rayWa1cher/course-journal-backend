@@ -15,6 +15,10 @@ public class BatchCreateStudentDto {
     private Long course;
 
     @NotNull
+    @Positive
+    private Long group;
+
+    @NotNull
     @Size(min = 1)
     @Valid
     private List<StudentInfo> students;

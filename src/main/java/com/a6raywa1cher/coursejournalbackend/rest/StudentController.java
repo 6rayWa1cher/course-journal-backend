@@ -53,6 +53,13 @@ public class StudentController {
                 .toList();
     }
 
+    @GetMapping("/group/{id}")
+    public List<StudentDto> getAllByGroup(@PathVariable long id) {
+        return service.getByGroupId(id).stream()
+                .sorted(Comparator.comparing(s -> s.getLastName() + "1" + s.getFirstName() + "1" + s.getLastName()))
+                .toList();
+    }
+
     @PostMapping("/")
     @PreAuthorize("@accessChecker.createStudentAccess(#dto.course, authentication)")
     @ResponseStatus(HttpStatus.CREATED)
@@ -69,6 +76,7 @@ public class StudentController {
         return service.batchCreate(dto.getStudents().stream()
                 .map(mapper::map)
                 .peek(d -> d.setCourse(dto.getCourse()))
+                .peek(d -> d.setGroup(dto.getGroup()))
                 .toList());
     }
 

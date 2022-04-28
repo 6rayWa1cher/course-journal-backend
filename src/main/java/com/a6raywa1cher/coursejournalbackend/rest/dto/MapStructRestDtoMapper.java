@@ -37,6 +37,7 @@ public interface MapStructRestDtoMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
     @Mapping(target = "course", ignore = true)
+    @Mapping(target = "group", ignore = true)
     StudentDto map(BatchCreateStudentDto.StudentInfo studentInfo);
 
     @Mapping(target = "id", ignore = true)

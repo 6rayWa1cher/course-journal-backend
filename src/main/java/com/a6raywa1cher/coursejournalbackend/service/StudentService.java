@@ -17,6 +17,8 @@ public interface StudentService {
 
     List<StudentDto> getByCourseId(long courseId);
 
+    List<StudentDto> getByGroupId(long groupId);
+
     StudentDto create(StudentDto dto);
 
     List<StudentDto> batchCreate(List<StudentDto> dtoList);

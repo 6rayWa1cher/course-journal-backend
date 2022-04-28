@@ -34,16 +34,19 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                 String firstName = faker.name().firstName();
                 String lastName = faker.name().lastName();
                 long courseId = ef.createCourse(getIdAsLong());
+                long groupId = ef.createGroup();
 
                 long id = studentService.create(StudentDto.builder()
                         .firstName(firstName)
                         .lastName(lastName)
                         .course(courseId)
+                        .group(groupId)
                         .build()).getId();
 
                 ResultMatcher[] matchers = {
                         jsonPath("$.id").value(id),
                         jsonPath("$.course").value(courseId),
+                        jsonPath("$.group").value(groupId),
                         jsonPath("$.firstName").value(firstName),
                         jsonPath("$.lastName").value(lastName),
                 };
@@ -63,16 +66,19 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                 String firstName = faker.name().firstName();
                 String lastName = faker.name().lastName();
                 long courseId = ef.createCourse();
+                long groupId = ef.createGroup();
 
                 long id = studentService.create(StudentDto.builder()
                         .firstName(firstName)
                         .lastName(lastName)
                         .course(courseId)
+                        .group(groupId)
                         .build()).getId();
 
                 ResultMatcher[] matchers = {
                         jsonPath("$.id").value(id),
                         jsonPath("$.course").value(courseId),
+                        jsonPath("$.group").value(groupId),
                         jsonPath("$.firstName").value(firstName),
                         jsonPath("$.lastName").value(lastName),
                 };
@@ -92,11 +98,13 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                 String firstName = faker.name().firstName();
                 String lastName = faker.name().lastName();
                 long courseId = ef.createCourse();
+                long groupId = ef.createGroup();
 
                 long id = studentService.create(StudentDto.builder()
                         .firstName(firstName)
                         .lastName(lastName)
                         .course(courseId)
+                        .group(groupId)
                         .build()).getId();
 
                 securePerform(get("/students/{id}", id))
@@ -113,16 +121,19 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                 String firstName = faker.name().firstName();
                 String lastName = faker.name().lastName();
                 long courseId = getCourseId();
+                long groupId = ef.createGroup();
 
                 long id = studentService.create(StudentDto.builder()
                         .firstName(firstName)
                         .lastName(lastName)
                         .course(courseId)
+                        .group(groupId)
                         .build()).getId();
 
                 ResultMatcher[] matchers = {
                         jsonPath("$.id").value(id),
                         jsonPath("$.course").value(courseId),
+                        jsonPath("$.group").value(groupId),
                         jsonPath("$.firstName").value(firstName),
                         jsonPath("$.lastName").value(lastName),
                 };
@@ -139,11 +150,13 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         String firstName = faker.name().firstName();
         String lastName = faker.name().lastName();
         long courseId = ef.createCourse();
+        long groupId = ef.createGroup();
 
         long id = studentService.create(StudentDto.builder()
                 .firstName(firstName)
                 .lastName(lastName)
                 .course(courseId)
+                .group(groupId)
                 .build()).getId();
 
         mvc.perform(get("/students/{id}", id))
@@ -155,11 +168,13 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         String firstName = faker.name().firstName();
         String lastName = faker.name().lastName();
         long courseId = ef.createCourse();
+        long groupId = ef.createGroup();
 
         long id = studentService.create(StudentDto.builder()
                 .firstName(firstName)
                 .lastName(lastName)
                 .course(courseId)
+                .group(groupId)
                 .build()).getId();
 
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
@@ -180,6 +195,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             void run() throws Exception {
                 long courseId1 = ef.createCourse(getIdAsLong());
                 long courseId2 = ef.createCourse(getIdAsLong());
+                long groupId = ef.createGroup();
 
                 String firstName1 = "A" + faker.name().firstName();
                 String firstName2 = "B" + faker.name().firstName();
@@ -188,18 +204,21 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                         .firstName(firstName2)
                         .lastName(faker.name().lastName())
                         .course(courseId1)
+                        .group(groupId)
                         .build());
 
                 studentService.create(StudentDto.builder()
                         .firstName(firstName1)
                         .lastName(faker.name().lastName())
                         .course(courseId1)
+                        .group(groupId)
                         .build());
 
                 studentService.create(StudentDto.builder()
                         .firstName(firstName1)
                         .lastName(faker.name().lastName())
                         .course(courseId2)
+                        .group(groupId)
                         .build());
 
                 securePerform(get("/students/course/{id}", courseId1)
@@ -219,6 +238,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             void run() throws Exception {
                 long courseId1 = ef.createCourse();
                 long courseId2 = ef.createCourse();
+                long groupId = ef.createGroup();
 
                 String firstName1 = "A" + faker.name().firstName();
                 String firstName2 = "B" + faker.name().firstName();
@@ -227,18 +247,21 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                         .firstName(firstName2)
                         .lastName(faker.name().lastName())
                         .course(courseId1)
+                        .group(groupId)
                         .build());
 
                 studentService.create(StudentDto.builder()
                         .firstName(firstName1)
                         .lastName(faker.name().lastName())
                         .course(courseId1)
+                        .group(groupId)
                         .build());
 
                 studentService.create(StudentDto.builder()
                         .firstName(firstName1)
                         .lastName(faker.name().lastName())
                         .course(courseId2)
+                        .group(groupId)
                         .build());
 
                 securePerform(get("/students/course/{id}", courseId1)
@@ -269,6 +292,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         long ownerId = ef.createUser();
         long courseId1 = ef.createCourse(ownerId);
         long courseId2 = ef.createCourse(ownerId);
+        long groupId = ef.createGroup();
         new WithCourseToken(courseId1, true) {
             @Override
             void run() throws Exception {
@@ -280,18 +304,21 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                         .firstName(firstName2)
                         .lastName(faker.name().lastName())
                         .course(courseId1)
+                        .group(groupId)
                         .build());
 
                 studentService.create(StudentDto.builder()
                         .firstName(firstName1)
                         .lastName(faker.name().lastName())
                         .course(courseId1)
+                        .group(groupId)
                         .build());
 
                 studentService.create(StudentDto.builder()
                         .firstName(firstName1)
                         .lastName(faker.name().lastName())
                         .course(courseId2)
+                        .group(groupId)
                         .build());
 
                 securePerform(get("/students/course/{id}", courseId1)
@@ -319,6 +346,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             void run() throws Exception {
                 long courseId1 = ef.createCourse(getIdAsLong());
                 long courseId2 = ef.createCourse(getIdAsLong());
+                long groupId = ef.createGroup();
 
                 String lastName1 = "A" + faker.name().lastName();
                 String lastName2 = "B" + faker.name().lastName();
@@ -327,18 +355,21 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                         .firstName(faker.name().firstName())
                         .lastName(lastName2)
                         .course(courseId1)
+                        .group(groupId)
                         .build());
 
                 studentService.create(StudentDto.builder()
                         .firstName(faker.name().firstName())
                         .lastName(lastName1)
                         .course(courseId1)
+                        .group(groupId)
                         .build());
 
                 studentService.create(StudentDto.builder()
                         .firstName(faker.name().firstName())
                         .lastName(lastName2)
                         .course(courseId2)
+                        .group(groupId)
                         .build());
 
                 securePerform(get("/students/course/{id}/all", courseId1))
@@ -357,6 +388,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             void run() throws Exception {
                 long courseId1 = ef.createCourse();
                 long courseId2 = ef.createCourse();
+                long groupId = ef.createGroup();
 
                 String lastName1 = "A" + faker.name().lastName();
                 String lastName2 = "B" + faker.name().lastName();
@@ -365,18 +397,21 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                         .firstName(faker.name().firstName())
                         .lastName(lastName2)
                         .course(courseId1)
+                        .group(groupId)
                         .build());
 
                 studentService.create(StudentDto.builder()
                         .firstName(faker.name().firstName())
                         .lastName(lastName1)
                         .course(courseId1)
+                        .group(groupId)
                         .build());
 
                 studentService.create(StudentDto.builder()
                         .firstName(faker.name().firstName())
                         .lastName(lastName2)
                         .course(courseId2)
+                        .group(groupId)
                         .build());
 
                 securePerform(get("/students/course/{id}/all", courseId1))
@@ -406,6 +441,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         long ownerId = ef.createUser();
         long courseId1 = ef.createCourse(ownerId);
         long courseId2 = ef.createCourse(ownerId);
+        long groupId = ef.createGroup();
         new WithCourseToken(courseId1, true) {
             @Override
             void run() throws Exception {
@@ -416,18 +452,21 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                         .firstName(faker.name().firstName())
                         .lastName(lastName2)
                         .course(courseId1)
+                        .group(groupId)
                         .build());
 
                 studentService.create(StudentDto.builder()
                         .firstName(faker.name().firstName())
                         .lastName(lastName1)
                         .course(courseId1)
+                        .group(groupId)
                         .build());
 
                 studentService.create(StudentDto.builder()
                         .firstName(faker.name().firstName())
                         .lastName(lastName2)
                         .course(courseId2)
+                        .group(groupId)
                         .build());
 
                 securePerform(get("/students/course/{id}/all", courseId1))
@@ -447,7 +486,154 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
 
     // ================================================================================================================
 
-    RequestContext<ObjectNode> getCreateStudentRequest(long courseId) {
+    @Test
+    void getStudentByGroup__self__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse(getIdAsLong());
+                long groupId1 = ef.createGroup();
+                long groupId2 = ef.createGroup();
+
+                String lastName1 = "A" + faker.name().lastName();
+                String lastName2 = "B" + faker.name().lastName();
+
+                studentService.create(StudentDto.builder()
+                        .firstName(faker.name().firstName())
+                        .lastName(lastName2)
+                        .course(courseId)
+                        .group(groupId1)
+                        .build());
+
+                studentService.create(StudentDto.builder()
+                        .firstName(faker.name().firstName())
+                        .lastName(lastName1)
+                        .course(courseId)
+                        .group(groupId1)
+                        .build());
+
+                studentService.create(StudentDto.builder()
+                        .firstName(faker.name().firstName())
+                        .lastName(lastName2)
+                        .course(courseId)
+                        .group(groupId2)
+                        .build());
+
+                securePerform(get("/students/group/{id}", groupId1))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpect(jsonPath("$[0].lastName").value(lastName1))
+                        .andExpect(jsonPath("$[1].lastName").value(lastName2));
+            }
+        };
+    }
+
+    @Test
+    void getStudentByGroup__otherAsAdmin__valid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse();
+                long groupId1 = ef.createGroup();
+                long groupId2 = ef.createGroup();
+
+                String lastName1 = "A" + faker.name().lastName();
+                String lastName2 = "B" + faker.name().lastName();
+
+                studentService.create(StudentDto.builder()
+                        .firstName(faker.name().firstName())
+                        .lastName(lastName2)
+                        .course(courseId)
+                        .group(groupId1)
+                        .build());
+
+                studentService.create(StudentDto.builder()
+                        .firstName(faker.name().firstName())
+                        .lastName(lastName1)
+                        .course(courseId)
+                        .group(groupId1)
+                        .build());
+
+                studentService.create(StudentDto.builder()
+                        .firstName(faker.name().firstName())
+                        .lastName(lastName2)
+                        .course(courseId)
+                        .group(groupId2)
+                        .build());
+
+                securePerform(get("/students/group/{id}", groupId1))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpect(jsonPath("$[0].lastName").value(lastName1))
+                        .andExpect(jsonPath("$[1].lastName").value(lastName2));
+            }
+        };
+    }
+
+    @Test
+    void getStudentByGroup__otherAsTeacher__invalid() {
+        long id = ef.createCourse();
+
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                securePerform(get("/students/course/{id}/all", id))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getStudentByGroup__withCourseToken__valid() {
+        long ownerId = ef.createUser();
+        long courseId = ef.createCourse(ownerId);
+        long groupId1 = ef.createGroup();
+        long groupId2 = ef.createGroup();
+        new WithCourseToken(courseId, true) {
+            @Override
+            void run() throws Exception {
+                String lastName1 = "A" + faker.name().lastName();
+                String lastName2 = "B" + faker.name().lastName();
+
+                studentService.create(StudentDto.builder()
+                        .firstName(faker.name().firstName())
+                        .lastName(lastName2)
+                        .course(courseId)
+                        .group(groupId1)
+                        .build());
+
+                studentService.create(StudentDto.builder()
+                        .firstName(faker.name().firstName())
+                        .lastName(lastName1)
+                        .course(courseId)
+                        .group(groupId1)
+                        .build());
+
+                studentService.create(StudentDto.builder()
+                        .firstName(faker.name().firstName())
+                        .lastName(lastName2)
+                        .course(courseId)
+                        .group(groupId2)
+                        .build());
+
+                securePerform(get("/students/group/{id}", groupId1))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpect(jsonPath("$[0].lastName").value(lastName1))
+                        .andExpect(jsonPath("$[1].lastName").value(lastName2));
+            }
+        };
+    }
+
+    @Test
+    void getStudentByGroup__notAuthenticated__invalid() throws Exception {
+        long id = ef.createCourse();
+        mvc.perform(get("/students/group/{id}", id)).andExpect(status().isUnauthorized());
+    }
+
+    // ================================================================================================================
+
+    RequestContext<ObjectNode> getCreateStudentRequest(long courseId, long groupId) {
         String firstName = faker.name().firstName();
         String lastName = faker.name().lastName();
         String middleName = faker.name().firstName();
@@ -456,14 +642,16 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                 .put("firstName", firstName)
                 .put("middleName", middleName)
                 .put("lastName", lastName)
-                .put("course", courseId);
+                .put("course", courseId)
+                .put("group", groupId);
 
         Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
                 jsonPath("$.id").isNumber(),
                 jsonPath("$.firstName").value(firstName),
                 jsonPath("$.middleName").value(middleName),
                 jsonPath("$.lastName").value(lastName),
-                jsonPath("$.course").value(courseId)
+                jsonPath("$.course").value(courseId),
+                jsonPath("$.group").value(groupId)
         };
 
         return new RequestContext<>(request, matchers);
@@ -475,7 +663,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(getIdAsLong());
-                var ctx = getCreateStudentRequest(courseId);
+                long groupId = ef.createGroup();
+                var ctx = getCreateStudentRequest(courseId, groupId);
 
                 ObjectNode request = ctx.getRequest();
 
@@ -498,7 +687,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
-                var ctx = getCreateStudentRequest(courseId);
+                long groupId = ef.createGroup();
+                var ctx = getCreateStudentRequest(courseId, groupId);
 
                 ObjectNode request = ctx.getRequest();
 
@@ -521,7 +711,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
-                var ctx = getCreateStudentRequest(courseId);
+                long groupId = ef.createGroup();
+                var ctx = getCreateStudentRequest(courseId, groupId);
 
                 ObjectNode request = ctx.getRequest();
 
@@ -539,7 +730,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = getCourseId();
-                var ctx = getCreateStudentRequest(courseId);
+                long groupId = ef.createGroup();
+                var ctx = getCreateStudentRequest(courseId, groupId);
 
                 ObjectNode request = ctx.getRequest();
 
@@ -554,7 +746,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
     @Test
     void createStudent__notAuthenticated__invalid() throws Exception {
         long courseId = ef.createCourse();
-        var ctx = getCreateStudentRequest(courseId);
+        long groupId = ef.createGroup();
+        var ctx = getCreateStudentRequest(courseId, groupId);
 
         ObjectNode request = ctx.getRequest();
 
@@ -566,7 +759,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
 
     // ================================================================================================================
 
-    RequestContext<ObjectNode> getBatchCreateStudentRequest(long courseId) {
+    RequestContext<ObjectNode> getBatchCreateStudentRequest(long courseId, long groupId) {
         String firstName1 = faker.name().firstName();
         String lastName1 = "A" + faker.name().lastName();
         String middleName1 = faker.name().firstName();
@@ -576,7 +769,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         String middleName2 = faker.name().firstName();
 
         ObjectNode request = objectMapper.createObjectNode()
-                .put("course", courseId);
+                .put("course", courseId)
+                .put("group", groupId);
 
         request.putArray("students")
                 .add(objectMapper.createObjectNode()
@@ -605,7 +799,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(getIdAsLong());
-                RequestContext<ObjectNode> ctx = getBatchCreateStudentRequest(courseId);
+                long groupId = ef.createGroup();
+                RequestContext<ObjectNode> ctx = getBatchCreateStudentRequest(courseId, groupId);
 
                 ObjectNode request = ctx.getRequest();
 
@@ -631,7 +826,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
-                RequestContext<ObjectNode> ctx = getBatchCreateStudentRequest(courseId);
+                long groupId = ef.createGroup();
+                RequestContext<ObjectNode> ctx = getBatchCreateStudentRequest(courseId, groupId);
 
                 ObjectNode request = ctx.getRequest();
 
@@ -657,7 +853,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
-                RequestContext<ObjectNode> ctx = getBatchCreateStudentRequest(courseId);
+                long groupId = ef.createGroup();
+                RequestContext<ObjectNode> ctx = getBatchCreateStudentRequest(courseId, groupId);
 
                 ObjectNode request = ctx.getRequest();
 
@@ -675,7 +872,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = getCourseId();
-                RequestContext<ObjectNode> ctx = getBatchCreateStudentRequest(courseId);
+                long groupId = ef.createGroup();
+                RequestContext<ObjectNode> ctx = getBatchCreateStudentRequest(courseId, groupId);
 
                 ObjectNode request = ctx.getRequest();
 
@@ -690,7 +888,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
     @Test
     void batchCreateStudent__notAuthenticated__invalid() throws Exception {
         long courseId = ef.createCourse();
-        RequestContext<ObjectNode> ctx = getBatchCreateStudentRequest(courseId);
+        long groupId = ef.createGroup();
+        RequestContext<ObjectNode> ctx = getBatchCreateStudentRequest(courseId, groupId);
 
         ObjectNode request = ctx.getRequest();
 
@@ -702,7 +901,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
 
     // ================================================================================================================
 
-    RequestContext<ObjectNode> getPutStudentRequest(long courseId) {
+    RequestContext<ObjectNode> getPutStudentRequest(long courseId, long groupId) {
         String firstName = faker.name().firstName();
         String lastName = faker.name().lastName();
         String middleName = faker.name().firstName();
@@ -711,14 +910,16 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                 .put("firstName", firstName)
                 .put("middleName", middleName)
                 .put("lastName", lastName)
-                .put("course", courseId);
+                .put("course", courseId)
+                .put("group", groupId);
 
         Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
                 jsonPath("$.id").isNumber(),
                 jsonPath("$.firstName").value(firstName),
                 jsonPath("$.middleName").value(middleName),
                 jsonPath("$.lastName").value(lastName),
-                jsonPath("$.course").value(courseId)
+                jsonPath("$.course").value(courseId),
+                jsonPath("$.group").value(groupId)
         };
 
         return new RequestContext<>(request, matchers);
@@ -730,9 +931,10 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(getIdAsLong());
-                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                long groupId = ef.createGroup();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId).withGroupId(groupId));
 
-                RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId);
+                RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId, groupId);
                 ObjectNode request = ctx.getRequest();
 
                 securePerform(put("/students/{id}", studentId)
@@ -754,9 +956,10 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
-                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                long groupId = ef.createGroup();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId).withGroupId(groupId));
 
-                RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId);
+                RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId, groupId);
                 ObjectNode request = ctx.getRequest();
 
                 securePerform(put("/students/{id}", studentId)
@@ -778,9 +981,10 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
-                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                long groupId = ef.createGroup();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId).withGroupId(groupId));
 
-                RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId);
+                RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId, groupId);
                 ObjectNode request = ctx.getRequest();
 
                 securePerform(put("/students/{id}", studentId)
@@ -797,9 +1001,10 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = getCourseId();
-                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                long groupId = ef.createGroup();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId).withGroupId(groupId));
 
-                RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId);
+                RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId, groupId);
                 ObjectNode request = ctx.getRequest();
 
                 securePerform(put("/students/{id}", studentId)
@@ -817,9 +1022,10 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             void run() throws Exception {
                 long courseId1 = ef.createCourse();
                 long courseId2 = ef.createCourse();
-                long studentId = ef.createStudent(ef.bag().withCourseId(courseId1));
+                long groupId = ef.createGroup();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId1).withGroupId(groupId));
 
-                RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId2);
+                RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId2, groupId);
                 ObjectNode request = ctx.getRequest();
 
                 securePerform(put("/students/{id}", studentId)
@@ -836,9 +1042,10 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
-                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                long groupId = ef.createGroup();
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId).withGroupId(groupId));
 
-                RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId);
+                RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId, groupId);
                 ObjectNode request = ctx.getRequest();
 
                 securePerform(put("/students/{id}", studentId + 1000)
@@ -852,9 +1059,10 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
     @Test
     void putStudent__notAuthenticated__invalid() throws Exception {
         long courseId = ef.createCourse();
-        long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+        long groupId = ef.createGroup();
+        long studentId = ef.createStudent(ef.bag().withCourseId(courseId).withGroupId(groupId));
 
-        RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId);
+        RequestContext<ObjectNode> ctx = getPutStudentRequest(courseId, groupId);
         ObjectNode request = ctx.getRequest();
 
         mvc.perform(put("/students/{id}", studentId)
@@ -865,11 +1073,12 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
 
     // ================================================================================================================
 
-    RequestContext<ObjectNode> getPatchStudentRequest(long courseId, String middleName, String lastName) {
+    RequestContext<ObjectNode> getPatchStudentRequest(long courseId, long groupId, String middleName, String lastName) {
         String firstName = faker.name().firstName();
 
         ObjectNode request = objectMapper.createObjectNode()
                 .put("firstName", firstName)
+                .put("group", groupId)
                 .put("course", courseId);
 
         Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
@@ -877,7 +1086,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                 jsonPath("$.firstName").value(firstName),
                 jsonPath("$.middleName").value(middleName),
                 jsonPath("$.lastName").value(lastName),
-                jsonPath("$.course").value(courseId)
+                jsonPath("$.course").value(courseId),
+                jsonPath("$.group").value(groupId)
         };
 
         return new RequestContext<>(request, matchers);
@@ -889,19 +1099,21 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(getIdAsLong());
+                long groupId = ef.createGroup();
 
                 String lastName = faker.name().lastName();
                 String middleName = faker.name().firstName();
 
                 long studentId = ef.createStudent(ef.bag()
                         .withCourseId(courseId)
+                        .withGroupId(groupId)
                         .withDto(StudentDto.builder()
                                 .lastName(lastName)
                                 .middleName(middleName)
                                 .build()
                         ));
 
-                RequestContext<ObjectNode> ctx = getPatchStudentRequest(courseId, middleName, lastName);
+                RequestContext<ObjectNode> ctx = getPatchStudentRequest(courseId, groupId, middleName, lastName);
                 ObjectNode request = ctx.getRequest();
 
                 securePerform(patch("/students/{id}", studentId)
@@ -923,19 +1135,21 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
+                long groupId = ef.createGroup();
 
                 String lastName = faker.name().lastName();
                 String middleName = faker.name().firstName();
 
                 long studentId = ef.createStudent(ef.bag()
                         .withCourseId(courseId)
+                        .withGroupId(groupId)
                         .withDto(StudentDto.builder()
                                 .lastName(lastName)
                                 .middleName(middleName)
                                 .build()
                         ));
 
-                RequestContext<ObjectNode> ctx = getPatchStudentRequest(courseId, middleName, lastName);
+                RequestContext<ObjectNode> ctx = getPatchStudentRequest(courseId, groupId, middleName, lastName);
                 ObjectNode request = ctx.getRequest();
 
                 securePerform(patch("/students/{id}", studentId)
@@ -957,19 +1171,21 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
+                long groupId = ef.createGroup();
 
                 String lastName = faker.name().lastName();
                 String middleName = faker.name().firstName();
 
                 long studentId = ef.createStudent(ef.bag()
                         .withCourseId(courseId)
+                        .withGroupId(groupId)
                         .withDto(StudentDto.builder()
                                 .lastName(lastName)
                                 .middleName(middleName)
                                 .build()
                         ));
 
-                RequestContext<ObjectNode> ctx = getPatchStudentRequest(courseId, middleName, lastName);
+                RequestContext<ObjectNode> ctx = getPatchStudentRequest(courseId, groupId, middleName, lastName);
                 ObjectNode request = ctx.getRequest();
 
                 securePerform(patch("/students/{id}", studentId)
@@ -986,19 +1202,21 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = getCourseId();
+                long groupId = ef.createGroup();
 
                 String lastName = faker.name().lastName();
                 String middleName = faker.name().firstName();
 
                 long studentId = ef.createStudent(ef.bag()
                         .withCourseId(courseId)
+                        .withGroupId(groupId)
                         .withDto(StudentDto.builder()
                                 .lastName(lastName)
                                 .middleName(middleName)
                                 .build()
                         ));
 
-                RequestContext<ObjectNode> ctx = getPatchStudentRequest(courseId, middleName, lastName);
+                RequestContext<ObjectNode> ctx = getPatchStudentRequest(courseId, groupId, middleName, lastName);
                 ObjectNode request = ctx.getRequest();
 
                 securePerform(patch("/students/{id}", studentId)
@@ -1016,19 +1234,21 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             void run() throws Exception {
                 long courseId1 = ef.createCourse();
                 long courseId2 = ef.createCourse();
+                long groupId = ef.createGroup();
 
                 String lastName = faker.name().lastName();
                 String middleName = faker.name().firstName();
 
                 long studentId = ef.createStudent(ef.bag()
                         .withCourseId(courseId1)
+                        .withGroupId(groupId)
                         .withDto(StudentDto.builder()
                                 .lastName(lastName)
                                 .middleName(middleName)
                                 .build()
                         ));
 
-                RequestContext<ObjectNode> ctx = getPatchStudentRequest(courseId2, middleName, lastName);
+                RequestContext<ObjectNode> ctx = getPatchStudentRequest(courseId2, groupId, middleName, lastName);
                 ObjectNode request = ctx.getRequest();
 
                 securePerform(patch("/students/{id}", studentId)
@@ -1045,19 +1265,21 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
+                long groupId = ef.createGroup();
 
                 String lastName = faker.name().lastName();
                 String middleName = faker.name().firstName();
 
                 long studentId = ef.createStudent(ef.bag()
                         .withCourseId(courseId)
+                        .withGroupId(groupId)
                         .withDto(StudentDto.builder()
                                 .lastName(lastName)
                                 .middleName(middleName)
                                 .build()
                         ));
 
-                RequestContext<ObjectNode> ctx = getPatchStudentRequest(courseId, middleName, lastName);
+                RequestContext<ObjectNode> ctx = getPatchStudentRequest(courseId, groupId, middleName, lastName);
                 ObjectNode request = ctx.getRequest();
 
                 securePerform(patch("/students/{id}", studentId + 1000)
@@ -1071,19 +1293,21 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
     @Test
     void patchStudent__notAuthenticated__invalid() throws Exception {
         long courseId = ef.createCourse();
+        long groupId = ef.createGroup();
 
         String lastName = faker.name().lastName();
         String middleName = faker.name().firstName();
 
         long studentId = ef.createStudent(ef.bag()
                 .withCourseId(courseId)
+                .withGroupId(groupId)
                 .withDto(StudentDto.builder()
                         .lastName(lastName)
                         .middleName(middleName)
                         .build()
                 ));
 
-        RequestContext<ObjectNode> ctx = getPatchStudentRequest(courseId, middleName, lastName);
+        RequestContext<ObjectNode> ctx = getPatchStudentRequest(courseId, groupId, middleName, lastName);
         ObjectNode request = ctx.getRequest();
 
         mvc.perform(patch("/students/{id}", studentId)

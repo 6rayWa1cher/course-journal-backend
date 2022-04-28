@@ -17,6 +17,10 @@ public class StudentRestDto {
     @Positive
     private Long course;
 
+    @NotNull(groups = {OnCreate.class, OnUpdate.class})
+    @Positive
+    private Long group;
+
     @NotBlank(groups = {OnCreate.class, OnUpdate.class})
     @Pattern(regexp = COMMON_NAME)
     private String firstName;

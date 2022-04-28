@@ -106,6 +106,7 @@ public abstract class MapStructMapper {
 
     @CreatedModifiedMapping
     @Mapping(target = "course", source = "course.id")
+    @Mapping(target = "group", source = "group.id")
     public abstract StudentDto map(Student student);
 
     @CreatedModifiedRestrictMapping

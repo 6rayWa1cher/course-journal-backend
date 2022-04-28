@@ -12,6 +12,8 @@ public class StudentDto {
 
     private Long course;
 
+    private Long group;
+
     private String firstName;
 
     private String lastName;
