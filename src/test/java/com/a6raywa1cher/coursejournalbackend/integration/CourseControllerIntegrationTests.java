@@ -3,7 +3,7 @@ package com.a6raywa1cher.coursejournalbackend.integration;
 import com.a6raywa1cher.coursejournalbackend.RequestContext;
 import com.a6raywa1cher.coursejournalbackend.dto.CourseDto;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
-import com.a6raywa1cher.coursejournalbackend.model.repo.UserRepository;
+import com.a6raywa1cher.coursejournalbackend.model.repo.EmployeeRepository;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.JsonPath;
@@ -30,7 +30,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     CourseService courseService;
 
     @Autowired
-    UserRepository userRepository;
+    EmployeeRepository employeeRepository;
 
     @Test
     void getCourses__admin__valid() {

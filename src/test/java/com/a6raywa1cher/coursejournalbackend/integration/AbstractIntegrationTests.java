@@ -2,10 +2,10 @@ package com.a6raywa1cher.coursejournalbackend.integration;
 
 import com.a6raywa1cher.coursejournalbackend.EntityFactory;
 import com.a6raywa1cher.coursejournalbackend.dto.CourseTokenDto;
-import com.a6raywa1cher.coursejournalbackend.dto.CreateEditUserDto;
+import com.a6raywa1cher.coursejournalbackend.dto.CreateEditAuthUserDto;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.a6raywa1cher.coursejournalbackend.service.CourseTokenService;
-import com.a6raywa1cher.coursejournalbackend.service.UserService;
+import com.a6raywa1cher.coursejournalbackend.service.EmployeeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import com.jayway.jsonpath.JsonPath;
@@ -51,7 +51,7 @@ public abstract class AbstractIntegrationTests {
     protected ObjectMapper objectMapper;
 
     @Autowired
-    protected UserService userService;
+    protected EmployeeService employeeService;
 
     @Autowired
     protected TransactionTemplate transactionTemplate;
@@ -71,7 +71,7 @@ public abstract class AbstractIntegrationTests {
             this.username = username;
             this.password = password;
             if (create) {
-                userService.createUser(CreateEditUserDto.builder()
+                employeeService.createEmployee(CreateEditAuthUserDto.builder()
                         .username(username)
                         .password(password)
                         .userRole(UserRole.TEACHER)

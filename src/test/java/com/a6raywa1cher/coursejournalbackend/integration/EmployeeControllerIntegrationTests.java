@@ -1,8 +1,8 @@
 package com.a6raywa1cher.coursejournalbackend.integration;
 
-import com.a6raywa1cher.coursejournalbackend.dto.CreateEditUserDto;
+import com.a6raywa1cher.coursejournalbackend.dto.CreateEditAuthUserDto;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
-import com.a6raywa1cher.coursejournalbackend.model.repo.UserRepository;
+import com.a6raywa1cher.coursejournalbackend.model.repo.EmployeeRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -15,14 +15,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ActiveProfiles("test")
-public class UserControllerIntegrationTests extends AbstractIntegrationTests {
+public class EmployeeControllerIntegrationTests extends AbstractIntegrationTests {
     @Autowired
-    UserRepository userRepository;
+    EmployeeRepository employeeRepository;
 
     @Test
     void getUsers__authenticated__valid() {
         String newUserUsername = "aatjw";
-        userService.createUser(CreateEditUserDto.builder()
+        employeeService.createEmployee(CreateEditAuthUserDto.builder()
                 .username(newUserUsername)
                 .userRole(UserRole.TEACHER)
                 .build());
@@ -43,11 +43,11 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void getUsers__withCourseToken__valid() {
         String newUserUsername = "aatjw";
-        userService.createUser(CreateEditUserDto.builder()
+        employeeService.createEmployee(CreateEditAuthUserDto.builder()
                 .username(newUserUsername)
                 .userRole(UserRole.TEACHER)
                 .build());
-        long userId = userService.createUser(CreateEditUserDto.builder()
+        long userId = employeeService.createEmployee(CreateEditAuthUserDto.builder()
                 .username(USERNAME)
                 .password(PASSWORD)
                 .userRole(UserRole.TEACHER)
@@ -77,7 +77,7 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void getUserById__authenticated__valid() {
         String newUserUsername = "aatjw";
-        long userId = userService.createUser(CreateEditUserDto.builder()
+        long userId = employeeService.createEmployee(CreateEditAuthUserDto.builder()
                 .username(newUserUsername)
                 .userRole(UserRole.TEACHER)
                 .build()).getId();
@@ -95,7 +95,7 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void getUserById__withCourseToken__valid() {
         String newUserUsername = "aatjw";
-        long userId = userService.createUser(CreateEditUserDto.builder()
+        long userId = employeeService.createEmployee(CreateEditAuthUserDto.builder()
                 .username(newUserUsername)
                 .userRole(UserRole.TEACHER)
                 .build()).getId();
@@ -112,7 +112,7 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void getUserById__notAuthenticated__invalid() throws Exception {
-        long userId = userService.createUser(CreateEditUserDto.builder()
+        long userId = employeeService.createEmployee(CreateEditAuthUserDto.builder()
                 .username(USERNAME)
                 .userRole(UserRole.TEACHER)
                 .build()).getId();
@@ -123,7 +123,7 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void getUserById__notExists__invalid() {
-        long userId = userService.createUser(CreateEditUserDto.builder()
+        long userId = employeeService.createEmployee(CreateEditAuthUserDto.builder()
                 .username(USERNAME)
                 .userRole(UserRole.TEACHER)
                 .build()).getId();
@@ -142,7 +142,7 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void getUserByUsername__authenticated__valid() {
         String newUserUsername = "aatjw";
-        userService.createUser(CreateEditUserDto.builder()
+        employeeService.createEmployee(CreateEditAuthUserDto.builder()
                 .username(newUserUsername)
                 .userRole(UserRole.TEACHER)
                 .build());
@@ -160,7 +160,7 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void getUserByUsername__withCourseToken__valid() {
         String newUserUsername = "aatjw";
-        userService.createUser(CreateEditUserDto.builder()
+        employeeService.createEmployee(CreateEditAuthUserDto.builder()
                 .username(newUserUsername)
                 .userRole(UserRole.TEACHER)
                 .build());
@@ -177,7 +177,7 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void getUserByUsername__notAuthenticated__invalid() throws Exception {
-        userService.createUser(CreateEditUserDto.builder()
+        employeeService.createEmployee(CreateEditAuthUserDto.builder()
                 .username(USERNAME)
                 .userRole(UserRole.TEACHER)
                 .build());
@@ -188,7 +188,7 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void getUserByUsername__notExists__invalid() {
-        userService.createUser(CreateEditUserDto.builder()
+        employeeService.createEmployee(CreateEditAuthUserDto.builder()
                 .username(USERNAME)
                 .userRole(UserRole.TEACHER)
                 .build());
@@ -445,8 +445,8 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
         String newLastName = "dog";
         String newPassword = "qwerty";
 
-        long userId = userService.createUser(
-                CreateEditUserDto.builder()
+        long userId = employeeService.createEmployee(
+                CreateEditAuthUserDto.builder()
                         .username(prevUsername)
                         .userRole(UserRole.TEACHER)
                         .build()
@@ -486,8 +486,8 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
         String newLastName = "dog";
         String newPassword = "qwerty";
 
-        long userId = userService.createUser(
-                CreateEditUserDto.builder()
+        long userId = employeeService.createEmployee(
+                CreateEditAuthUserDto.builder()
                         .username(prevUsername)
                         .userRole(UserRole.TEACHER)
                         .build()
@@ -518,8 +518,8 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
         String newLastName = "dog";
         String newPassword = "qwerty";
 
-        long userId = userService.createUser(
-                CreateEditUserDto.builder()
+        long userId = employeeService.createEmployee(
+                CreateEditAuthUserDto.builder()
                         .username(prevUsername)
                         .userRole(UserRole.TEACHER)
                         .build()
@@ -572,8 +572,8 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
         String newLastName = "dog";
         String newPassword = "qwerty";
 
-        userService.createUser(
-                CreateEditUserDto.builder()
+        employeeService.createEmployee(
+                CreateEditAuthUserDto.builder()
                         .username(newUsername)
                         .userRole(UserRole.TEACHER)
                         .build()
@@ -644,8 +644,8 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
         String newLastName = "dog";
         String newPassword = "qwerty";
 
-        long userId = userService.createUser(
-                CreateEditUserDto.builder()
+        long userId = employeeService.createEmployee(
+                CreateEditAuthUserDto.builder()
                         .username(prevUsername)
                         .userRole(UserRole.TEACHER)
                         .build()
@@ -681,8 +681,8 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
         String prevUsername = "kt34wo";
         String newFirstName = "cat";
 
-        long userId = userService.createUser(
-                CreateEditUserDto.builder()
+        long userId = employeeService.createEmployee(
+                CreateEditAuthUserDto.builder()
                         .username(prevUsername)
                         .userRole(UserRole.TEACHER)
                         .build()
@@ -706,8 +706,8 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
         String prevUsername = "kt34wo";
         String newFirstName = "cat";
 
-        long userId = userService.createUser(
-                CreateEditUserDto.builder()
+        long userId = employeeService.createEmployee(
+                CreateEditAuthUserDto.builder()
                         .username(prevUsername)
                         .userRole(UserRole.TEACHER)
                         .build()
@@ -751,8 +751,8 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     void patchUser__usernameConflict__invalid() {
         String newUsername = "abcdef";
 
-        userService.createUser(
-                CreateEditUserDto.builder()
+        employeeService.createEmployee(
+                CreateEditAuthUserDto.builder()
                         .username(newUsername)
                         .userRole(UserRole.TEACHER)
                         .build()
@@ -790,8 +790,8 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void deleteUser__otherAsAdmin__valid() {
-        long userId = userService.createUser(
-                CreateEditUserDto.builder()
+        long userId = employeeService.createEmployee(
+                CreateEditAuthUserDto.builder()
                         .username(USERNAME)
                         .userRole(UserRole.TEACHER)
                         .build()
@@ -812,8 +812,8 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void deleteUser__otherAsTeacher__invalid() {
         String otherUsername = "tfegbpijo";
-        long userId = userService.createUser(
-                CreateEditUserDto.builder()
+        long userId = employeeService.createEmployee(
+                CreateEditAuthUserDto.builder()
                         .username(otherUsername)
                         .userRole(UserRole.TEACHER)
                         .build()
@@ -831,8 +831,8 @@ public class UserControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void deleteUser__withCourseToken__invalid() {
         String otherUsername = "tfegbpijo";
-        long userId = userService.createUser(
-                CreateEditUserDto.builder()
+        long userId = employeeService.createEmployee(
+                CreateEditAuthUserDto.builder()
                         .username(otherUsername)
                         .userRole(UserRole.TEACHER)
                         .build()

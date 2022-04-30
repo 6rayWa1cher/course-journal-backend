@@ -2,27 +2,48 @@ package com.a6raywa1cher.coursejournalbackend.dto.mapper;
 
 import com.a6raywa1cher.coursejournalbackend.dto.*;
 import com.a6raywa1cher.coursejournalbackend.model.*;
-import com.a6raywa1cher.coursejournalbackend.service.UserService;
+import com.a6raywa1cher.coursejournalbackend.service.EmployeeService;
 import org.mapstruct.*;
 
-@Mapper(uses = {MapperHelper.class, UserService.class}, componentModel = "spring")
+@Mapper(uses = {MapperHelper.class, EmployeeService.class}, componentModel = "spring")
 public abstract class MapStructMapper {
-
     // ================================================================================================================
-    // User
+    // AuthUser
     // ================================================================================================================
 
     @Mapping(target = "createdAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
     @Mapping(target = "lastModifiedAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
     @Mapping(target = "lastVisitAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
-    public abstract UserDto map(User user);
+    public abstract AuthUserDto map(AuthUser authUser);
 
     @CreateEditUserDtoToUserMapping
-    public abstract void put(CreateEditUserDto dto, @MappingTarget User user);
+    public abstract void put(CreateEditAuthUserDto dto, @MappingTarget AuthUser authUser);
 
     @CreateEditUserDtoToUserMapping
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    public abstract void patch(CreateEditUserDto dto, @MappingTarget User user);
+    public abstract void patch(CreateEditAuthUserDto dto, @MappingTarget AuthUser authUser);
+
+    // ================================================================================================================
+    // Employee
+    // ================================================================================================================
+
+    @Mapping(target = "createdAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
+    @Mapping(target = "lastModifiedAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
+    @Mapping(target = "lastVisitAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
+    public abstract EmployeeDto map(Employee employee);
+
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "courseList", ignore = true)
+    @Mapping(target = "authUser", ignore = true)
+    public abstract void put(EmployeeDto dto, @MappingTarget Employee employee);
+
+    @CreatedModifiedRestrictMapping
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "courseList", ignore = true)
+    @Mapping(target = "authUser", ignore = true)
+    public abstract void patch(EmployeeDto dto, @MappingTarget Employee employee);
 
     // ================================================================================================================
     // Course
@@ -114,6 +135,7 @@ public abstract class MapStructMapper {
     @Mapping(target = "course", ignore = true)
     @Mapping(target = "submissions", ignore = true)
     @Mapping(target = "group", ignore = true)
+    @Mapping(target = "authUser", ignore = true)
     public abstract void put(StudentDto dto, @MappingTarget Student target);
 
     @CreatedModifiedRestrictMapping
@@ -122,6 +144,7 @@ public abstract class MapStructMapper {
     @Mapping(target = "course", ignore = true)
     @Mapping(target = "submissions", ignore = true)
     @Mapping(target = "group", ignore = true)
+    @Mapping(target = "authUser", ignore = true)
     public abstract void patch(StudentDto dto, @MappingTarget Student target);
 
     // ================================================================================================================

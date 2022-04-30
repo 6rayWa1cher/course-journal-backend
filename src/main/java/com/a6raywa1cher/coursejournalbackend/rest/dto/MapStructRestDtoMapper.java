@@ -7,9 +7,9 @@ import org.mapstruct.Mapping;
 
 @Mapper(uses = MapperHelper.class, componentModel = "spring")
 public interface MapStructRestDtoMapper {
-    CreateEditUserDto map(CreateUserDto dto);
+    CreateEditAuthUserDto map(CreateEmployeeDto dto);
 
-    CreateEditUserDto map(EditUserDto dto);
+    CreateEditAuthUserDto map(EditUserDto dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

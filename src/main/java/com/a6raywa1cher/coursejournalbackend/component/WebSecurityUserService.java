@@ -1,6 +1,7 @@
 package com.a6raywa1cher.coursejournalbackend.component;
 
-import com.a6raywa1cher.coursejournalbackend.model.User;
+import com.a6raywa1cher.coursejournalbackend.model.AuthUser;
+import com.a6raywa1cher.coursejournalbackend.model.Employee;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.a6raywa1cher.jsonrestsecurity.dao.repo.IUserRepository;
 import com.a6raywa1cher.jsonrestsecurity.dao.service.AbstractUserService;
@@ -9,18 +10,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
-public class WebSecurityUserService extends AbstractUserService<User> {
+public class WebSecurityUserService extends AbstractUserService<AuthUser> {
     @Autowired
-    public WebSecurityUserService(IUserRepository<User> userRepository, PasswordEncoder passwordEncoder) {
-        super(userRepository, passwordEncoder);
+    public WebSecurityUserService(IUserRepository<AuthUser> authUserRepository, PasswordEncoder passwordEncoder) {
+        super(authUserRepository, passwordEncoder);
     }
 
     @Override
-    public User create(String login, String rawPassword, String role) {
-        User user = new User();
-        user.setUsername(login);
-        user.setPassword(passwordEncoder.encode(rawPassword));
-        user.setUserRole(UserRole.valueOf(role));
-        return userRepository.save(user);
+    public AuthUser create(String login, String rawPassword, String role) {
+        Employee employee = new Employee();
+        employee.setUsername(login);
+        employee.setPassword(passwordEncoder.encode(rawPassword));
+        employee.setUserRole(UserRole.valueOf(role));
+        return userRepository.save(employee);
     }
 }

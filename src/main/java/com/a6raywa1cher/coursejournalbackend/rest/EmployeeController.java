@@ -1,12 +1,11 @@
 package com.a6raywa1cher.coursejournalbackend.rest;
 
-import com.a6raywa1cher.coursejournalbackend.dto.UserDto;
-import com.a6raywa1cher.coursejournalbackend.rest.dto.CreateUserDto;
+import com.a6raywa1cher.coursejournalbackend.dto.EmployeeDto;
+import com.a6raywa1cher.coursejournalbackend.rest.dto.CreateEmployeeDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.EditUserDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.MapStructRestDtoMapper;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnUpdate;
-import com.a6raywa1cher.coursejournalbackend.service.UserService;
-import com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary;
+import com.a6raywa1cher.coursejournalbackend.service.EmployeeService;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,58 +16,52 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
 
 @RestController
-@RequestMapping("/users")
-public class UserController {
-    private final UserService userService;
+@RequestMapping("/employees")
+public class EmployeeController {
+    private final EmployeeService employeeService;
     private final MapStructRestDtoMapper mapper;
 
     @Autowired
-    public UserController(UserService userService, MapStructRestDtoMapper mapper) {
-        this.userService = userService;
+    public EmployeeController(EmployeeService employeeService, MapStructRestDtoMapper mapper) {
+        this.employeeService = employeeService;
         this.mapper = mapper;
     }
 
     @GetMapping("/")
-    public Page<UserDto> getUserList(@ParameterObject Pageable page) {
-        return userService.getPage(page);
+    public Page<EmployeeDto> getUserList(@ParameterObject Pageable page) {
+        return employeeService.getPage(page);
     }
 
     @GetMapping("/{id}")
-    public UserDto getUserById(@PathVariable long id) {
-        return userService.getById(id);
-    }
-
-    @GetMapping("/username/{username}")
-    public UserDto findByUsername(@PathVariable @Pattern(regexp = RegexLibrary.USERNAME) @Valid String username) {
-        return userService.getByUsername(username);
+    public EmployeeDto getUserById(@PathVariable long id) {
+        return employeeService.getById(id);
     }
 
     @PostMapping("/")
     @PreAuthorize("@accessChecker.createUserAccess(#dto.userRole, authentication)")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto createUser(@RequestBody @Valid CreateUserDto dto) {
-        return userService.createUser(mapper.map(dto));
+    public EmployeeDto createUser(@RequestBody @Valid CreateEmployeeDto dto) {
+        return employeeService.createEmployee(mapper.map(dto));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("@accessChecker.editUserAccessWithRole(#id, #dto.userRole, authentication)")
-    public UserDto updateUser(@RequestBody @Valid EditUserDto dto, @PathVariable long id) {
-        return userService.updateUser(id, mapper.map(dto));
+    public EmployeeDto updateUser(@RequestBody @Valid EditUserDto dto, @PathVariable long id) {
+        return employeeService.updateEmployee(id, mapper.map(dto));
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("@accessChecker.editUserAccessWithRole(#id, #dto.userRole, authentication)")
     @Validated(OnUpdate.class)
-    public UserDto patchUser(@RequestBody @Valid EditUserDto dto, @PathVariable long id) {
-        return userService.patchUser(id, mapper.map(dto));
+    public EmployeeDto patchUser(@RequestBody @Valid EditUserDto dto, @PathVariable long id) {
+        return employeeService.patchEmployee(id, mapper.map(dto));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@accessChecker.editUserAccess(#id, authentication)")
     public void deleteUser(@PathVariable long id) {
-        userService.delete(id);
+        employeeService.delete(id);
     }
 }

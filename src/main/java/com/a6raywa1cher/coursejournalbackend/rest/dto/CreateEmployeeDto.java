@@ -9,7 +9,7 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 @Data
-public class CreateUserDto {
+public class CreateEmployeeDto {
     @NotBlank
     @Pattern(regexp = RegexLibrary.USERNAME)
     private String username;

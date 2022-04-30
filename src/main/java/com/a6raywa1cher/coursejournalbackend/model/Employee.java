@@ -15,38 +15,33 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(
-        name = "course",
-        uniqueConstraints = @UniqueConstraint(name = "one_name_per_owner", columnNames = {"owner_id", "name"})
-)
+@Table(name = "app_user")
 @Getter
 @Setter
 @ToString
 @RequiredArgsConstructor
-public class Course implements IdEntity<Long> {
+public class Employee implements IdEntity<Long> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false, updatable = false)
+    @Column(name = "id", nullable = false)
     @ReadOnlyProperty
     private Long id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "employee", orphanRemoval = true)
+    private AuthUser authUser;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "owner_id")
-    private Employee owner;
+    @Column(name = "first_name")
+    private String firstName;
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Column(name = "last_name")
+    private String lastName;
+
+    @Column(name = "middle_name")
+    private String middleName;
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
-    private List<Student> students;
-
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    private List<Task> tasks;
-
-    @OneToOne(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    private CourseToken courseToken;
+    private List<Course> courseList;
 
     @Column(name = "created_at")
     @CreatedDate
@@ -62,8 +57,8 @@ public class Course implements IdEntity<Long> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Course course = (Course) o;
-        return id != null && Objects.equals(id, course.id);
+        Employee employee = (Employee) o;
+        return id != null && Objects.equals(id, employee.id);
     }
 
     @Override

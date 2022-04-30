@@ -21,7 +21,7 @@ public class EntityFactory {
 
     private final CourseTokenService courseTokenService;
 
-    private final UserService userService;
+    private final EmployeeService employeeService;
 
     private final CriteriaService criteriaService;
 
@@ -40,13 +40,13 @@ public class EntityFactory {
     private final FacultyService facultyService;
 
     @Autowired
-    public EntityFactory(TaskService taskService, CourseService courseService, CourseTokenService courseTokenService, UserService userService,
+    public EntityFactory(TaskService taskService, CourseService courseService, CourseTokenService courseTokenService, EmployeeService employeeService,
                          CriteriaService criteriaService, SubmissionService submissionService, Faker faker,
                          MapStructTestMapper mapper, StudentService studentService, AttendanceService attendanceService, GroupService groupService, FacultyService facultyService) {
         this.taskService = taskService;
         this.courseService = courseService;
         this.courseTokenService = courseTokenService;
-        this.userService = userService;
+        this.employeeService = employeeService;
         this.criteriaService = criteriaService;
         this.submissionService = submissionService;
         this.faker = faker;
@@ -58,7 +58,7 @@ public class EntityFactory {
     }
 
     public long createUser() {
-        return userService.createUser(CreateEditUserDto.builder()
+        return employeeService.createEmployee(CreateEditAuthUserDto.builder()
                 .username(faker.name().username())
                 .userRole(UserRole.TEACHER)
                 .build()).getId();

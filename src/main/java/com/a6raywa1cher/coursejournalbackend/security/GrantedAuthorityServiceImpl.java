@@ -1,6 +1,7 @@
 package com.a6raywa1cher.coursejournalbackend.security;
 
-import com.a6raywa1cher.coursejournalbackend.model.User;
+import com.a6raywa1cher.coursejournalbackend.model.AuthUser;
+import com.a6raywa1cher.coursejournalbackend.model.Employee;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
 import com.a6raywa1cher.jsonrestsecurity.component.authority.GrantedAuthorityService;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static com.a6raywa1cher.coursejournalbackend.security.Permission.*;
+
 @Service
 public class GrantedAuthorityServiceImpl implements GrantedAuthorityService {
     private final UserEnabledChecker userEnabledChecker;
@@ -22,24 +25,55 @@ public class GrantedAuthorityServiceImpl implements GrantedAuthorityService {
         this.courseRepository = courseRepository;
     }
 
+    private static GrantedAuthority newAuthority(String authority) {
+        return new SimpleGrantedAuthority(authority);
+    }
+
+    private Set<GrantedAuthority> getDirectAuthorities(AuthUser authUser) {
+        Set<GrantedAuthority> set = new HashSet<>();
+        set.add(newAuthority("ROLE_" + authUser.getUserRole()));
+        set.add(newAuthority(getPermissionForAuthUser(authUser, ActionType.READ)));
+        set.add(newAuthority(getPermissionForAuthUser(authUser, ActionType.WRITE)));
+        switch (authUser.getUserRole()) {
+            case ADMIN -> {
+
+            }
+            case TEACHER -> {
+                long employeeId = authUser.getEmployee().getId();
+                set.add(newAuthority(getPermissionForEmployee(employeeId, ActionType.READ)));
+                set.add(newAuthority(getPermissionForEmployee(employeeId, ActionType.WRITE)));
+            }
+            case HEADMAN -> {
+                long groupId = authUser.getStudent().getGroup().getId();
+                set.add(newAuthority(getPermissionForGroup(groupId, ActionType.READ)));
+                set.add(newAuthority(getPermissionForGroup(groupId, ActionType.WRITE_ATTENDANCE)));
+            }
+            default -> throw new IllegalArgumentException();
+        }
+        return set;
+    }
+
+    private Set<GrantedAuthority> getCourseOwnedAuthorities(Employee employee) {
+        Set<GrantedAuthority> set = new HashSet<>();
+        List<Long> byOwner = courseRepository.findByOwner(employee);
+        for (long id : byOwner) {
+            set.add(newAuthority(getPermissionForCourse(id, ActionType.READ)));
+            set.add(newAuthority(getPermissionForCourse(id, ActionType.WRITE)));
+        }
+        return set;
+    }
+
     @Override
     public Collection<GrantedAuthority> getAuthorities(IUser iUser) {
-        if (!User.class.isAssignableFrom(iUser.getClass())) {
+        if (!AuthUser.class.isAssignableFrom(iUser.getClass())) {
             throw new IllegalArgumentException("Unknown class " + iUser.getUsername());
         }
-        User user = (User) iUser;
-        Set<GrantedAuthority> set = new HashSet<>();
-        set.add(new SimpleGrantedAuthority("ROLE_" + user.getUserRole()));
-        set.add(new SimpleGrantedAuthority(Permission.getPermissionForUser(user, ActionType.READ)));
-        set.add(new SimpleGrantedAuthority(Permission.getPermissionForUser(user, ActionType.WRITE)));
-        if (user.getUserRole() == UserRole.TEACHER) {
-            List<Long> byOwner = courseRepository.findByOwner(user);
-            for (long id : byOwner) {
-                set.add(new SimpleGrantedAuthority(Permission.getPermissionForCourse(id, ActionType.READ)));
-                set.add(new SimpleGrantedAuthority(Permission.getPermissionForCourse(id, ActionType.WRITE)));
-            }
+        AuthUser authUser = (AuthUser) iUser;
+        Set<GrantedAuthority> set = getDirectAuthorities(authUser);
+        if (authUser.getUserRole() == UserRole.TEACHER) {
+            set.addAll(getCourseOwnedAuthorities(authUser.getEmployee()));
         }
-        if (userEnabledChecker.check(user)) {
+        if (userEnabledChecker.check(authUser)) {
             set.add(new SimpleGrantedAuthority("ENABLED"));
         }
         return Collections.unmodifiableSet(set);

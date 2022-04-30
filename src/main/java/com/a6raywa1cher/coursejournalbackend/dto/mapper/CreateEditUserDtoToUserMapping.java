@@ -11,7 +11,6 @@ import java.lang.annotation.RetentionPolicy;
 @Mapping(target = "lastModifiedAt", ignore = true)
 @Mapping(target = "id", ignore = true)
 @Mapping(target = "createdAt", ignore = true)
-@Mapping(target = "courseList", ignore = true)
 @Mapping(target = "password", qualifiedByName = {"MapperHelper", "EncodePassword"})
 public @interface CreateEditUserDtoToUserMapping {
 }
