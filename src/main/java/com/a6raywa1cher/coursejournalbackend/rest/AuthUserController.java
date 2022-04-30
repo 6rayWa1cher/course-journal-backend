@@ -1,12 +1,12 @@
 package com.a6raywa1cher.coursejournalbackend.rest;
 
-import com.a6raywa1cher.coursejournalbackend.dto.EmployeeDto;
-import com.a6raywa1cher.coursejournalbackend.rest.dto.EmployeeRestDto;
+import com.a6raywa1cher.coursejournalbackend.dto.AuthUserDto;
+import com.a6raywa1cher.coursejournalbackend.rest.dto.AuthUserRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.MapStructRestDtoMapper;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnCreate;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnPatch;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnUpdate;
-import com.a6raywa1cher.coursejournalbackend.service.EmployeeService;
+import com.a6raywa1cher.coursejournalbackend.service.AuthUserService;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,52 +19,62 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping("/employees")
-public class EmployeeController {
-    private final EmployeeService employeeService;
+@RequestMapping("/auth-user")
+public class AuthUserController {
+    private final AuthUserService service;
     private final MapStructRestDtoMapper mapper;
 
     @Autowired
-    public EmployeeController(EmployeeService employeeService, MapStructRestDtoMapper mapper) {
-        this.employeeService = employeeService;
+    public AuthUserController(AuthUserService service, MapStructRestDtoMapper mapper) {
+        this.service = service;
         this.mapper = mapper;
     }
 
     @GetMapping("/")
-    public Page<EmployeeDto> getUserList(@ParameterObject Pageable page) {
-        return employeeService.getPage(page);
+    public Page<AuthUserDto> getAuthUserList(@ParameterObject Pageable page) {
+        return service.getPage(page);
     }
 
     @GetMapping("/{id}")
-    public EmployeeDto getUserById(@PathVariable long id) {
-        return employeeService.getById(id);
+    public AuthUserDto getAuthUserById(@PathVariable long id) {
+        return service.getById(id);
+    }
+
+    @GetMapping("/employee/{id}")
+    public AuthUserDto getAuthUserByEmployeeId(@PathVariable long id) {
+        return service.getByEmployeeId(id);
+    }
+
+    @GetMapping("/student/{id}")
+    public AuthUserDto getAuthUserByStudentId(@PathVariable long id) {
+        return service.getByStudentId(id);
     }
 
     @PostMapping("/")
     @PreAuthorize("@accessChecker.createEmployeeAccess(authentication)")
     @ResponseStatus(HttpStatus.CREATED)
     @Validated(OnCreate.class)
-    public EmployeeDto createEmployee(@RequestBody @Valid EmployeeRestDto dto) {
-        return employeeService.createEmployee(mapper.map(dto));
+    public AuthUserDto createAuthUser(@RequestBody @Valid AuthUserRestDto dto) {
+        return service.create(mapper.map(dto));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("@accessChecker.editEmployeeAccess(#id, authentication)")
     @Validated(OnUpdate.class)
-    public EmployeeDto updateEmployee(@RequestBody @Valid EmployeeRestDto dto, @PathVariable long id) {
-        return employeeService.updateEmployee(id, mapper.map(dto));
+    public AuthUserDto updateEmployee(@RequestBody @Valid AuthUserRestDto dto, @PathVariable long id) {
+        return service.update(id, mapper.map(dto));
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("@accessChecker.editEmployeeAccess(#id, authentication)")
     @Validated(OnPatch.class)
-    public EmployeeDto patchEmployee(@RequestBody @Valid EmployeeRestDto dto, @PathVariable long id) {
-        return employeeService.patchEmployee(id, mapper.map(dto));
+    public AuthUserDto patchEmployee(@RequestBody @Valid AuthUserRestDto dto, @PathVariable long id) {
+        return service.patch(id, mapper.map(dto));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@accessChecker.editEmployeeAccess(#id, authentication)")
     public void deleteEmployee(@PathVariable long id) {
-        employeeService.delete(id);
+        service.delete(id);
     }
 }

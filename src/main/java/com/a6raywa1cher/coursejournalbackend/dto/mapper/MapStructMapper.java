@@ -14,22 +14,26 @@ public abstract class MapStructMapper {
     @Mapping(target = "createdAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
     @Mapping(target = "lastModifiedAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
     @Mapping(target = "lastVisitAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
+    @Mapping(target = "student", source = "student.id")
+    @Mapping(target = "employee", source = "employee.id")
     public abstract AuthUserDto map(AuthUser authUser);
 
     @CreateEditUserDtoToUserMapping
+    @Mapping(target = "employee", ignore = true)
+    @Mapping(target = "student", ignore = true)
     public abstract void put(CreateEditAuthUserDto dto, @MappingTarget AuthUser authUser);
 
     @CreateEditUserDtoToUserMapping
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "employee", ignore = true)
+    @Mapping(target = "student", ignore = true)
     public abstract void patch(CreateEditAuthUserDto dto, @MappingTarget AuthUser authUser);
 
     // ================================================================================================================
     // Employee
     // ================================================================================================================
 
-    @Mapping(target = "createdAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
-    @Mapping(target = "lastModifiedAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
-    @Mapping(target = "lastVisitAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
+    @CreatedModifiedMapping
     public abstract EmployeeDto map(Employee employee);
 
     @CreatedModifiedRestrictMapping

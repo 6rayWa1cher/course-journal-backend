@@ -27,20 +27,20 @@ import java.util.List;
 })
 @Check(constraints = """
         (
-         (user_role = 'TEACHER' and employee not null)
-         or (user_role = 'HEADMAN' and student not null)
+         (user_role = 'TEACHER' and employee_id is not null)
+         or (user_role = 'HEADMAN' and student_id is not null)
          or user_role = 'ADMIN'
         )
         and
         (
-         not (employee not null and student not null)
+         not (employee_id is not null and student_id is not null)
         )
         """)
 @Getter
 @Setter
 @ToString
 @RequiredArgsConstructor
-public class AuthUser implements IUser {
+public class AuthUser implements IUser, IdEntity<Long> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
@@ -59,11 +59,11 @@ public class AuthUser implements IUser {
     private UserRole userRole;
 
     @OneToOne(cascade = {CascadeType.REFRESH, CascadeType.MERGE})
-    @JoinColumn(name = "employee_id")
+    @JoinColumn(name = "employee_id", unique = true)
     private Employee employee;
 
     @OneToOne(cascade = {CascadeType.REFRESH, CascadeType.MERGE})
-    @JoinColumn(name = "student_id")
+    @JoinColumn(name = "student_id", unique = true)
     private Student student;
 
     @Column(name = "refresh_tokens", columnDefinition = "jsonb")

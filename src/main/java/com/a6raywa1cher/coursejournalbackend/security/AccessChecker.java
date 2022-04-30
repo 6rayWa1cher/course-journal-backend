@@ -172,20 +172,29 @@ public class AccessChecker {
     }
 
 
-    public boolean createUserAccess(UserRole userRole, Authentication authentication) {
+    public boolean createEmployeeAccess(Authentication authentication) {
         return isAdmin(authentication);
     }
 
-    public boolean readUserAccess(Long id, Authentication authentication) {
+    public boolean readEmployeeAccess(Long id, Authentication authentication) {
         return hasAuthority(id, Employee.class, ActionType.READ, authentication);
     }
 
-    public boolean editUserAccess(Long id, Authentication authentication) {
+    public boolean editEmployeeAccess(Long id, Authentication authentication) {
         return hasAuthority(id, Employee.class, ActionType.WRITE, authentication);
     }
 
-    public boolean editUserAccessWithRole(Long id, UserRole userRole, Authentication authentication) {
-        return editUserAccess(id, authentication) && isValidUserRoleRequest(userRole, authentication);
+
+    public boolean createAuthUserAccess(Authentication authentication) {
+        return isAdmin(authentication);
+    }
+
+    public boolean readAuthUserAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, AuthUser.class, ActionType.READ, authentication);
+    }
+
+    public boolean editAuthUserAccess(Long id, UserRole userRole, Authentication authentication) {
+        return hasAuthority(id, AuthUser.class, ActionType.WRITE, authentication);
     }
 
 

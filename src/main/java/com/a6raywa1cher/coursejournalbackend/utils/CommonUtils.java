@@ -16,4 +16,8 @@ public final class CommonUtils {
     public static <T> T coalesce(T a, T b, T c, T d, T e) {
         return a != null ? a : coalesce(b, c, d, e);
     }
+
+    public static String getSimpleClassName(Object o) {
+        return o == null ? null : o.getClass().getSimpleName();
+    }
 }
