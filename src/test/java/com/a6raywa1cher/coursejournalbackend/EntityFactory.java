@@ -39,10 +39,12 @@ public class EntityFactory {
 
     private final FacultyService facultyService;
 
+    private final AuthUserService authUserService;
+
     @Autowired
     public EntityFactory(TaskService taskService, CourseService courseService, CourseTokenService courseTokenService, EmployeeService employeeService,
                          CriteriaService criteriaService, SubmissionService submissionService, Faker faker,
-                         MapStructTestMapper mapper, StudentService studentService, AttendanceService attendanceService, GroupService groupService, FacultyService facultyService) {
+                         MapStructTestMapper mapper, StudentService studentService, AttendanceService attendanceService, GroupService groupService, FacultyService facultyService, AuthUserService authUserService) {
         this.taskService = taskService;
         this.courseService = courseService;
         this.courseTokenService = courseTokenService;
@@ -55,13 +57,44 @@ public class EntityFactory {
         this.attendanceService = attendanceService;
         this.groupService = groupService;
         this.facultyService = facultyService;
+        this.authUserService = authUserService;
     }
 
-    public long createUser() {
-        return employeeService.createEmployee(CreateEditAuthUserDto.builder()
+    public long createAuthUser() {
+        return createAuthUser(bag());
+    }
+
+    public long createAuthUser(EntityFactoryBag bag) {
+        CreateEditAuthUserDto dto = CreateEditAuthUserDto.builder()
                 .username(faker.name().username())
                 .userRole(UserRole.TEACHER)
-                .build()).getId();
+                .userInfo(bag.getEmployeeId())
+                .build();
+
+        CreateEditAuthUserDto dtoFromBag = bag.getDto(CreateEditAuthUserDto.class);
+        if (dtoFromBag != null) {
+            mapper.merge(dtoFromBag, dto);
+        }
+
+        return authUserService.create(dto).getId();
+    }
+
+    public long createEmployee() {
+        return createEmployee(bag());
+    }
+
+    public long createEmployee(EntityFactoryBag bag) {
+        EmployeeDto dto = EmployeeDto.builder()
+                .firstName(faker.name().firstName())
+                .lastName(faker.name().lastName())
+                .build();
+
+        EmployeeDto dtoFromBag = bag.getDto(EmployeeDto.class);
+        if (dtoFromBag != null) {
+            mapper.merge(dtoFromBag, dto);
+        }
+
+        return employeeService.create(dto).getId();
     }
 
     public long createCourse() {
@@ -69,13 +102,13 @@ public class EntityFactory {
     }
 
     public long createCourse(Long userId) {
-        return createCourse(bag().withUserId(userId));
+        return createCourse(bag().withEmployeeId(userId));
     }
 
     public long createCourse(EntityFactoryBag bag) {
         CourseDto dto = CourseDto.builder()
                 .name(faker.lorem().sentence())
-                .owner(bag.getUserId())
+                .owner(bag.getEmployeeId())
                 .build();
 
         CourseDto dtoFromBag = bag.getDto(CourseDto.class);
@@ -91,7 +124,7 @@ public class EntityFactory {
     }
 
     public long createCourseToken(Long userId) {
-        return createCourseToken(bag().withUserId(userId));
+        return createCourseToken(bag().withEmployeeId(userId));
     }
 
     public long createCourseToken(EntityFactoryBag bag) {
@@ -112,7 +145,7 @@ public class EntityFactory {
     }
 
     public long createTask(Long userId) {
-        return createTask(bag().withUserId(userId));
+        return createTask(bag().withEmployeeId(userId));
     }
 
     public long createTask(EntityFactoryBag bag) {
@@ -141,7 +174,7 @@ public class EntityFactory {
     }
 
     public long createStudent(Long userId) {
-        return createStudent(bag().withUserId(userId));
+        return createStudent(bag().withEmployeeId(userId));
     }
 
     public long createStudent(EntityFactoryBag bag) {
@@ -162,7 +195,9 @@ public class EntityFactory {
 
     public long createAttendance() { return createAttendance(bag()); }
 
-    public long createAttendance(Long userId) { return createAttendance(bag().withUserId(userId)); }
+    public long createAttendance(Long userId) {
+        return createAttendance(bag().withEmployeeId(userId));
+    }
 
     public long createAttendance(EntityFactoryBag bag) {
         AttendanceDto dto = AttendanceDto.builder()
@@ -186,7 +221,7 @@ public class EntityFactory {
     }
 
     public long createCriteria(Long userId) {
-        return createCriteria(bag().withUserId(userId));
+        return createCriteria(bag().withEmployeeId(userId));
     }
 
     public long createCriteria(EntityFactoryBag bag) {
@@ -209,7 +244,7 @@ public class EntityFactory {
     }
 
     public long createSubmission(Long userId) {
-        return createSubmission(bag().withUserId(userId));
+        return createSubmission(bag().withEmployeeId(userId));
     }
 
     public long createSubmission(EntityFactoryBag bag) {
@@ -237,7 +272,7 @@ public class EntityFactory {
     }
 
     public long createGroup(Long userId) {
-        return createGroup(bag().withUserId(userId));
+        return createGroup(bag().withEmployeeId(userId));
     }
 
     public long createGroup(EntityFactoryBag bag) {
@@ -260,7 +295,7 @@ public class EntityFactory {
     }
 
     public long createFaculty(Long userId) {
-        return createFaculty(bag().withUserId(userId));
+        return createFaculty(bag().withEmployeeId(userId));
     }
 
     public long createFaculty(EntityFactoryBag bag) {
@@ -295,7 +330,9 @@ public class EntityFactory {
     public static final class EntityFactoryBag {
         private final EntityFactory ef;
 
-        private Long userId;
+        private Long authUserId;
+
+        private Long employeeId;
 
         private Long courseId;
 
@@ -317,9 +354,14 @@ public class EntityFactory {
 
         private Object dto;
 
-        public Long getUserId() {
-            if (userId == null) userId = ef.createUser();
-            return userId;
+        public Long getAuthUserId() {
+            if (authUserId == null) authUserId = ef.createAuthUser(this);
+            return authUserId;
+        }
+
+        public Long getEmployeeId() {
+            if (employeeId == null) employeeId = ef.createEmployee(this);
+            return employeeId;
         }
 
         public Long getCourseId() {

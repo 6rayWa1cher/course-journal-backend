@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MvcResult;
@@ -61,7 +60,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                var context = createGetGroupByIdContext(getIdAsLong());
+                var context = createGetGroupByIdContext(getSelfEmployeeIdAsLong());
 
                 long id = context.getRequest();
                 ResultMatcher[] matchers = context.getMatchers();
@@ -93,7 +92,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void getGroupById__notAuthenticated__invalid() throws Exception {
-        var context = createGetGroupByIdContext(ef.createUser());
+        var context = createGetGroupByIdContext(ef.createEmployee());
 
         long id = context.getRequest();
 
@@ -106,7 +105,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                var context = createGetGroupByIdContext(ef.createUser());
+                var context = createGetGroupByIdContext(ef.createEmployee());
 
                 long id = context.getRequest();
 
@@ -244,8 +243,8 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId1 = ef.createCourse(getIdAsLong());
-                long courseId2 = ef.createCourse(getIdAsLong());
+                long courseId1 = ef.createCourse(getSelfEmployeeIdAsLong());
+                long courseId2 = ef.createCourse(getSelfEmployeeIdAsLong());
 
                 long facultyId1 = ef.createFaculty();
                 long facultyId2 = ef.createFaculty();
@@ -272,8 +271,8 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId1 = ef.createCourse(ef.createUser());
-                long courseId2 = ef.createCourse(ef.createUser());
+                long courseId1 = ef.createCourse(ef.createEmployee());
+                long courseId2 = ef.createCourse(ef.createEmployee());
 
                 long facultyId1 = ef.createFaculty();
                 long facultyId2 = ef.createFaculty();
@@ -301,7 +300,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 long courseId1 = getCourseId();
-                long courseId2 = ef.createCourse(ef.createUser());
+                long courseId2 = ef.createCourse(ef.createEmployee());
 
                 long facultyId1 = ef.createFaculty();
                 long facultyId2 = ef.createFaculty();
@@ -328,7 +327,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
 
                 securePerform(get("/groups/course/{id}", courseId)
                         .queryParam("sort", "name,asc"))
@@ -389,8 +388,8 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId1 = ef.createCourse(getIdAsLong());
-                long courseId2 = ef.createCourse(getIdAsLong());
+                long courseId1 = ef.createCourse(getSelfEmployeeIdAsLong());
+                long courseId2 = ef.createCourse(getSelfEmployeeIdAsLong());
 
                 String name1 = "A" + faker.lorem().sentence(1);
                 String name2 = "B" + faker.lorem().sentence(1);
@@ -419,7 +418,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long userId = ef.createUser();
+                long userId = ef.createEmployee();
 
                 long courseId1 = ef.createCourse(userId);
                 long courseId2 = ef.createCourse(userId);
@@ -558,7 +557,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
                 long facultyId = ef.createFaculty();
                 String name = faker.lorem().sentence(1);
 
@@ -587,7 +586,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 long facultyId = ef.createFaculty();
                 String name = faker.lorem().sentence(1);
 
@@ -636,7 +635,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
                 long facultyId = ef.createFaculty();
                 String name = faker.lorem().sentence(1);
 
@@ -699,7 +698,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 long facultyId = ef.createFaculty();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
@@ -902,7 +901,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 long facultyId = ef.createFaculty();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
@@ -1090,7 +1089,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long id = ef.createGroup(getIdAsLong());
+                long id = ef.createGroup(getSelfEmployeeIdAsLong());
 
                 securePerform(delete("/groups/{id}", id))
                         .andExpect(status().isForbidden());
@@ -1119,7 +1118,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long id = ef.createGroup(getIdAsLong());
+                long id = ef.createGroup(getSelfEmployeeIdAsLong());
 
                 securePerform(delete("/groups/{id}", id + 1000))
                         .andExpect(status().isNotFound());

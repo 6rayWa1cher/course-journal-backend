@@ -51,7 +51,7 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                var ctx = createGetCourseTokenByIdContext(getIdAsLong());
+                var ctx = createGetCourseTokenByIdContext(getSelfEmployeeIdAsLong());
 
                 long id = ctx.getRequest();
                 ResultMatcher[] matchers = ctx.getMatchers();
@@ -68,7 +68,7 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                var ctx = createGetCourseTokenByIdContext(ef.createUser());
+                var ctx = createGetCourseTokenByIdContext(ef.createEmployee());
 
                 long id = ctx.getRequest();
                 ResultMatcher[] matchers = ctx.getMatchers();
@@ -85,7 +85,7 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                var ctx = createGetCourseTokenByIdContext(ef.createUser());
+                var ctx = createGetCourseTokenByIdContext(ef.createEmployee());
 
                 long id = ctx.getRequest();
 
@@ -97,7 +97,7 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
 
     @Test
     void getCourseTokenById__withCourseToken__valid() {
-        long ownerId = ef.createUser();
+        long ownerId = ef.createEmployee();
         var ctx = createGetCourseTokenByIdContext(ownerId);
 
         long id = ctx.getRequest();
@@ -115,7 +115,7 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
 
     @Test
     void getCourseTokenById__notAuthenticated__invalid() throws Exception {
-        var ctx = createGetCourseTokenByIdContext(ef.createUser());
+        var ctx = createGetCourseTokenByIdContext(ef.createEmployee());
 
         long id = ctx.getRequest();
 
@@ -125,7 +125,7 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
 
     @Test
     void getCourseTokenById__notExists__invalid() {
-        var ctx = createGetCourseTokenByIdContext(ef.createUser());
+        var ctx = createGetCourseTokenByIdContext(ef.createEmployee());
 
         long id = ctx.getRequest();
 
@@ -164,8 +164,8 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId1 = ef.createCourse(getIdAsLong());
-                long courseId2 = ef.createCourse(getIdAsLong());
+                long courseId1 = ef.createCourse(getSelfEmployeeIdAsLong());
+                long courseId2 = ef.createCourse(getSelfEmployeeIdAsLong());
 
                 var ctx1 = createGetCourseTokenByCourseContext(courseId1);
                 createGetCourseTokenByCourseContext(courseId2);
@@ -212,7 +212,7 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
 
     @Test
     void getCourseTokenByCourse__withCourseToken__valid() {
-        long ownerId = ef.createUser();
+        long ownerId = ef.createEmployee();
         long courseId1 = ef.createCourse(ownerId);
         long courseId2 = ef.createCourse(ownerId);
         var ctx1 = createGetCourseTokenByCourseContext(courseId1);
@@ -279,7 +279,7 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
 
                 var ctx = createResolveCourseByTokenContext(courseId);
                 ObjectNode request = ctx.getRequest();
@@ -398,7 +398,7 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 var ctx = getCreateCourseTokenRequest(courseId);
 
                 ObjectNode request = ctx.getRequest();
@@ -519,7 +519,7 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseTokenId = ef.createCourseToken(getIdAsLong());
+                long courseTokenId = ef.createCourseToken(getSelfEmployeeIdAsLong());
 
                 securePerform(delete("/courses/tokens/{id}", courseTokenId))
                         .andExpect(status().isOk());
@@ -575,7 +575,7 @@ public class CourseTokenControllerIntegrationTests extends AbstractIntegrationTe
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseTokenId = ef.createCourseToken(getIdAsLong());
+                long courseTokenId = ef.createCourseToken(getSelfEmployeeIdAsLong());
 
                 securePerform(delete("/courses/tokens/{id}", courseTokenId + 1000))
                         .andExpect(status().isNotFound());

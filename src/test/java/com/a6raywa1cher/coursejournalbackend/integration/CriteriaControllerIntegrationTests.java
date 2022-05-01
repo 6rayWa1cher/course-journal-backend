@@ -31,7 +31,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
                 long id = criteriaService.create(CriteriaDto.builder()
                         .name(name)
                         .criteriaPercent(60)
-                        .task(ef.createTask(getIdAsLong()))
+                        .task(ef.createTask(getSelfEmployeeIdAsLong()))
                         .build()).getId();
 
                 securePerform(get("/criteria/{id}", id))
@@ -138,8 +138,8 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
                 String sentence1 = faker.lorem().sentence();
                 String sentence2 = faker.lorem().sentence();
 
-                long taskId1 = ef.createTask(getIdAsLong());
-                long taskId2 = ef.createTask(ef.createUser());
+                long taskId1 = ef.createTask(getSelfEmployeeIdAsLong());
+                long taskId2 = ef.createTask(ef.createEmployee());
 
                 criteriaService.create(CriteriaDto.builder()
                         .name(sentence2)
@@ -175,8 +175,8 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
                 String sentence1 = faker.lorem().sentence();
                 String sentence2 = faker.lorem().sentence();
 
-                long taskId1 = ef.createTask(ef.createUser());
-                long taskId2 = ef.createTask(ef.createUser());
+                long taskId1 = ef.createTask(ef.createEmployee());
+                long taskId2 = ef.createTask(ef.createEmployee());
 
                 criteriaService.create(CriteriaDto.builder()
                         .name(sentence2)
@@ -206,7 +206,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
 
     @Test
     void getCriteriaByTask__otherAsTeacher__invalid() {
-        long id = ef.createTask(ef.createUser());
+        long id = ef.createTask(ef.createEmployee());
 
         new WithUser(USERNAME, PASSWORD) {
             @Override
@@ -226,7 +226,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
                 String sentence2 = faker.lorem().sentence();
 
                 long taskId1 = ef.createTask(ef.bag().withCourseId(getCourseId()));
-                long taskId2 = ef.createTask(ef.createUser());
+                long taskId2 = ef.createTask(ef.createEmployee());
 
                 criteriaService.create(CriteriaDto.builder()
                         .name(sentence2)
@@ -256,7 +256,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
 
     @Test
     void getCriteriaByTask__notAuthenticated__invalid() throws Exception {
-        long id = ef.createTask(ef.createUser());
+        long id = ef.createTask(ef.createEmployee());
         mvc.perform(get("/criteria/task/{id}", id)).andExpect(status().isUnauthorized());
     }
 
@@ -268,7 +268,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long taskId = ef.createTask(getIdAsLong());
+                long taskId = ef.createTask(getSelfEmployeeIdAsLong());
                 int criteriaPercent = 60;
 
                 securePerform(post("/criteria/")
@@ -299,7 +299,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long taskId = ef.createTask(ef.createUser());
+                long taskId = ef.createTask(ef.createEmployee());
                 int criteriaPercent = 60;
 
                 securePerform(post("/criteria/")
@@ -330,7 +330,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long taskId = ef.createTask(ef.createUser());
+                long taskId = ef.createTask(ef.createEmployee());
                 int criteriaPercent = 60;
 
                 securePerform(post("/criteria/")
@@ -372,7 +372,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long taskId = ef.createTask(getIdAsLong());
+                long taskId = ef.createTask(getSelfEmployeeIdAsLong());
 
                 criteriaService.create(CriteriaDto.builder()
                         .name(name)
@@ -399,7 +399,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
                         .content(objectMapper.createObjectNode()
                                 .put("name", faker.lorem().sentence())
                                 .put("criteriaPercent", 45)
-                                .put("task", ef.createTask(ef.createUser()))
+                                .put("task", ef.createTask(ef.createEmployee()))
                                 .toString()))
                 .andExpect(status().isUnauthorized());
     }
@@ -413,7 +413,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
             void run() throws Exception {
                 String name = faker.lorem().sentence();
                 int criteriaPercent = 45;
-                long taskId = ef.createTask(getIdAsLong());
+                long taskId = ef.createTask(getSelfEmployeeIdAsLong());
 
                 String prevName = faker.lorem().sentence();
                 int prevCriteriaPercent = 60;
@@ -559,11 +559,11 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
             void run() throws Exception {
                 String name = faker.lorem().sentence();
                 int criteriaPercent = 45;
-                long taskId = ef.createTask(getIdAsLong());
+                long taskId = ef.createTask(getSelfEmployeeIdAsLong());
 
                 String prevName = faker.lorem().sentence();
                 int prevCriteriaPercent = 60;
-                long prevTaskId = ef.createTask(getIdAsLong());
+                long prevTaskId = ef.createTask(getSelfEmployeeIdAsLong());
 
                 long criteriaId = criteriaService.create(CriteriaDto.builder()
                         .name(prevName)
@@ -590,7 +590,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
             void run() throws Exception {
                 String name = faker.lorem().sentence();
                 int criteriaPercent = 45;
-                long taskId = ef.createTask(getIdAsLong());
+                long taskId = ef.createTask(getSelfEmployeeIdAsLong());
 
                 String prevName = faker.lorem().sentence();
 
@@ -625,7 +625,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
             void run() throws Exception {
                 String name = faker.lorem().sentence();
                 int criteriaPercent = 45;
-                long taskId = ef.createTask(getIdAsLong());
+                long taskId = ef.createTask(getSelfEmployeeIdAsLong());
 
                 String prevName = faker.lorem().sentence();
                 int prevCriteriaPercent = 60;
@@ -681,7 +681,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long taskId = ef.createTask(getIdAsLong());
+                long taskId = ef.createTask(getSelfEmployeeIdAsLong());
                 int criteriaPercent = 60;
 
                 String prevName = faker.lorem().sentence();
@@ -816,9 +816,9 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
             void run() throws Exception {
                 String name = faker.lorem().sentence();
                 int criteriaPercent = 45;
-                long taskId = ef.createTask(getIdAsLong());
+                long taskId = ef.createTask(getSelfEmployeeIdAsLong());
 
-                long prevTaskId = ef.createTask(getIdAsLong());
+                long prevTaskId = ef.createTask(getSelfEmployeeIdAsLong());
 
                 long criteriaId = criteriaService.create(CriteriaDto.builder()
                         .name(name)
@@ -843,7 +843,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
             void run() throws Exception {
                 String name = faker.lorem().sentence();
                 int criteriaPercent = 45;
-                long taskId = ef.createTask(getIdAsLong());
+                long taskId = ef.createTask(getSelfEmployeeIdAsLong());
 
                 String prevName = faker.lorem().sentence();
 
@@ -875,7 +875,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long taskId = ef.createTask(getIdAsLong());
+                long taskId = ef.createTask(getSelfEmployeeIdAsLong());
                 int criteriaPercent = 60;
 
                 String prevName = faker.lorem().sentence();
@@ -927,7 +927,7 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long taskId = ef.createTask(getIdAsLong());
+                long taskId = ef.createTask(getSelfEmployeeIdAsLong());
                 int criteriaPercent = 60;
 
                 long criteriaId = criteriaService.create(CriteriaDto.builder()

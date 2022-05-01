@@ -10,6 +10,9 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(uses = {MapperHelper.class}, componentModel = "spring")
 public interface MapStructTestMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void merge(CreateEditAuthUserDto dto, @MappingTarget CreateEditAuthUserDto target);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void merge(StudentDto dto, @MappingTarget StudentDto target);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

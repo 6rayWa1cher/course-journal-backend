@@ -30,8 +30,8 @@ public class Group implements IdEntity<Long> {
     @ReadOnlyProperty
     private Long id;
 
-    @JoinColumn(name = "faculty", nullable = false)
     @ManyToOne(optional = false)
+    @JoinColumn(name = "faculty", nullable = false)
     private Faculty faculty;
 
     @Column(name = "name", nullable = false)

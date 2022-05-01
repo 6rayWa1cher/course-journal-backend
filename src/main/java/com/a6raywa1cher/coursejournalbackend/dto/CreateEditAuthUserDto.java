@@ -13,7 +13,5 @@ public class CreateEditAuthUserDto {
 
     private UserRole userRole;
 
-    private Long student;
-
-    private Long employee;
+    private Long userInfo;
 }

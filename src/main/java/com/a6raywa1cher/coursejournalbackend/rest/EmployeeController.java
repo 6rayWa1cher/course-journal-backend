@@ -45,21 +45,21 @@ public class EmployeeController {
     @ResponseStatus(HttpStatus.CREATED)
     @Validated(OnCreate.class)
     public EmployeeDto createEmployee(@RequestBody @Valid EmployeeRestDto dto) {
-        return employeeService.createEmployee(mapper.map(dto));
+        return employeeService.create(mapper.map(dto));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("@accessChecker.editEmployeeAccess(#id, authentication)")
     @Validated(OnUpdate.class)
     public EmployeeDto updateEmployee(@RequestBody @Valid EmployeeRestDto dto, @PathVariable long id) {
-        return employeeService.updateEmployee(id, mapper.map(dto));
+        return employeeService.update(id, mapper.map(dto));
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("@accessChecker.editEmployeeAccess(#id, authentication)")
     @Validated(OnPatch.class)
     public EmployeeDto patchEmployee(@RequestBody @Valid EmployeeRestDto dto, @PathVariable long id) {
-        return employeeService.patchEmployee(id, mapper.map(dto));
+        return employeeService.patch(id, mapper.map(dto));
     }
 
     @DeleteMapping("/{id}")

@@ -43,7 +43,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public EmployeeDto createEmployee(EmployeeDto dto) {
+    public EmployeeDto create(EmployeeDto dto) {
         Employee employee = new Employee();
 
         mapper.put(dto, employee);
@@ -55,7 +55,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public EmployeeDto updateEmployee(long id, EmployeeDto dto) {
+    public EmployeeDto update(long id, EmployeeDto dto) {
         Employee employee = $getById(id);
 
         mapper.put(dto, employee);
@@ -65,7 +65,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public EmployeeDto patchEmployee(long id, EmployeeDto dto) {
+    public EmployeeDto patch(long id, EmployeeDto dto) {
         Employee employee = $getById(id);
 
         mapper.patch(dto, employee);

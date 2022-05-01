@@ -56,8 +56,6 @@ public class AccessChecker {
     }
 
     private boolean hasAuthority(String authority, Authentication authentication) {
-        System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
-        System.out.println(authentication);
         return authentication.getAuthorities()
                 .stream().anyMatch(ga -> ga.getAuthority().equals(authority));
     }

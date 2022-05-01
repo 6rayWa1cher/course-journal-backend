@@ -14,4 +14,10 @@ public class IncorrectTargetOnUserRoleException extends RuntimeException {
                 CommonUtils.getSimpleClassName(target), EntityUtils.getId(target), userRole, reason
         ));
     }
+
+    public IncorrectTargetOnUserRoleException(UserRole userRole, String target, String reason) {
+        super("Incorrect target %s on user role %s: %s".formatted(
+                target, userRole, reason
+        ));
+    }
 }

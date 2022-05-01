@@ -20,7 +20,14 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.a6raywa1cher.coursejournalbackend.utils.CommonUtils.coalesce;
+
+enum UserInfoType {
+    STUDENT, EMPLOYEE
+}
+
+record UserInfoLink(UserInfoType type, IdEntity<Long> entity) {
+
+}
 
 @Service
 public class AuthUserServiceImpl implements AuthUserService {
@@ -30,7 +37,8 @@ public class AuthUserServiceImpl implements AuthUserService {
     private final EmployeeService employeeService;
 
     @Autowired
-    public AuthUserServiceImpl(AuthUserRepository repository, MapStructMapper mapper, StudentService studentService, EmployeeService employeeService) {
+    public AuthUserServiceImpl(AuthUserRepository repository, MapStructMapper mapper,
+                               StudentService studentService, EmployeeService employeeService) {
         this.repository = repository;
         this.mapper = mapper;
         this.studentService = studentService;
@@ -72,17 +80,14 @@ public class AuthUserServiceImpl implements AuthUserService {
     @Override
     public AuthUserDto create(CreateEditAuthUserDto dto) {
         AuthUser authUser = new AuthUser();
-        Employee employee = dto.getEmployee() != null ? getEmployeeById(dto.getEmployee()) : null;
-        Student student = dto.getStudent() != null ? getStudentById(dto.getStudent()) : null;
+        UserInfoLink userInfoLink = getTargetFromId(dto.getUserRole(), dto.getUserInfo());
         LocalDateTime now = LocalDateTime.now();
 
-        IdEntity<Long> target = getTarget(employee, student);
-        assertValidTarget(dto.getUserRole(), target);
-        assertUniqueTarget(target);
+        assertUniqueTarget(userInfoLink);
+        assertUniqueUsername(dto.getUsername());
         mapper.put(dto, authUser);
 
-        authUser.setEmployee(employee);
-        authUser.setStudent(student);
+        setTarget(userInfoLink, authUser);
         authUser.setCreatedAt(now);
         authUser.setLastModifiedAt(now);
         authUser.setRefreshTokens(new ArrayList<>());
@@ -92,18 +97,15 @@ public class AuthUserServiceImpl implements AuthUserService {
     @Override
     public AuthUserDto update(long id, CreateEditAuthUserDto dto) {
         AuthUser authUser = getAuthUserById(id);
-        Employee employee = dto.getEmployee() != null ? getEmployeeById(dto.getEmployee()) : null;
-        Student student = dto.getStudent() != null ? getStudentById(dto.getStudent()) : null;
         LocalDateTime now = LocalDateTime.now();
 
-        IdEntity<Long> prevTarget = getTarget(authUser.getEmployee(), authUser.getStudent());
-        IdEntity<Long> newTarget = getTarget(employee, student);
-        assertTargetNotChanged(prevTarget, newTarget);
+        UserInfoLink prevUserInfoLink = getTargetFromEntity(authUser.getEmployee(), authUser.getStudent());
+        UserInfoLink newUserInfoLink = getTargetFromId(dto.getUserRole(), dto.getUserInfo());
+        assertTargetNotChanged(prevUserInfoLink, newUserInfoLink);
         assertUserRoleNotChanged(authUser.getUserRole(), dto.getUserRole());
+        assertUniqueUsernameOrNotChanged(authUser.getUsername(), dto.getUsername());
         mapper.put(dto, authUser);
 
-        authUser.setEmployee(employee);
-        authUser.setStudent(student);
         authUser.setLastModifiedAt(now);
         return mapper.map(repository.save(authUser));
     }
@@ -111,18 +113,19 @@ public class AuthUserServiceImpl implements AuthUserService {
     @Override
     public AuthUserDto patch(long id, CreateEditAuthUserDto dto) {
         AuthUser authUser = getAuthUserById(id);
-        Employee employee = dto.getEmployee() != null ? getEmployeeById(dto.getEmployee()) : null;
-        Student student = dto.getStudent() != null ? getStudentById(dto.getStudent()) : null;
         LocalDateTime now = LocalDateTime.now();
 
-        IdEntity<Long> prevTarget = getTarget(authUser.getEmployee(), authUser.getStudent());
-        IdEntity<Long> newTarget = coalesce(getTarget(employee, student), prevTarget);
-        assertTargetNotChanged(prevTarget, newTarget);
-        if (dto.getUserRole() != null) assertUserRoleNotChanged(authUser.getUserRole(), dto.getUserRole());
+        UserInfoLink prevUserInfoLink = getTargetFromEntity(authUser.getEmployee(), authUser.getStudent());
+        UserInfoLink newUserInfoLink = dto.getUserInfo() == null ? prevUserInfoLink : getTargetFromId(dto.getUserRole(), dto.getUserInfo());
+        assertTargetNotChanged(prevUserInfoLink, newUserInfoLink);
+        if (dto.getUserRole() != null) {
+            assertUserRoleNotChanged(authUser.getUserRole(), dto.getUserRole());
+        }
+        if (dto.getUsername() != null) {
+            assertUniqueUsernameOrNotChanged(authUser.getUsername(), dto.getUsername());
+        }
         mapper.patch(dto, authUser);
 
-        authUser.setEmployee(employee);
-        authUser.setStudent(student);
         authUser.setLastModifiedAt(now);
         return mapper.map(repository.save(authUser));
     }
@@ -137,76 +140,77 @@ public class AuthUserServiceImpl implements AuthUserService {
         return repository.findById(id).orElseThrow(() -> new NotFoundException(AuthUser.class, id));
     }
 
-    private Employee getEmployeeById(long id) {
-        return employeeService.findRawById(id).orElseThrow(() -> new NotFoundException(Employee.class, id));
+    private Employee getEmployeeById(Long id) {
+        return Optional.ofNullable(id)
+                .flatMap(employeeService::findRawById)
+                .orElseThrow(() -> new NotFoundException(Employee.class, id));
     }
 
-    private Student getStudentById(long id) {
-        return studentService.findRawById(id).orElseThrow(() -> new NotFoundException(Student.class, id));
+    private Student getStudentById(Long id) {
+        return Optional.ofNullable(id)
+                .flatMap(studentService::findRawById)
+                .orElseThrow(() -> new NotFoundException(Student.class, id));
     }
 
-    private IdEntity<Long> getTarget(Employee employee, Student student) {
+    private UserInfoLink getTargetFromEntity(Employee employee, Student student) {
         if (employee != null && student != null) {
             throw new MultipleTargetsException(employee, student);
         }
-        return employee != null ? employee : student;
+        return employee != null ? new UserInfoLink(UserInfoType.EMPLOYEE, employee) : new UserInfoLink(UserInfoType.STUDENT, student);
     }
 
-    private void assertTargetNotChanged(IdEntity<Long> prevTarget, IdEntity<Long> newTarget) {
-        if (!Objects.equals(prevTarget, newTarget)) {
-            throw new TransferNotAllowedException(AuthUser.class, "target", prevTarget, newTarget);
+    private UserInfoLink getTargetFromId(UserRole userRole, Long id) {
+        return switch (userRole) {
+            case TEACHER -> new UserInfoLink(UserInfoType.EMPLOYEE, getEmployeeById(id));
+            case HEADMAN -> new UserInfoLink(UserInfoType.STUDENT, getStudentById(id));
+            default -> {
+                if (id != null) {
+                    throw new IncorrectTargetOnUserRoleException(userRole, Long.toString(id), "target must be null");
+                }
+                yield null;
+            }
+        };
+    }
+
+    private void setTarget(UserInfoLink userInfoLink, AuthUser authUser) {
+        switch (userInfoLink.type()) {
+            case STUDENT -> authUser.setStudent((Student) userInfoLink.entity());
+            case EMPLOYEE -> authUser.setEmployee((Employee) userInfoLink.entity());
+            default -> throw new IllegalArgumentException("Unknown target type %s".formatted(userInfoLink.type()));
         }
     }
 
-    private void assertValidTarget(UserRole userRole, IdEntity<Long> target) {
-        switch (userRole) {
-            case ADMIN -> {
-                if (target != null) {
-                    throw new IncorrectTargetOnUserRoleException(
-                            UserRole.ADMIN, target, "admin can't have a target"
-                    );
-                }
-            }
-            case TEACHER -> {
-                if (target instanceof Student) {
-                    throw new IncorrectTargetOnUserRoleException(
-                            UserRole.TEACHER, target, "teacher can't have a student as a target"
-                    );
-                }
-                if (target == null) {
-                    throw new IncorrectTargetOnUserRoleException(
-                            UserRole.TEACHER, null, "teacher has to have an employee as a target"
-                    );
-                }
-            }
-            case HEADMAN -> {
-                if (target instanceof Employee) {
-                    throw new IncorrectTargetOnUserRoleException(
-                            UserRole.HEADMAN, target, "headman can't have an employee as a target"
-                    );
-                }
-                if (target == null) {
-                    throw new IncorrectTargetOnUserRoleException(
-                            UserRole.HEADMAN, null, "headman has to have a student as a target"
-                    );
-                }
-            }
-            default -> throw new IllegalArgumentException("Unknown role %s".formatted(userRole));
+    private void assertTargetNotChanged(UserInfoLink prevUserInfoLink, UserInfoLink newUserInfoLink) {
+        if (!Objects.equals(prevUserInfoLink, newUserInfoLink)) {
+            throw new TransferNotAllowedException(AuthUser.class, "target", prevUserInfoLink.toString(), newUserInfoLink.toString());
         }
     }
 
-    private void assertUniqueTarget(IdEntity<Long> target) {
-        if (target instanceof Student student && repository.findByStudent(student).isPresent()) {
-            throw new ConflictException(AuthUser.class, "student", EntityUtils.getId(student));
+    private void assertUniqueTarget(UserInfoLink userInfoLink) {
+        IdEntity<Long> entity = userInfoLink.entity();
+        if (userInfoLink.type() == UserInfoType.STUDENT && repository.findByStudent((Student) entity).isPresent()) {
+            throw new ConflictException(AuthUser.class, "student", EntityUtils.getId(entity));
         }
-        if (target instanceof Employee employee && repository.findByEmployee(employee).isPresent()) {
-            throw new ConflictException(AuthUser.class, "employee", EntityUtils.getId(employee));
+        if (userInfoLink.type() == UserInfoType.EMPLOYEE && repository.findByEmployee((Employee) entity).isPresent()) {
+            throw new ConflictException(AuthUser.class, "employee", EntityUtils.getId(entity));
         }
     }
 
     private void assertUserRoleNotChanged(UserRole prevUserRole, UserRole newUserRole) {
         if (!Objects.equals(prevUserRole, newUserRole)) {
             throw new TransferNotAllowedException(AuthUser.class, "userRole", prevUserRole.name(), newUserRole.name());
+        }
+    }
+
+    private void assertUniqueUsername(String username) {
+        if (repository.findByUsername(username).isPresent()) {
+            throw new ConflictException(AuthUser.class, "username", username);
+        }
+    }
+
+    private void assertUniqueUsernameOrNotChanged(String prevUsername, String newUsername) {
+        if (!Objects.equals(prevUsername, newUsername)) {
+            assertUniqueUsername(newUsername);
         }
     }
 }

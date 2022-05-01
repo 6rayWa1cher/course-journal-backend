@@ -15,11 +15,11 @@ public interface EmployeeService {
 
     Optional<Employee> findRawById(long id);
 
-    EmployeeDto createEmployee(EmployeeDto dto);
+    EmployeeDto create(EmployeeDto dto);
 
-    EmployeeDto updateEmployee(long id, EmployeeDto dto);
+    EmployeeDto update(long id, EmployeeDto dto);
 
-    EmployeeDto patchEmployee(long id, EmployeeDto dto);
+    EmployeeDto patch(long id, EmployeeDto dto);
 
     void delete(long id);
 }

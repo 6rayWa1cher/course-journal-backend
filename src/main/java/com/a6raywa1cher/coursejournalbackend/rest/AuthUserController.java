@@ -61,20 +61,20 @@ public class AuthUserController {
     @PutMapping("/{id}")
     @PreAuthorize("@accessChecker.editEmployeeAccess(#id, authentication)")
     @Validated(OnUpdate.class)
-    public AuthUserDto updateEmployee(@RequestBody @Valid AuthUserRestDto dto, @PathVariable long id) {
+    public AuthUserDto updateAuthUser(@RequestBody @Valid AuthUserRestDto dto, @PathVariable long id) {
         return service.update(id, mapper.map(dto));
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("@accessChecker.editEmployeeAccess(#id, authentication)")
     @Validated(OnPatch.class)
-    public AuthUserDto patchEmployee(@RequestBody @Valid AuthUserRestDto dto, @PathVariable long id) {
+    public AuthUserDto patchAuthUser(@RequestBody @Valid AuthUserRestDto dto, @PathVariable long id) {
         return service.patch(id, mapper.map(dto));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@accessChecker.editEmployeeAccess(#id, authentication)")
-    public void deleteEmployee(@PathVariable long id) {
+    public void deleteAuthUser(@PathVariable long id) {
         service.delete(id);
     }
 }

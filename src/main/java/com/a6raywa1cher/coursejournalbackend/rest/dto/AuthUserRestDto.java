@@ -22,7 +22,5 @@ public class AuthUserRestDto {
     @NotNull(groups = {OnCreate.class, OnUpdate.class})
     private UserRole userRole;
 
-    private Long student;
-
-    private Long employee;
+    private Long userInfo;
 }
