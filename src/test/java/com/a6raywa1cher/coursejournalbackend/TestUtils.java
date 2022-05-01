@@ -1,6 +1,7 @@
 package com.a6raywa1cher.coursejournalbackend;
 
 import com.a6raywa1cher.coursejournalbackend.model.AttendanceType;
+import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.jayway.jsonpath.JsonPath;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -25,6 +26,11 @@ public final class TestUtils {
     public static AttendanceType randomAttendanceType() {
         int pick = new Random().nextInt(AttendanceType.values().length);
         return AttendanceType.values()[pick];
+    }
+
+    public static UserRole randomUserRole() {
+        int pick = new Random().nextInt(UserRole.values().length);
+        return UserRole.values()[pick];
     }
 
     public static String ctbearer(String accessToken) {

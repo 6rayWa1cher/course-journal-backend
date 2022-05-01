@@ -67,8 +67,8 @@ public class EntityFactory {
     public long createAuthUser(EntityFactoryBag bag) {
         CreateEditAuthUserDto dto = CreateEditAuthUserDto.builder()
                 .username(faker.name().username())
-                .userRole(UserRole.TEACHER)
-                .userInfo(bag.getEmployeeId())
+                .userRole(bag.getUserRole())
+                .userInfo(bag.getUserInfoId())
                 .build();
 
         CreateEditAuthUserDto dtoFromBag = bag.getDto(CreateEditAuthUserDto.class);
@@ -77,6 +77,22 @@ public class EntityFactory {
         }
 
         return authUserService.create(dto).getId();
+    }
+
+    public Long createUserInfoId() {
+        return createUserInfoId(bag());
+    }
+
+    public Long createUserInfoId(UserRole userRole) {
+        return createUserInfoId(bag().withUserRole(userRole));
+    }
+
+    public Long createUserInfoId(EntityFactoryBag bag) {
+        return switch (bag.getUserRole()) {
+            case ADMIN -> null;
+            case TEACHER -> bag.getEmployeeId();
+            case HEADMAN -> bag.getStudentId();
+        };
     }
 
     public long createEmployee() {
@@ -332,6 +348,10 @@ public class EntityFactory {
 
         private Long authUserId;
 
+        private Long userInfoId;
+
+        private UserRole userRole;
+
         private Long employeeId;
 
         private Long courseId;
@@ -357,6 +377,16 @@ public class EntityFactory {
         public Long getAuthUserId() {
             if (authUserId == null) authUserId = ef.createAuthUser(this);
             return authUserId;
+        }
+
+        public UserRole getUserRole() {
+            if (userRole == null) userRole = TestUtils.randomUserRole();
+            return userRole;
+        }
+
+        public Long getUserInfoId() {
+            if (userInfoId == null) userInfoId = ef.createUserInfoId(this);
+            return userInfoId;
         }
 
         public Long getEmployeeId() {

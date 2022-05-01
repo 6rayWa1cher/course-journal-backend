@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.a6raywa1cher.coursejournalbackend.utils.CommonUtils.coalesce;
+
 
 enum UserInfoType {
     STUDENT, EMPLOYEE
@@ -116,7 +118,12 @@ public class AuthUserServiceImpl implements AuthUserService {
         LocalDateTime now = LocalDateTime.now();
 
         UserInfoLink prevUserInfoLink = getTargetFromEntity(authUser.getEmployee(), authUser.getStudent());
-        UserInfoLink newUserInfoLink = dto.getUserInfo() == null ? prevUserInfoLink : getTargetFromId(dto.getUserRole(), dto.getUserInfo());
+        UserInfoLink newUserInfoLink = dto.getUserInfo() != null ?
+                getTargetFromId(
+                        coalesce(dto.getUserRole(), authUser.getUserRole()),
+                        dto.getUserInfo()
+                ) :
+                prevUserInfoLink;
         assertTargetNotChanged(prevUserInfoLink, newUserInfoLink);
         if (dto.getUserRole() != null) {
             assertUserRoleNotChanged(authUser.getUserRole(), dto.getUserRole());
@@ -141,20 +148,22 @@ public class AuthUserServiceImpl implements AuthUserService {
     }
 
     private Employee getEmployeeById(Long id) {
-        return Optional.ofNullable(id)
-                .flatMap(employeeService::findRawById)
+        if (id == null) throw new NoDataPresentedException(AuthUser.class, "userInfo");
+        return employeeService.findRawById(id)
                 .orElseThrow(() -> new NotFoundException(Employee.class, id));
     }
 
     private Student getStudentById(Long id) {
-        return Optional.ofNullable(id)
-                .flatMap(studentService::findRawById)
+        if (id == null) throw new NoDataPresentedException(AuthUser.class, "userInfo");
+        return studentService.findRawById(id)
                 .orElseThrow(() -> new NotFoundException(Student.class, id));
     }
 
     private UserInfoLink getTargetFromEntity(Employee employee, Student student) {
         if (employee != null && student != null) {
             throw new MultipleTargetsException(employee, student);
+        } else if (employee == null && student == null) {
+            return null;
         }
         return employee != null ? new UserInfoLink(UserInfoType.EMPLOYEE, employee) : new UserInfoLink(UserInfoType.STUDENT, student);
     }
@@ -173,6 +182,7 @@ public class AuthUserServiceImpl implements AuthUserService {
     }
 
     private void setTarget(UserInfoLink userInfoLink, AuthUser authUser) {
+        if (userInfoLink == null) return;
         switch (userInfoLink.type()) {
             case STUDENT -> authUser.setStudent((Student) userInfoLink.entity());
             case EMPLOYEE -> authUser.setEmployee((Employee) userInfoLink.entity());
@@ -182,11 +192,12 @@ public class AuthUserServiceImpl implements AuthUserService {
 
     private void assertTargetNotChanged(UserInfoLink prevUserInfoLink, UserInfoLink newUserInfoLink) {
         if (!Objects.equals(prevUserInfoLink, newUserInfoLink)) {
-            throw new TransferNotAllowedException(AuthUser.class, "target", prevUserInfoLink.toString(), newUserInfoLink.toString());
+            throw new TransferNotAllowedException(AuthUser.class, "target", Objects.toString(prevUserInfoLink), Objects.toString(newUserInfoLink));
         }
     }
 
     private void assertUniqueTarget(UserInfoLink userInfoLink) {
+        if (userInfoLink == null) return;
         IdEntity<Long> entity = userInfoLink.entity();
         if (userInfoLink.type() == UserInfoType.STUDENT && repository.findByStudent((Student) entity).isPresent()) {
             throw new ConflictException(AuthUser.class, "student", EntityUtils.getId(entity));

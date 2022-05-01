@@ -11,8 +11,7 @@ import javax.persistence.EntityManager;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.a6raywa1cher.coursejournalbackend.security.Permission.getPermissionForCourse;
-import static com.a6raywa1cher.coursejournalbackend.security.Permission.getPermissionForEmployee;
+import static com.a6raywa1cher.coursejournalbackend.security.Permission.*;
 
 @Component
 public class AccessChecker {
@@ -42,6 +41,8 @@ public class AccessChecker {
             return getPermissionForCourse(criteria.getTask().getCourse(), type);
         } else if (entity instanceof Employee employee) {
             return getPermissionForEmployee(employee, type);
+        } else if (entity instanceof AuthUser authUser) {
+            return getPermissionForAuthUser(authUser, type);
         } else if (entity instanceof Attendance attendance) {
             return getPermissionForCourse(attendance.getCourse(), type);
         } else if (entity instanceof Submission submission) {
