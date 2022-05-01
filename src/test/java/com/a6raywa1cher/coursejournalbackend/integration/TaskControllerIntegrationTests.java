@@ -1670,9 +1670,10 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
+                long employeeId = ef.createEmployee();
+                long courseId = ef.createCourse(employeeId);
 
-                long prevCourseId = ef.createCourse(getSelfEmployeeIdAsLong());
+                long prevCourseId = ef.createCourse(employeeId);
                 String title = faker.lorem().sentence();
                 String description = faker.lorem().paragraph();
 
@@ -1728,9 +1729,10 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
+                long employeeId = ef.createEmployee();
+                long courseId = ef.createCourse(employeeId);
 
-                long prevCourseId = ef.createCourse(getSelfEmployeeIdAsLong());
+                long prevCourseId = ef.createCourse(employeeId);
                 String title = faker.lorem().sentence();
                 String description = faker.lorem().paragraph();
 

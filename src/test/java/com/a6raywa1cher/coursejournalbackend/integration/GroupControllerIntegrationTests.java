@@ -1118,7 +1118,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long id = ef.createGroup(getSelfEmployeeIdAsLong());
+                long id = ef.createGroup();
 
                 securePerform(delete("/groups/{id}", id + 1000))
                         .andExpect(status().isNotFound());

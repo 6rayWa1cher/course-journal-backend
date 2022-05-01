@@ -54,7 +54,7 @@ public class CourseController {
     }
 
     @GetMapping("/owner/{id}")
-    @PreAuthorize("@accessChecker.readUserAccess(#id, authentication)")
+    @PreAuthorize("@accessChecker.readEmployeeAccess(#id, authentication)")
     public Page<CourseDto> findByOwner(@PathVariable long id,
                                        @RequestParam(required = false) @Pattern(regexp = COMMON_NAME) @Valid String name,
                                        @ParameterObject Pageable pageable) {

@@ -76,7 +76,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
             void run() throws Exception {
                 LocalDate attendedDate = LocalDate.now();
                 int attendedClass = faker.number().numberBetween(1, 6);
-                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
+                long courseId = ef.createCourse();
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 AttendanceType attendanceType = TestUtils.randomAttendanceType();
 
@@ -235,13 +235,13 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long userId = ef.createEmployee();
-                long courseId1 = ef.createCourse(userId);
-                long courseId2 = ef.createCourse(userId);
-                long courseId3 = ef.createCourse(userId);
+                long employeeId = ef.createEmployee();
+                long courseId1 = ef.createCourse(employeeId);
+                long courseId2 = ef.createCourse(employeeId);
+                long courseId3 = ef.createCourse(employeeId);
 
-                long studentId1 = ef.createStudent(getSelfEmployeeIdAsLong());
-                long studentId2 = ef.createStudent(getSelfEmployeeIdAsLong());
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
 
                 int attendedClass = faker.number().numberBetween(1, 6);
 
@@ -341,13 +341,13 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long userId = ef.createEmployee();
-                long courseId1 = ef.createCourse(userId);
-                long courseId2 = ef.createCourse(userId);
+                long employeeId = ef.createEmployee();
+                long courseId1 = ef.createCourse(employeeId);
+                long courseId2 = ef.createCourse(employeeId);
 
-                long studentId1 = ef.createStudent(getSelfEmployeeIdAsLong());
-                long studentId2 = ef.createStudent(getSelfEmployeeIdAsLong());
-                long studentId3 = ef.createStudent(getSelfEmployeeIdAsLong());
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                long studentId3 = ef.createStudent();
 
                 int attendedClass = faker.number().numberBetween(1, 6);
 
@@ -1251,7 +1251,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
+                long courseId = ef.createCourse();
                 long studentId1 = ef.createStudent(ef.bag().withCourseId(courseId));
                 long studentId2 = ef.createStudent(ef.bag().withCourseId(courseId));
                 int attendedClass = faker.number().numberBetween(1, 6);
@@ -1465,7 +1465,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long attendanceId = ef.createAttendance(getSelfEmployeeIdAsLong());
+                long attendanceId = ef.createAttendance();
 
                 securePerform(delete("/attendances/{id}", attendanceId))
                         .andExpectAll(status().isOk());
