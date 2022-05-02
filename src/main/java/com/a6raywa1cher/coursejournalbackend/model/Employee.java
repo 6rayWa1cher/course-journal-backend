@@ -15,7 +15,12 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "app_user")
+@Table(
+        name = "employee",
+        uniqueConstraints = @UniqueConstraint(columnNames = {
+                "first_name", "last_name", "middle_name", "department"
+        })
+)
 @Getter
 @Setter
 @ToString
@@ -38,6 +43,9 @@ public class Employee implements IdEntity<Long> {
 
     @Column(name = "middle_name")
     private String middleName;
+
+    @Column(name = "department")
+    private String department;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude

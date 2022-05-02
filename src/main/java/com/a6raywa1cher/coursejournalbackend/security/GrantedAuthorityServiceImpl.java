@@ -41,7 +41,7 @@ public class GrantedAuthorityServiceImpl implements GrantedAuthorityService {
             case TEACHER -> {
                 long employeeId = authUser.getEmployee().getId();
                 set.add(newAuthority(getPermissionForEmployee(employeeId, ActionType.READ)));
-                set.add(newAuthority(getPermissionForEmployee(employeeId, ActionType.WRITE)));
+                set.add(newAuthority(getPermissionForEmployee(employeeId, ActionType.WRITE_CASCADE)));
             }
             case HEADMAN -> {
                 long groupId = authUser.getStudent().getGroup().getId();

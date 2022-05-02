@@ -80,7 +80,7 @@ public class AccessChecker {
     }
 
     public boolean createCourseAccess(Long ownerId, Authentication authentication) {
-        return hasAuthority(ownerId, Employee.class, ActionType.WRITE, authentication);
+        return hasAuthority(ownerId, Employee.class, ActionType.WRITE_CASCADE, authentication);
     }
 
     public boolean readCourseAccess(Long id, Authentication authentication) {

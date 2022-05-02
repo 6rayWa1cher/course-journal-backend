@@ -5,7 +5,6 @@ import com.a6raywa1cher.coursejournalbackend.dto.CreateEditAuthUserDto;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.a6raywa1cher.coursejournalbackend.service.StudentService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -21,8 +20,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static com.a6raywa1cher.coursejournalbackend.TestUtils.basic;
-import static com.a6raywa1cher.coursejournalbackend.TestUtils.randomUserRole;
+import static com.a6raywa1cher.coursejournalbackend.TestUtils.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -398,7 +396,7 @@ public class AuthUserControllerIntegrationTests extends AbstractIntegrationTests
                         .andExpectAll(ctx.getMatchers())
                         .andReturn();
 
-                int id = JsonPath.read(mvcResult.getResponse().getContentAsString(), "$.id");
+                long id = getIdFromResult(mvcResult);
 
                 securePerform(get("/auth-user/{id}", id))
                         .andExpect(status().isOk())
@@ -429,7 +427,7 @@ public class AuthUserControllerIntegrationTests extends AbstractIntegrationTests
                         .andExpectAll(ctx.getMatchers())
                         .andReturn();
 
-                int id = JsonPath.read(mvcResult.getResponse().getContentAsString(), "$.id");
+                long id = getIdFromResult(mvcResult);
 
                 securePerform(get("/auth-user/{id}", id))
                         .andExpect(status().isOk())
@@ -460,7 +458,7 @@ public class AuthUserControllerIntegrationTests extends AbstractIntegrationTests
                         .andExpectAll(ctx.getMatchers())
                         .andReturn();
 
-                int id = JsonPath.read(mvcResult.getResponse().getContentAsString(), "$.id");
+                long id = getIdFromResult(mvcResult);
 
                 securePerform(get("/auth-user/{id}", id))
                         .andExpect(status().isOk())

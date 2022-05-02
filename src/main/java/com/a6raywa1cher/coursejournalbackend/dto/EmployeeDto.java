@@ -16,6 +16,8 @@ public class EmployeeDto {
 
     private String lastName;
 
+    private String department;
+
     private ZonedDateTime createdAt;
 
     private ZonedDateTime lastModifiedAt;

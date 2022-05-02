@@ -19,4 +19,7 @@ public class EmployeeRestDto {
     @NotBlank(groups = {OnCreate.class, OnUpdate.class})
     @Size(max = 50)
     private String lastName;
+
+    @Size(max = 255)
+    private String department;
 }
