@@ -10,8 +10,6 @@ import java.time.ZonedDateTime;
 public class GroupDto {
     private Long id;
 
-    private Long course;
-
     private Long faculty;
 
     private String name;

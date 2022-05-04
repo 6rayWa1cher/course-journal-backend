@@ -244,7 +244,6 @@ public class EntityFactory {
         GroupDto dto = GroupDto.builder()
                 .name(faker.lorem().sentence(1))
                 .faculty(bag.getFacultyId())
-                .course(bag.getCourseId())
                 .build();
 
         GroupDto dtoFromBag = bag.getDto(GroupDto.class);

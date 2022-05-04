@@ -67,6 +67,17 @@ public abstract class AbstractIntegrationTests {
         private String username;
         private String password;
 
+        public WithUser(String username, String password, UserRole userRole) {
+            this.username = username;
+            this.password = password;
+            userService.createUser(CreateEditUserDto.builder()
+                            .username(username)
+                            .password(password)
+                            .userRole(userRole)
+                    .build());
+            this.wrappedRun();
+        }
+
         public WithUser(String username, String password, boolean create) {
             this.username = username;
             this.password = password;

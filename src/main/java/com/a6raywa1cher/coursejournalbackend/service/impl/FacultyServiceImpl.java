@@ -7,10 +7,14 @@ import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
 import com.a6raywa1cher.coursejournalbackend.model.Faculty;
 import com.a6raywa1cher.coursejournalbackend.model.repo.FacultyRepository;
 import com.a6raywa1cher.coursejournalbackend.service.FacultyService;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class FacultyServiceImpl implements FacultyService {
@@ -30,6 +34,11 @@ public class FacultyServiceImpl implements FacultyService {
     }
 
     @Override
+    public List<FacultyDto> getAllFaculties(Sort sort) {
+        return repository.findAll(sort).stream().map(mapper::map).toList();
+    }
+
+    @Override
     public Optional<Faculty> findRawById(long id) {
         return repository.findById(id);
     }
@@ -43,7 +52,6 @@ public class FacultyServiceImpl implements FacultyService {
         assertUniqueName(name);
         mapper.put(dto, faculty);
 
-        faculty.setName(name);
         faculty.setCreatedAt(createdAndModifiedTime);
         faculty.setLastModifiedAt(createdAndModifiedTime);
         return mapper.map(repository.save(faculty));
@@ -53,6 +61,7 @@ public class FacultyServiceImpl implements FacultyService {
     public FacultyDto update(long id, FacultyDto dto) {
         Faculty faculty = getFacultyById(id);
 
+        assertUniqueName(dto.getName());
         mapper.put(dto, faculty);
 
         faculty.setLastModifiedAt(LocalDateTime.now());
@@ -64,6 +73,7 @@ public class FacultyServiceImpl implements FacultyService {
     public FacultyDto patch(long id, FacultyDto dto) {
         Faculty faculty = getFacultyById(id);
 
+        assertUniqueName(dto.getName());
         mapper.patch(dto, faculty);
 
         faculty.setLastModifiedAt(LocalDateTime.now());

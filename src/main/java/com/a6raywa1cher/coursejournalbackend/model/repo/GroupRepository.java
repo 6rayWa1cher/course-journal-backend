@@ -17,9 +17,5 @@ import java.util.Optional;
 public interface GroupRepository extends PagingAndSortingRepository<Group, Long> {
     List<Group> getAllByFaculty(Faculty faculty, Sort sort);
 
-    List<Group> getAllByCourse(Course course, Sort sort);
-
-    List<Group> getAllByFacultyAndCourse(Faculty faculty, Course course, Sort sort);
-
     Optional<Group> findByFacultyAndName(Faculty faculty, String name);
 }

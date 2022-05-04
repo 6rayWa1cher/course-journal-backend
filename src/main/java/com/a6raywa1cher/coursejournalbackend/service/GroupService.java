@@ -14,10 +14,6 @@ public interface GroupService {
 
     List<GroupDto> getByFaculty(long facultyId, Sort sort);
 
-    List<GroupDto> getByCourse(long courseId, Sort sort);
-
-    List<GroupDto> getByFacultyAndCourse(long facultyId, long courseId, Sort sort);
-
     GroupDto create(GroupDto dto);
 
     GroupDto update(long id, GroupDto dto);

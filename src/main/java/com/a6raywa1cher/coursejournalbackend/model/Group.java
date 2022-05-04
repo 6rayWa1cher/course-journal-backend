@@ -37,9 +37,6 @@ public class Group implements IdEntity<Long> {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @ManyToOne(optional = false)
-    private Course course;
-
     @OneToMany(mappedBy = "group", orphanRemoval = true, cascade = CascadeType.ALL)
     @ToString.Exclude
     private List<Student> students;

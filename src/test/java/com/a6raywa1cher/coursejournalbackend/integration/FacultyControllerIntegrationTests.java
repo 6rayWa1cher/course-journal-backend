@@ -69,7 +69,7 @@ public class FacultyControllerIntegrationTests extends AbstractIntegrationTests 
                 var context = createGetFacultyByIdContext();
 
                 long id = context.getRequest();
-                ResultMatcher[] matchers = context.getMatchers();
+                context.getMatchers();
 
                 securePerform(get("/faculties/{id}", id + 1000))
                         .andExpect(status().isNotFound());
@@ -84,21 +84,62 @@ public class FacultyControllerIntegrationTests extends AbstractIntegrationTests 
         mvc.perform(get("/faculties/{id}", id))
                 .andExpect(status().isUnauthorized());
     }
+    // ================================================================================================================
+
+    RequestContext<Long> createGetAllFacultiesContext(String name) {
+
+        long id = facultyService.create(FacultyDto.builder()
+                .name(name)
+                .build()).getId();
+
+        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
+                jsonPath(prefix + ".id").value(id),
+                jsonPath(prefix + ".name").value(name)
+        };
+
+        return RequestContext.<Long>builder()
+                .request(id)
+                .matchersSupplier(matchers)
+                .data(Map.of("facultyId", Long.toString(id)))
+                .build();
+    }
+
+    @Test
+    void getAllFaculties__authenticated__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                String name = faker.lorem().sentence(2);
+
+                var context1 = createGetAllFacultiesContext("A" + name);
+                var context2 = createGetAllFacultiesContext("B" + name);
+
+
+                securePerform(get("/faculties/all")
+                        .queryParam("sort", "name,asc"))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context1.getMatchers("$[0]"))
+                        .andExpectAll(context2.getMatchers("$[1]"));
+            }
+        };
+    }
+
+    @Test
+    void getAllFaculties__notAuthenticated__invalid() throws Exception {
+        String name = faker.lorem().sentence(2);
+        createGetAllFacultiesContext("A" + name);
+
+        mvc.perform(get("/faculties/all")
+                .queryParam("sort", "name,asc"))
+                .andExpect(status().isUnauthorized());
+    }
 
     // ================================================================================================================
 
     RequestContext<ObjectNode> getCreateFacultyContext() {
         String name = faker.lorem().sentence(2);
 
-        ObjectNode request = objectMapper.createObjectNode()
-                .put("name", name);
-
-        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
-                jsonPath(prefix + ".id").isNumber(),
-                jsonPath(prefix + ".name").value(name)
-        };
-
-        return new RequestContext<>(request, matchers);
+        return getCreateFacultyContextWithName(name);
     }
 
     RequestContext<ObjectNode> getCreateFacultyContextWithName(String name) {
@@ -261,6 +302,37 @@ public class FacultyControllerIntegrationTests extends AbstractIntegrationTests 
     }
 
     @Test
+    void putFaculty__newNameNotUnique__invalid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                String name1 = faker.lorem().sentence(2);
+                String name2 = name1 + faker.lorem().sentence(1);
+
+                ef.createFaculty(ef.bag().withDto(
+                        FacultyDto.builder()
+                                .name(name2)
+                                .build()
+                ));
+
+                long id = ef.createFaculty(ef.bag().withDto(
+                        FacultyDto.builder()
+                                .name(name1)
+                                .build()
+                ));
+
+                RequestContext<ObjectNode> context = createPutFacultyRequest(name2);
+                ObjectNode request = context.getRequest();
+
+                securePerform(put("/faculties/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isConflict());
+            }
+        };
+    }
+
+    @Test
     void putFaculty__notExists__invalid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
@@ -370,6 +442,37 @@ public class FacultyControllerIntegrationTests extends AbstractIntegrationTests 
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void patchFaculty__newNameNotUnique__invalid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                String name1 = faker.lorem().sentence(2);
+                String name2 = name1 + faker.lorem().sentence(1);
+
+                ef.createFaculty(ef.bag().withDto(
+                        FacultyDto.builder()
+                                .name(name2)
+                                .build()
+                ));
+
+                long id = ef.createFaculty(ef.bag().withDto(
+                        FacultyDto.builder()
+                                .name(name1)
+                                .build()
+                ));
+
+                RequestContext<ObjectNode> context = createPatchFacultyRequest(name2);
+                ObjectNode request = context.getRequest();
+
+                securePerform(patch("/faculties/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isConflict());
             }
         };
     }

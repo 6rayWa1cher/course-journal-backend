@@ -3,7 +3,9 @@ package com.a6raywa1cher.coursejournalbackend.integration;
 import com.a6raywa1cher.coursejournalbackend.RequestContext;
 import com.a6raywa1cher.coursejournalbackend.TestUtils;
 import com.a6raywa1cher.coursejournalbackend.dto.AttendanceDto;
+import com.a6raywa1cher.coursejournalbackend.dto.UserDto;
 import com.a6raywa1cher.coursejournalbackend.model.AttendanceType;
+import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.a6raywa1cher.coursejournalbackend.service.AttendanceService;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
 import com.a6raywa1cher.coursejournalbackend.service.StudentService;
@@ -38,12 +40,46 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void getAttendanceById__self__valid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 int attendedClass = faker.number().numberBetween(1, 6);
                 LocalDate attendedDate = LocalDate.now();
                 long courseId = ef.createCourse(getIdAsLong());
+                long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
+                AttendanceType attendanceType = TestUtils.randomAttendanceType();
+
+                long id = attendanceService.create(AttendanceDto.builder()
+                        .student(studentId)
+                        .course(courseId)
+                        .attendedClass(attendedClass)
+                        .attendanceType(attendanceType)
+                        .attendedDate(attendedDate)
+                        .build()).getId();
+
+                ResultMatcher[] matchers = {
+                        jsonPath("$.id").value(id),
+                        jsonPath("$.student").value(studentId),
+                        jsonPath("$.attendedClass").value(attendedClass),
+                        jsonPath("$.attendanceType").value(attendanceType.toString()),
+                        jsonPath("$.attendedDate").value(attendedDate.toString())
+                };
+
+                securePerform(get("/attendances/{id}", id))
+                        .andExpectAll(matchers)
+                        .andExpect(status().isOk());
+            }
+        };
+    }
+
+    @Test
+    void getAttendanceById__headman__valid() {
+        new WithUser(USERNAME, PASSWORD, UserRole.HEADMAN) {
+            @Override
+            void run() throws Exception {
+                int attendedClass = faker.number().numberBetween(1, 6);
+                LocalDate attendedDate = LocalDate.now();
+                long courseId = ef.createCourse(ef.createUser());
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 AttendanceType attendanceType = TestUtils.randomAttendanceType();
 
@@ -106,7 +142,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void getAttendanceById__otherAsTeacher__invalid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws  Exception {
                 LocalDate attendedDate = LocalDate.now();
@@ -205,7 +241,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void getAttendanceByStudentId__self__valid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 long courseId1 = ef.createCourse(getIdAsLong());
@@ -265,7 +301,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     void getAttendanceByStudentId__otherAsTeacher__invalid() {
         long id = ef.createStudent();
 
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 securePerform(get("/attendances/student/{id}", id))
@@ -311,7 +347,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void getAttendanceByCourse__self__valid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 long courseId1 = ef.createCourse(getIdAsLong());
@@ -370,7 +406,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     void getAttendanceByCourse__otherAsTeacher__invalid() {
         long id = ef.createCourse();
 
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 securePerform(get("/attendances/course/{id}", id))
@@ -416,7 +452,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void getAttendanceByCourseAndStudent__self__valid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 long courseId1 = ef.createCourse(getIdAsLong());
@@ -472,7 +508,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void getAttendanceByCourseAndStudent__otherAsTeacher__invalid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 long courseId1 = ef.createCourse();
@@ -532,7 +568,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void createAttendance__self__valid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(getIdAsLong());
@@ -586,7 +622,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void createAttendance__otherAsTeacher__invalid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
@@ -690,7 +726,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void batchCreateAttendance__self__valid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(getIdAsLong());
@@ -757,7 +793,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void batchCreateAttendance__otherAsTeacher__invalid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 long userId = ef.createUser();
@@ -817,7 +853,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void putAttendance__self__valid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(getIdAsLong());
@@ -886,7 +922,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void putAttendance__otherAsTeacher__invalid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
@@ -1139,7 +1175,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void patchAttendance__self__valid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse(getIdAsLong());
@@ -1216,7 +1252,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void patchAttendance__otherAsTeacher__invalid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 long courseId = ef.createCourse();
@@ -1447,7 +1483,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void deleteAttendance__self__valid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 long attendanceId = ef.createAttendance(getIdAsLong());
@@ -1479,7 +1515,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void deleteAttendance__otherAsTeacher__invalid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 long attendanceId = ef.createAttendance();
@@ -1492,7 +1528,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void deleteAttendance__notFound__invalid() {
-        new WithUser(USERNAME, PASSWORD) {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
                 long attendanceId = ef.createAttendance(getIdAsLong());

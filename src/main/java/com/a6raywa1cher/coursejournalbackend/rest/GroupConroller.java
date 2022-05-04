@@ -36,21 +36,10 @@ public class GroupConroller {
         return service.getById(id);
     }
 
-    @GetMapping("/course/{id}")
-    @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
-    public List<GroupDto> getByCourse(@PathVariable long id, @ParameterObject Sort sort) {
-        return service.getByCourse(id, sort);
-    }
 
     @GetMapping("/faculty/{id}")
     public List<GroupDto> getByFaculty(@PathVariable long id, @ParameterObject Sort sort) {
         return service.getByFaculty(id, sort);
-    }
-
-    @GetMapping("/course/{cid}/faculty/{fid}")
-    @PreAuthorize("@accessChecker.readCourseAccess(#cid, authentication)")
-    public List<GroupDto> getByFacultyAndCourse(@PathVariable long fid, @PathVariable long cid, @ParameterObject Sort sort) {
-        return service.getByFacultyAndCourse(fid, cid, sort);
     }
 
     @PostMapping("/")

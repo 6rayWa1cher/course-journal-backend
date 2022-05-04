@@ -56,33 +56,15 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<GroupDto> getByCourse(long courseId, Sort sort) {
-        Course course = getCourseById(courseId);
-        return repository.getAllByCourse(course, sort).stream()
-                .map(mapper::map)
-                .toList();
-    }
-
-    public List<GroupDto> getByFacultyAndCourse(long facultyId, long courseId, Sort sort) {
-        Faculty faculty = getFacultyById(facultyId);
-        Course course = getCourseById(courseId);
-        return repository.getAllByFacultyAndCourse(faculty, course, sort).stream()
-                .map(mapper::map)
-                .toList();
-    }
-
-    @Override
     public GroupDto create(GroupDto dto) {
         Group group = new Group();
-        Course course = getCourseById(dto.getCourse());
         Faculty faculty = getFacultyById(dto.getFaculty());
         String name = dto.getName();
         LocalDateTime createAndModifyDateTime = LocalDateTime.now();
 
-        assertUniqueNameAndFacultyPair(faculty, name);
+        assertUniqueFacultyAndNamePair(faculty, name);
         mapper.put(dto, group);
 
-        group.setCourse(course);
         group.setFaculty(faculty);
         group.setCreatedAt(createAndModifyDateTime);
         group.setLastModifiedAt(createAndModifyDateTime);
@@ -92,11 +74,10 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public GroupDto update(long id, GroupDto dto) {
         Group group = getGroupById(id);
-        Course course = getCourseById(dto.getCourse());
         Faculty faculty = getFacultyById(dto.getFaculty());
 
         assertNoFacultyChanged(group.getFaculty(), faculty);
-        assertNoCourseChanged(group.getCourse(), course);
+        assertUniqueFacultyAndNamePair(faculty, dto.getName());
         mapper.put(dto, group);
 
         group.setLastModifiedAt(LocalDateTime.now());
@@ -106,11 +87,10 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public GroupDto patch(long id, GroupDto dto) {
         Group group = getGroupById(id);
-        Course course = dto.getCourse() != null ? getCourseById(dto.getCourse()) : group.getCourse();
         Faculty faculty = dto.getFaculty() != null ? getFacultyById(dto.getFaculty()) : group.getFaculty();
 
         assertNoFacultyChanged(group.getFaculty(), faculty);
-        assertNoCourseChanged(group.getCourse(), course);
+        assertUniqueFacultyAndNamePair(faculty, dto.getName());
         mapper.patch(dto, group);
 
         group.setLastModifiedAt(LocalDateTime.now());
@@ -135,17 +115,11 @@ public class GroupServiceImpl implements GroupService {
         return courseRepository.findById(id).orElseThrow(() -> new NotFoundException(Course.class, id));
     }
 
-    private void assertUniqueNameAndFacultyPair(Faculty faculty, String name) {
+    private void assertUniqueFacultyAndNamePair(Faculty faculty, String name) {
         if (repository.findByFacultyAndName(faculty, name).isPresent()) {
             throw new ConflictException(Faculty.class,
                     "faculty", Long.toString(faculty.getId()),
                     "name", name);
-        }
-    }
-
-    private void assertNoCourseChanged(Course oldCourse, Course newCourse) {
-        if (!Objects.equals(oldCourse, newCourse)) {
-            throw new TransferNotAllowedException(Course.class, "course", newCourse.getId(), oldCourse.getId());
         }
     }
 

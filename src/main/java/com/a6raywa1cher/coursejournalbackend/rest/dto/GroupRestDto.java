@@ -13,11 +13,7 @@ import javax.validation.constraints.Size;
 public class GroupRestDto {
     @NotNull(groups = {OnCreate.class, OnUpdate.class})
     @Positive
-    private long course;
-
-    @NotNull(groups = {OnCreate.class, OnUpdate.class})
-    @Positive
-    private long faculty;
+    private Long faculty;
 
     @NotBlank(groups = {OnCreate.class, OnUpdate.class})
     @Size(max = 255, message = "Group name's length cannot be more than 255 symbols")

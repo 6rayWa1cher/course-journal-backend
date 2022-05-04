@@ -194,20 +194,17 @@ public abstract class MapStructMapper {
     // ================================================================================================================
 
     @CreatedModifiedMapping
-    @Mapping(target = "course", source = "course.id")
     @Mapping(target = "faculty", source = "faculty.id")
     public abstract GroupDto map(Group group);
 
     @CreatedModifiedRestrictMapping
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "course", ignore = true)
     @Mapping(target = "faculty", ignore = true)
     @Mapping(target = "students", ignore = true)
     public abstract void put(GroupDto dto, @MappingTarget Group target);
 
     @CreatedModifiedRestrictMapping
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "course", ignore = true)
     @Mapping(target = "faculty", ignore = true)
     @Mapping(target = "students", ignore = true)
     public abstract void patch(GroupDto dto, @MappingTarget Group target);

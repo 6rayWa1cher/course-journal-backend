@@ -49,16 +49,12 @@ public class AccessChecker {
             return getPermissionForCourse(submission.getTask().getCourse(), type);
         } else if (entity instanceof CourseToken courseToken) {
             return getPermissionForCourse(courseToken.getCourse(), type);
-        } else if (entity instanceof Group group) {
-            return getPermissionForCourse(group.getCourse(), type);
         } else {
             throw new IllegalArgumentException("Unknown entity " + entity.getClass().getSimpleName());
         }
     }
 
     private boolean hasAuthority(String authority, Authentication authentication) {
-        System.out.println("--------------------------------------------------------------------------------------------------------------------------------");
-        System.out.println(authentication);
         return authentication.getAuthorities()
                 .stream().anyMatch(ga -> ga.getAuthority().equals(authority));
     }
@@ -191,7 +187,7 @@ public class AccessChecker {
 
 
     public boolean readAttendanceAccess(Long id, Authentication authentication) {
-        return hasAuthority(id, Attendance.class, ActionType.READ, authentication);
+        return hasAuthority(id, Attendance.class, ActionType.READ, authentication) || hasAuthority("ROLE_HEADMAN", authentication);
     }
 
     public boolean createAttendanceAccess(Long courseId, Authentication authentication) {
