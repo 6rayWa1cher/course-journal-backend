@@ -15,4 +15,8 @@ public final class EntityUtils {
                 .findAny()
                 .orElse(null);
     }
+
+    public static String getId(IdEntity<Long> idEntity) {
+        return idEntity == null ? null : Long.toString(idEntity.getId());
+    }
 }

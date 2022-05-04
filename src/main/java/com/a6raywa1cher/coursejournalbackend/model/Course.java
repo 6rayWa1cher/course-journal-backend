@@ -35,7 +35,7 @@ public class Course implements IdEntity<Long> {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "owner_id")
-    private User owner;
+    private Employee owner;
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude

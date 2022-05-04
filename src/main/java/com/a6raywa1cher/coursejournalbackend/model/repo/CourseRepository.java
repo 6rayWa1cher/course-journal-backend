@@ -1,7 +1,8 @@
 package com.a6raywa1cher.coursejournalbackend.model.repo;
 
 import com.a6raywa1cher.coursejournalbackend.model.Course;
-import com.a6raywa1cher.coursejournalbackend.model.User;
+import com.a6raywa1cher.coursejournalbackend.model.Employee;
+import com.a6raywa1cher.coursejournalbackend.model.Group;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -13,16 +14,19 @@ import java.util.List;
 
 @Repository
 public interface CourseRepository extends PagingAndSortingRepository<Course, Long> {
-    boolean existsByNameAndOwner(String name, User owner);
+    boolean existsByNameAndOwner(String name, Employee owner);
 
     @Query("from Course c where lower(c.name) like %:query%")
     Page<Course> findByNameContains(@Param("query") String query, Pageable pageable);
 
-    Page<Course> findByOwner(User owner, Pageable pageable);
+    Page<Course> findByOwner(Employee owner, Pageable pageable);
 
     @Query("from Course c where c.owner = :owner and lower(c.name) like %:name%")
-    Page<Course> findByOwnerAndNameContains(@Param("owner") User owner, @Param("name") String name, Pageable pageable);
+    Page<Course> findByOwnerAndNameContains(@Param("owner") Employee owner, @Param("name") String name, Pageable pageable);
 
     @Query("select c.id from Course c where c.owner = :owner")
-    List<Long> findByOwner(@Param("owner") User owner);
+    List<Long> findByOwner(@Param("owner") Employee owner);
+
+    @Query("select c.id from Course c, Student s where s.group = :group group by c.id")
+    List<Long> findAllByGroup(@Param("group") Group group);
 }

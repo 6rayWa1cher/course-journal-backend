@@ -7,9 +7,7 @@ import org.mapstruct.Mapping;
 
 @Mapper(uses = MapperHelper.class, componentModel = "spring")
 public interface MapStructRestDtoMapper {
-    CreateEditUserDto map(CreateUserDto dto);
-
-    CreateEditUserDto map(EditUserDto dto);
+    CreateEditAuthUserDto map(AuthUserRestDto dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
@@ -73,4 +71,9 @@ public interface MapStructRestDtoMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
     GroupDto map(GroupRestDto dto);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
+    EmployeeDto map(EmployeeRestDto dto);
 }

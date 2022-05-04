@@ -6,16 +6,12 @@ import lombok.Data;
 
 @Data
 @Builder
-public class CreateEditUserDto {
+public class CreateEditAuthUserDto {
     private String username;
 
     private String password;
 
     private UserRole userRole;
 
-    private String firstName;
-
-    private String middleName;
-
-    private String lastName;
+    private Long userInfo;
 }

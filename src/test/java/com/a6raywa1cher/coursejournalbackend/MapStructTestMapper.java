@@ -7,10 +7,11 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-import javax.persistence.ManyToOne;
-
 @Mapper(uses = {MapperHelper.class}, componentModel = "spring")
 public interface MapStructTestMapper {
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void merge(CreateEditAuthUserDto dto, @MappingTarget CreateEditAuthUserDto target);
+
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void merge(StudentDto dto, @MappingTarget StudentDto target);
 
@@ -21,7 +22,7 @@ public interface MapStructTestMapper {
     void merge(CriteriaDto dto, @MappingTarget CriteriaDto target);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void merge(UserDto dto, @MappingTarget UserDto target);
+    void merge(EmployeeDto dto, @MappingTarget EmployeeDto target);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void merge(CourseDto dto, @MappingTarget CourseDto target);

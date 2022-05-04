@@ -187,7 +187,7 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     private void assertNoStudentChange(Student oldStudent, Student newStudent) {
         if (!Objects.equals(oldStudent, newStudent)) {
-            throw new TransferNotAllowedException(Task.class, "task", oldStudent.getId(), newStudent.getId());
+            throw new TransferNotAllowedException(Student.class, "student", oldStudent.getId(), newStudent.getId());
         }
     }
 

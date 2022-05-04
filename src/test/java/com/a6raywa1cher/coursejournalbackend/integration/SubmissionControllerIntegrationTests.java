@@ -75,7 +75,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                var ctx = createGetSubmissionByIdContext(getIdAsLong());
+                var ctx = createGetSubmissionByIdContext(getSelfEmployeeIdAsLong());
 
                 long id = ctx.getRequest();
                 ResultMatcher[] matchers = ctx.getMatchers();
@@ -92,7 +92,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                var ctx = createGetSubmissionByIdContext(ef.createUser());
+                var ctx = createGetSubmissionByIdContext(ef.createEmployee());
 
                 long id = ctx.getRequest();
                 ResultMatcher[] matchers = ctx.getMatchers();
@@ -109,7 +109,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                var ctx = createGetSubmissionByIdContext(ef.createUser());
+                var ctx = createGetSubmissionByIdContext(ef.createEmployee());
 
                 long id = ctx.getRequest();
 
@@ -137,7 +137,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void getSubmissionById__notAuthenticated__invalid() throws Exception {
-        var ctx = createGetSubmissionByIdContext(ef.createUser());
+        var ctx = createGetSubmissionByIdContext(ef.createEmployee());
 
         long id = ctx.getRequest();
 
@@ -147,7 +147,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
 
     @Test
     void getSubmissionById__notExists__invalid() {
-        var ctx = createGetSubmissionByIdContext(ef.createUser());
+        var ctx = createGetSubmissionByIdContext(ef.createEmployee());
 
         long id = ctx.getRequest();
 
@@ -197,8 +197,8 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId1 = ef.createCourse(getIdAsLong());
-                long courseId2 = ef.createCourse(getIdAsLong());
+                long courseId1 = ef.createCourse(getSelfEmployeeIdAsLong());
+                long courseId2 = ef.createCourse(getSelfEmployeeIdAsLong());
                 long studentId1 = ef.createStudent(ef.bag().withCourseId(courseId1));
                 long studentId2 = ef.createStudent(ef.bag().withCourseId(courseId1));
                 long studentId3 = ef.createStudent(ef.bag().withCourseId(courseId2));
@@ -222,7 +222,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long userId = ef.createUser();
+                long userId = ef.createEmployee();
                 long courseId1 = ef.createCourse(userId);
                 long courseId2 = ef.createCourse(userId);
                 long studentId1 = ef.createStudent(ef.bag().withCourseId(courseId1));
@@ -323,7 +323,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 long taskId1 = ef.createTask(ef.bag().withCourseId(courseId));
                 long taskId2 = ef.createTask(ef.bag().withCourseId(courseId));
                 long studentId1 = ef.createStudent(ef.bag().withCourseId(courseId));
@@ -451,8 +451,8 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId1 = ef.createCourse(getIdAsLong());
-                long courseId2 = ef.createCourse(getIdAsLong());
+                long courseId1 = ef.createCourse(getSelfEmployeeIdAsLong());
+                long courseId2 = ef.createCourse(getSelfEmployeeIdAsLong());
                 long task1 = ef.createTask(ef.bag().withCourseId(courseId1));
                 long task2 = ef.createTask(ef.bag().withCourseId(courseId1));
                 long task3 = ef.createTask(ef.bag().withCourseId(courseId2));
@@ -592,7 +592,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 long taskId = ef.createTask(ef.bag().withCourseId(courseId));
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 var ctx = getCreateSubmissionRequest(taskId, studentId);
@@ -688,7 +688,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 long taskId = ef.createTask(ef.bag().withCourseId(courseId));
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 var ctx = getCreateSubmissionRequest(taskId, studentId);
@@ -809,7 +809,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 long taskId = ef.createTask(ef.bag().withCourseId(courseId));
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
@@ -1124,7 +1124,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 long taskId = ef.createTask(ef.bag().withCourseId(courseId));
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
@@ -1417,7 +1417,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long submissionId = ef.createSubmission(getIdAsLong());
+                long submissionId = ef.createSubmission(getSelfEmployeeIdAsLong());
 
                 securePerform(delete("/submissions/{id}", submissionId))
                         .andExpect(status().isOk());
@@ -1475,7 +1475,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long submissionId = ef.createSubmission(getIdAsLong());
+                long submissionId = ef.createSubmission(getSelfEmployeeIdAsLong());
 
                 securePerform(delete("/submissions/{id}", submissionId + 1000))
                         .andExpect(status().isNotFound());
