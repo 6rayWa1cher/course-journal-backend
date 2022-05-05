@@ -14,6 +14,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/faculties")
@@ -27,6 +30,13 @@ public class FacultyController {
     public FacultyController(FacultyService facultyService, MapStructRestDtoMapper mapper) {
         this.service = facultyService;
         this.mapper = mapper;
+    }
+
+    @GetMapping("/")
+    public List<FacultyDto> getAllFaculties() {
+        return service.getAll().stream()
+                .sorted(Comparator.comparingLong(FacultyDto::getId))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
