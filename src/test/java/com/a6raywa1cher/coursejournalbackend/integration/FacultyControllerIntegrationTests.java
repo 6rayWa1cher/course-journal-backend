@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.ResultMatcher;
 import java.util.Map;
 import java.util.function.Function;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -24,6 +25,8 @@ public class FacultyControllerIntegrationTests extends AbstractIntegrationTests 
 
     @Autowired
     FacultyService facultyService;
+
+    // ================================================================================================================
 
     RequestContext<Long> createGetFacultyByIdContext() {
         String name = faker.lorem().sentence(2);

@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface FacultyService {
     FacultyDto getById(long id);
 
-    List<FacultyDto> getAllFaculties(Sort sort);
+    List<FacultyDto> getAllFaculties();
 
     Optional<Faculty> findRawById(long id);
 
