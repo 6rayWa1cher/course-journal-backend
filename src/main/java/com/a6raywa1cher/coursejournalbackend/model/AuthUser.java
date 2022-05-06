@@ -8,31 +8,39 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.Hibernate;
+import org.hibernate.annotations.Check;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.ReadOnlyProperty;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
-@Table(name = "app_user")
+@Table(name = "auth_user")
 @TypeDefs({
         @TypeDef(name = "json", typeClass = JsonType.class)
 })
-@EntityListeners(AuditingEntityListener.class)
+@Check(constraints = """
+        (
+         (user_role = 'TEACHER' and employee_id is not null)
+         or (user_role = 'HEADMAN' and student_id is not null)
+         or user_role = 'ADMIN'
+        )
+        and
+        (
+         not (employee_id is not null and student_id is not null)
+        )
+        """)
 @Getter
 @Setter
 @ToString
 @RequiredArgsConstructor
-public class User implements IUser, IdEntity<Long> {
+public class AuthUser implements IUser, IdEntity<Long> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
@@ -50,18 +58,13 @@ public class User implements IUser, IdEntity<Long> {
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
 
-    @Column(name = "first_name")
-    private String firstName;
+    @OneToOne(cascade = {CascadeType.REFRESH, CascadeType.MERGE})
+    @JoinColumn(name = "employee_id", unique = true)
+    private Employee employee;
 
-    @Column(name = "last_name")
-    private String lastName;
-
-    @Column(name = "middle_name")
-    private String middleName;
-
-    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    private List<Course> courseList;
+    @OneToOne(cascade = {CascadeType.REFRESH, CascadeType.MERGE})
+    @JoinColumn(name = "student_id", unique = true)
+    private Student student;
 
     @Column(name = "refresh_tokens", columnDefinition = "jsonb")
     @Type(type = "json")
@@ -80,17 +83,4 @@ public class User implements IUser, IdEntity<Long> {
 
     @Column(name = "last_visit_at")
     private LocalDateTime lastVisitAt;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        User user = (User) o;
-        return id != null && Objects.equals(id, user.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }

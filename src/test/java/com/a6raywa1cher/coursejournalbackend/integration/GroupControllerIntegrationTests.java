@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MvcResult;
@@ -47,8 +46,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 .build();
     }
 
-    RequestContext<Long> createGetGroupByIdContext(long userId) {
-        long courseId = ef.createCourse();
+    RequestContext<Long> createGetGroupByIdContext() {
         long facultyId = ef.createFaculty();
         return createGetGroupByIdContextWithCourse(facultyId);
     }
@@ -58,7 +56,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                var context = createGetGroupByIdContext(getIdAsLong());
+                var context = createGetGroupByIdContext();
 
                 long id = context.getRequest();
                 ResultMatcher[] matchers = context.getMatchers();
@@ -90,7 +88,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void getGroupById__notAuthenticated__invalid() throws Exception {
-        var context = createGetGroupByIdContext(ef.createUser());
+        var context = createGetGroupByIdContext();
 
         long id = context.getRequest();
 
@@ -103,7 +101,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                var context = createGetGroupByIdContext(ef.createUser());
+                var context = createGetGroupByIdContext();
 
                 long id = context.getRequest();
 
@@ -163,7 +161,6 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithCourseToken() {
             @Override
             void run() throws Exception {
-                long courseId = getCourseId();
                 long facultyId1 = ef.createFaculty();
                 long facultyId2 = ef.createFaculty();
 
@@ -229,7 +226,6 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(ef.createUser());
                 long facultyId = ef.createFaculty();
                 String name = faker.lorem().sentence(1);
 
@@ -278,7 +274,6 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(ef.createUser());
                 long facultyId = ef.createFaculty();
                 String name = faker.lorem().sentence(1);
 
@@ -303,7 +298,6 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void createGroup__notAuthenticated__invalid() throws Exception {
-        long courseId = ef.createCourse();
         long facultyId = ef.createFaculty();
         String name = faker.lorem().sentence(1);
 
@@ -396,7 +390,6 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithCourseToken() {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getOwnerId());
                 long facultyId = ef.createFaculty();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
@@ -501,7 +494,6 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void putGroup__notAuthenticated__invalid() throws Exception {
-        long courseId = ef.createCourse();
         long facultyId = ef.createFaculty();
         String name = faker.lorem().sentence(1);
         long id = ef.createGroup(ef.bag().withFacultyId(facultyId)
@@ -596,7 +588,6 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithCourseToken() {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getOwnerId());
                 long facultyId = ef.createFaculty();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
@@ -702,7 +693,6 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void patchGroup__notAuthenticated__invalid() throws Exception {
-        long courseId = ef.createCourse();
         long facultyId = ef.createFaculty();
         String name = faker.lorem().sentence(1);
         long id = ef.createGroup(ef.bag().withFacultyId(facultyId)
@@ -726,7 +716,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long id = ef.createGroup(getIdAsLong());
+                long id = ef.createGroup(getSelfEmployeeIdAsLong());
 
                 securePerform(delete("/groups/{id}", id))
                         .andExpect(status().isForbidden());
@@ -755,7 +745,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long id = ef.createGroup(getIdAsLong());
+                long id = ef.createGroup();
 
                 securePerform(delete("/groups/{id}", id + 1000))
                         .andExpect(status().isNotFound());

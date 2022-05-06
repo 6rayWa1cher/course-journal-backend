@@ -2,7 +2,6 @@ package com.a6raywa1cher.coursejournalbackend.security;
 
 import com.a6raywa1cher.coursejournalbackend.model.*;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
-import com.a6raywa1cher.coursejournalbackend.rest.dto.AttendanceRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.CourseRestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -12,8 +11,7 @@ import javax.persistence.EntityManager;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.a6raywa1cher.coursejournalbackend.security.Permission.getPermissionForCourse;
-import static com.a6raywa1cher.coursejournalbackend.security.Permission.getPermissionForUser;
+import static com.a6raywa1cher.coursejournalbackend.security.Permission.*;
 
 @Component
 public class AccessChecker {
@@ -41,8 +39,10 @@ public class AccessChecker {
             return getPermissionForCourse(student.getCourse(), type);
         } else if (entity instanceof Criteria criteria) {
             return getPermissionForCourse(criteria.getTask().getCourse(), type);
-        } else if (entity instanceof User user) {
-            return getPermissionForUser(user, type);
+        } else if (entity instanceof Employee employee) {
+            return getPermissionForEmployee(employee, type);
+        } else if (entity instanceof AuthUser authUser) {
+            return getPermissionForAuthUser(authUser, type);
         } else if (entity instanceof Attendance attendance) {
             return getPermissionForCourse(attendance.getCourse(), type);
         } else if (entity instanceof Submission submission) {
@@ -78,7 +78,7 @@ public class AccessChecker {
     }
 
     public boolean createCourseAccess(Long ownerId, Authentication authentication) {
-        return hasAuthority(ownerId, User.class, ActionType.WRITE, authentication);
+        return hasAuthority(ownerId, Employee.class, ActionType.WRITE_CASCADE, authentication);
     }
 
     public boolean readCourseAccess(Long id, Authentication authentication) {
@@ -169,20 +169,29 @@ public class AccessChecker {
     }
 
 
-    public boolean createUserAccess(UserRole userRole, Authentication authentication) {
+    public boolean createEmployeeAccess(Authentication authentication) {
         return isAdmin(authentication);
     }
 
-    public boolean readUserAccess(Long id, Authentication authentication) {
-        return hasAuthority(id, User.class, ActionType.READ, authentication);
+    public boolean readEmployeeAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Employee.class, ActionType.READ, authentication);
     }
 
-    public boolean editUserAccess(Long id, Authentication authentication) {
-        return hasAuthority(id, User.class, ActionType.WRITE, authentication);
+    public boolean editEmployeeAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Employee.class, ActionType.WRITE, authentication);
     }
 
-    public boolean editUserAccessWithRole(Long id, UserRole userRole, Authentication authentication) {
-        return editUserAccess(id, authentication) && isValidUserRoleRequest(userRole, authentication);
+
+    public boolean createAuthUserAccess(Authentication authentication) {
+        return isAdmin(authentication);
+    }
+
+    public boolean readAuthUserAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, AuthUser.class, ActionType.READ, authentication);
+    }
+
+    public boolean editAuthUserAccess(Long id, UserRole userRole, Authentication authentication) {
+        return hasAuthority(id, AuthUser.class, ActionType.WRITE, authentication);
     }
 
 

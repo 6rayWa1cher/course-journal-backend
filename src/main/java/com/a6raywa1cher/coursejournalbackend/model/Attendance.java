@@ -25,7 +25,7 @@ import java.util.Objects;
 @Setter
 @ToString
 @RequiredArgsConstructor
-public class Attendance {
+public class Attendance implements IdEntity<Long> {
     @Id
     @GeneratedValue
     @Column(name = "id", nullable = false)

@@ -33,7 +33,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
             void run() throws Exception {
                 String firstName = faker.name().firstName();
                 String lastName = faker.name().lastName();
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 long groupId = ef.createGroup();
 
                 long id = studentService.create(StudentDto.builder()
@@ -193,8 +193,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId1 = ef.createCourse(getIdAsLong());
-                long courseId2 = ef.createCourse(getIdAsLong());
+                long courseId1 = ef.createCourse(getSelfEmployeeIdAsLong());
+                long courseId2 = ef.createCourse(getSelfEmployeeIdAsLong());
                 long groupId = ef.createGroup();
 
                 String firstName1 = "A" + faker.name().firstName();
@@ -289,7 +289,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
 
     @Test
     void getStudentByCourse__withCourseToken__valid() {
-        long ownerId = ef.createUser();
+        long ownerId = ef.createEmployee();
         long courseId1 = ef.createCourse(ownerId);
         long courseId2 = ef.createCourse(ownerId);
         long groupId = ef.createGroup();
@@ -344,8 +344,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId1 = ef.createCourse(getIdAsLong());
-                long courseId2 = ef.createCourse(getIdAsLong());
+                long courseId1 = ef.createCourse(getSelfEmployeeIdAsLong());
+                long courseId2 = ef.createCourse(getSelfEmployeeIdAsLong());
                 long groupId = ef.createGroup();
 
                 String lastName1 = "A" + faker.name().lastName();
@@ -438,7 +438,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
 
     @Test
     void getStudentByCourseNotPaged__withCourseToken__valid() {
-        long ownerId = ef.createUser();
+        long ownerId = ef.createEmployee();
         long courseId1 = ef.createCourse(ownerId);
         long courseId2 = ef.createCourse(ownerId);
         long groupId = ef.createGroup();
@@ -491,7 +491,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 long groupId1 = ef.createGroup();
                 long groupId2 = ef.createGroup();
 
@@ -585,7 +585,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
 
     @Test
     void getStudentByGroup__withCourseToken__valid() {
-        long ownerId = ef.createUser();
+        long ownerId = ef.createEmployee();
         long courseId = ef.createCourse(ownerId);
         long groupId1 = ef.createGroup();
         long groupId2 = ef.createGroup();
@@ -662,7 +662,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 long groupId = ef.createGroup();
                 var ctx = getCreateStudentRequest(courseId, groupId);
 
@@ -798,7 +798,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 long groupId = ef.createGroup();
                 RequestContext<ObjectNode> ctx = getBatchCreateStudentRequest(courseId, groupId);
 
@@ -930,7 +930,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 long groupId = ef.createGroup();
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId).withGroupId(groupId));
 
@@ -1098,7 +1098,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 long groupId = ef.createGroup();
 
                 String lastName = faker.name().lastName();
@@ -1323,7 +1323,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent(getIdAsLong());
+                long studentId = ef.createStudent(getSelfEmployeeIdAsLong());
 
                 securePerform(delete("/students/{id}", studentId))
                         .andExpect(status().isOk());
@@ -1381,7 +1381,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long studentId = ef.createStudent(getIdAsLong());
+                long studentId = ef.createStudent(getSelfEmployeeIdAsLong());
 
                 securePerform(delete("/students/{id}", studentId + 1000))
                         .andExpect(status().isNotFound());

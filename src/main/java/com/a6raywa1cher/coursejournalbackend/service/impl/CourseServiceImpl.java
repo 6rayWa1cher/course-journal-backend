@@ -5,10 +5,10 @@ import com.a6raywa1cher.coursejournalbackend.dto.exc.ConflictException;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.NotFoundException;
 import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
 import com.a6raywa1cher.coursejournalbackend.model.Course;
-import com.a6raywa1cher.coursejournalbackend.model.User;
+import com.a6raywa1cher.coursejournalbackend.model.Employee;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
-import com.a6raywa1cher.coursejournalbackend.service.UserService;
+import com.a6raywa1cher.coursejournalbackend.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,13 +26,13 @@ import static com.a6raywa1cher.coursejournalbackend.utils.CommonUtils.coalesce;
 public class CourseServiceImpl implements CourseService {
     private final CourseRepository repository;
     private final MapStructMapper mapper;
-    private final UserService userService;
+    private final EmployeeService employeeService;
 
     @Autowired
-    public CourseServiceImpl(CourseRepository repository, MapStructMapper mapper, UserService userService) {
+    public CourseServiceImpl(CourseRepository repository, MapStructMapper mapper, EmployeeService employeeService) {
         this.repository = repository;
         this.mapper = mapper;
-        this.userService = userService;
+        this.employeeService = employeeService;
     }
 
 
@@ -63,20 +63,20 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public Page<CourseDto> getByOwner(long ownerId, Pageable pageable) {
-        User owner = getUserById(ownerId);
+        Employee owner = getUserById(ownerId);
         return repository.findByOwner(owner, pageable).map(mapper::map);
     }
 
     @Override
     public Page<CourseDto> getByOwnerAndNameContains(long ownerId, String name, Pageable pageable) {
-        User owner = getUserById(ownerId);
+        Employee owner = getUserById(ownerId);
         return repository.findByOwnerAndNameContains(owner, name.toLowerCase(Locale.ROOT), pageable).map(mapper::map);
     }
 
     @Override
     public CourseDto create(CourseDto dto) {
         Course entity = new Course();
-        User owner = getUserById(dto.getOwner());
+        Employee owner = getUserById(dto.getOwner());
 
         assertNameAvailable(dto.getName(), owner);
 
@@ -92,8 +92,8 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public CourseDto update(long id, CourseDto dto) {
         Course entity = $getById(id);
-        User newOwner = userService.findRawById(dto.getOwner())
-                .orElseThrow(() -> new NotFoundException(User.class, dto.getOwner()));
+        Employee newOwner = employeeService.findRawById(dto.getOwner())
+                .orElseThrow(() -> new NotFoundException(Employee.class, dto.getOwner()));
 
         assertNameNotChangedOrAvailable(entity.getName(), dto.getName(), entity.getOwner(), newOwner);
 
@@ -108,7 +108,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public CourseDto patch(long id, CourseDto dto) {
         Course entity = $getById(id);
-        User owner = dto.getOwner() != null ? getUserById(dto.getOwner()) : entity.getOwner();
+        Employee owner = dto.getOwner() != null ? getUserById(dto.getOwner()) : entity.getOwner();
 
         assertNameNotChangedOrAvailable(
                 entity.getName(), coalesce(dto.getName(), entity.getName()),
@@ -133,19 +133,19 @@ public class CourseServiceImpl implements CourseService {
         return repository.findById(id).orElseThrow(() -> new NotFoundException(Course.class, id));
     }
 
-    private User getUserById(long id) {
-        return userService.findRawById(id).orElseThrow(() -> new NotFoundException(User.class, id));
+    private Employee getUserById(long id) {
+        return employeeService.findRawById(id).orElseThrow(() -> new NotFoundException(Employee.class, id));
     }
 
-    private void assertNameNotChangedOrAvailable(String before, String now, User beforeUser, User afterUser) {
-        if (!Objects.equals(before, now) || !Objects.equals(beforeUser, afterUser)) {
-            assertNameAvailable(now, afterUser);
+    private void assertNameNotChangedOrAvailable(String before, String now, Employee beforeEmployee, Employee afterEmployee) {
+        if (!Objects.equals(before, now) || !Objects.equals(beforeEmployee, afterEmployee)) {
+            assertNameAvailable(now, afterEmployee);
         }
     }
 
-    private void assertNameAvailable(String name, User user) {
-        if (repository.existsByNameAndOwner(name, user)) {
-            throw new ConflictException(User.class, "name", name, "owner", Long.toString(user.getId()));
+    private void assertNameAvailable(String name, Employee employee) {
+        if (repository.existsByNameAndOwner(name, employee)) {
+            throw new ConflictException(Employee.class, "name", name, "owner", Long.toString(employee.getId()));
         }
     }
 }
