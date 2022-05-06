@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.ResultMatcher;
 import java.util.Map;
 import java.util.function.Function;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -24,6 +25,35 @@ public class FacultyControllerIntegrationTests extends AbstractIntegrationTests 
 
     @Autowired
     FacultyService facultyService;
+
+    RequestContext<Long> createGetAllFacultiesContext() {
+        return createGetFacultyByIdContext();
+    }
+
+    @Test
+    void getAllFaculties__everyone__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                var ctx1 = createGetAllFacultiesContext();
+                var ctx2 = createGetAllFacultiesContext();
+
+                securePerform(get("/faculties/"))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx1.getMatchers("$[0]"))
+                        .andExpectAll(ctx2.getMatchers("$[1]"));
+            }
+        };
+    }
+
+    @Test
+    void getAllFaculties__notAuthenticated__invalid() throws Exception {
+        mvc.perform(get("/faculties/"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    // ================================================================================================================
 
     RequestContext<Long> createGetFacultyByIdContext() {
         String name = faker.lorem().sentence(2);

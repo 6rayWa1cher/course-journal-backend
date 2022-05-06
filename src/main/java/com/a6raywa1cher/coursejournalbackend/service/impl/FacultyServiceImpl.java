@@ -10,7 +10,9 @@ import com.a6raywa1cher.coursejournalbackend.service.FacultyService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 @Service
 public class FacultyServiceImpl implements FacultyService {
@@ -22,6 +24,13 @@ public class FacultyServiceImpl implements FacultyService {
     public FacultyServiceImpl(FacultyRepository repository, MapStructMapper mapper) {
         this.repository = repository;
         this.mapper = mapper;
+    }
+
+    @Override
+    public List<FacultyDto> getAll() {
+        return StreamSupport.stream(repository.findAll().spliterator(), false)
+                .map(mapper::map)
+                .toList();
     }
 
     @Override
