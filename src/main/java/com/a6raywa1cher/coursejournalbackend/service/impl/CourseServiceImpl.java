@@ -1,14 +1,18 @@
 package com.a6raywa1cher.coursejournalbackend.service.impl;
 
 import com.a6raywa1cher.coursejournalbackend.dto.CourseDto;
+import com.a6raywa1cher.coursejournalbackend.dto.CourseFullDto;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.ConflictException;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.NotFoundException;
 import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
 import com.a6raywa1cher.coursejournalbackend.model.Course;
 import com.a6raywa1cher.coursejournalbackend.model.Employee;
+import com.a6raywa1cher.coursejournalbackend.model.Student;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
 import com.a6raywa1cher.coursejournalbackend.service.EmployeeService;
+import com.a6raywa1cher.coursejournalbackend.service.StudentService;
+import com.a6raywa1cher.coursejournalbackend.utils.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,17 +32,20 @@ public class CourseServiceImpl implements CourseService {
     private final MapStructMapper mapper;
     private final EmployeeService employeeService;
 
+    private final StudentService studentService;
+
     @Autowired
-    public CourseServiceImpl(CourseRepository repository, MapStructMapper mapper, EmployeeService employeeService) {
+    public CourseServiceImpl(CourseRepository repository, MapStructMapper mapper, EmployeeService employeeService, StudentService studentService) {
         this.repository = repository;
         this.mapper = mapper;
         this.employeeService = employeeService;
+        this.studentService = studentService;
     }
 
 
     @Override
-    public CourseDto getById(long id) {
-        return mapper.map($getById(id));
+    public CourseFullDto getById(long id) {
+        return mapper.mapFull($getById(id));
     }
 
     @Override
@@ -47,8 +54,8 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<Course> findAllRawById(Collection<Long> id) {
-        return StreamSupport.stream(repository.findAllById(id).spliterator(), false).toList();
+    public List<Course> findAllRawById(Collection<Long> ids) {
+        return StreamSupport.stream(repository.findAllById(ids).spliterator(), false).toList();
     }
 
     @Override
@@ -74,7 +81,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public CourseDto create(CourseDto dto) {
+    public CourseFullDto create(CourseFullDto dto) {
         Course entity = new Course();
         Employee owner = getUserById(dto.getOwner());
 
@@ -86,7 +93,7 @@ public class CourseServiceImpl implements CourseService {
         entity.setCreatedAt(LocalDateTime.now());
         entity.setLastModifiedAt(LocalDateTime.now());
 
-        return mapper.map(repository.save(entity));
+        return mapper.mapFull(repository.save(entity));
     }
 
     @Override
@@ -124,6 +131,41 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public CourseFullDto update(long id, CourseFullDto dto) {
+        Course entity = $getById(id);
+        Employee newOwner = employeeService.findRawById(dto.getOwner())
+                .orElseThrow(() -> new NotFoundException(Employee.class, dto.getOwner()));
+        List<Student> students =
+
+        assertNameNotChangedOrAvailable(entity.getName(), dto.getName(), entity.getOwner(), newOwner);
+
+        mapper.put(dto, entity);
+
+        entity.setOwner(newOwner);
+        entity.setLastModifiedAt(LocalDateTime.now());
+
+        return mapper.map(repository.save(entity));
+    }
+
+    @Override
+    public CourseFullDto patch(long id, CourseFullDto dto) {
+        Course entity = $getById(id);
+        Employee owner = dto.getOwner() != null ? getUserById(dto.getOwner()) : entity.getOwner();
+
+        assertNameNotChangedOrAvailable(
+                entity.getName(), coalesce(dto.getName(), entity.getName()),
+                entity.getOwner(), owner
+        );
+
+        mapper.patch(dto, entity);
+
+        entity.setOwner(owner);
+        entity.setLastModifiedAt(LocalDateTime.now());
+
+        return mapper.map(repository.save(entity));
+    }
+
+    @Override
     public void delete(long id) {
         Course entity = $getById(id);
         repository.delete(entity);
@@ -135,6 +177,14 @@ public class CourseServiceImpl implements CourseService {
 
     private Employee getUserById(long id) {
         return employeeService.findRawById(id).orElseThrow(() -> new NotFoundException(Employee.class, id));
+    }
+
+    private List<Student> getStudentListByIds(List<Long> ids) {
+        List<Student> rawById = studentService.(ids);
+        if (rawById.size() != ids.size()) {
+            throw new NotFoundException(Student.class, EntityUtils.getAnyNotFound(rawById, ids));
+        }
+        return rawById;
     }
 
     private void assertNameNotChangedOrAvailable(String before, String now, Employee beforeEmployee, Employee afterEmployee) {

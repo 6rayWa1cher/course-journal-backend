@@ -74,8 +74,35 @@ public abstract class MapStructMapper {
     @Mapping(target = "courseToken", ignore = true)
     public abstract void patch(CourseDto dto, @MappingTarget Course target);
 
+
     // ================================================================================================================
-    // Course
+    // CourseFull
+    // ================================================================================================================
+
+    @CreatedModifiedMapping
+    @Mapping(target = "owner", source = "owner.id")
+    @Mapping(target = "students", qualifiedByName = {"MapperHelper", "ExtractIds"})
+    public abstract CourseFullDto mapFull(Course course);
+
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "students", ignore = true)
+    @Mapping(target = "tasks", ignore = true)
+    @Mapping(target = "courseToken", ignore = true)
+    public abstract void put(CourseFullDto dto, @MappingTarget Course target);
+
+    @CreatedModifiedRestrictMapping
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "students", ignore = true)
+    @Mapping(target = "tasks", ignore = true)
+    @Mapping(target = "courseToken", ignore = true)
+    public abstract void patch(CourseFullDto dto, @MappingTarget Course target);
+
+    // ================================================================================================================
+    // Task
     // ================================================================================================================
 
     @CreatedModifiedMapping

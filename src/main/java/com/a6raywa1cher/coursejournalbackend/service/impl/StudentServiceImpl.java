@@ -51,6 +51,9 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    public List<Student> findRawById(List<Long> ids) { return StreamSupport.stream(repository.findAllById(ids).spliterator(), false).toList(); }
+
+    @Override
     public Page<StudentDto> getByCourseId(long courseId, Pageable pageable) {
         return repository.getAllByCourse(getCourseById(courseId), pageable).map(mapper::map);
     }
