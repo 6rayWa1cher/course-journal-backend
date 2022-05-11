@@ -37,11 +37,11 @@ public class Course implements IdEntity<Long> {
     @JoinColumn(name = "owner_id")
     private Employee owner;
 
-    @ManyToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "course_student",
             joinColumns = {
-                    @JoinColumn(name = "cousre_id", referencedColumnName = "id"),
+                    @JoinColumn(name = "course_id", referencedColumnName = "id"),
             },
             inverseJoinColumns = {
                     @JoinColumn(name = "student_id", referencedColumnName = "id")

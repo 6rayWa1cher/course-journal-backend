@@ -31,9 +31,5 @@ public interface CourseService {
 
     CourseFullDto patch(long id, CourseFullDto dto);
 
-    CourseDto update(long id, CourseDto dto);
-
-    CourseDto patch(long id, CourseDto dto);
-
     void delete(long id);
 }

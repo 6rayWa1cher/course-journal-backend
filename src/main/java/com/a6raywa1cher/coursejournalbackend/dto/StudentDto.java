@@ -10,8 +10,6 @@ import java.time.ZonedDateTime;
 public class StudentDto {
     private Long id;
 
-    private Long course;
-
     private Long group;
 
     private String firstName;

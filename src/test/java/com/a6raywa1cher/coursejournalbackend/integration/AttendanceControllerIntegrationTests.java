@@ -210,112 +210,6 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     // =================================================================================================================
 
-    RequestContext<Long> createGetAttendanceByStudentContext(long studentId, long courseId, int attendedClass) {
-        LocalDate attendedDate = LocalDate.now().minusDays(1);
-        AttendanceType attendanceType = TestUtils.randomAttendanceType();
-
-        long id = attendanceService.create(AttendanceDto.builder()
-                .attendedDate(attendedDate)
-                .attendanceType(attendanceType)
-                .attendedClass(attendedClass)
-                .course(courseId)
-                .student(studentId)
-                .build()).getId();
-
-        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
-                jsonPath(prefix + ".id").value(id),
-                jsonPath(prefix + ".student").value(studentId),
-                jsonPath(prefix + ".course").value(courseId),
-                jsonPath(prefix + ".attendedDate").value(attendedDate.toString()),
-                jsonPath(prefix + ".attendedClass").value(attendedClass),
-                jsonPath(prefix + ".attendanceType").value(attendanceType.toString()),
-        };
-
-        return RequestContext.<Long>builder()
-                .request(id)
-                .matchersSupplier(matchers)
-                .build();
-    }
-
-    @Test
-    void getAttendanceByStudentId__self__valid() {
-        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
-            @Override
-            void run() throws Exception {
-                long courseId1 = ef.createCourse(getSelfEmployeeIdAsLong());
-                long courseId2 = ef.createCourse(getSelfEmployeeIdAsLong());
-                long courseId3 = ef.createCourse(getSelfEmployeeIdAsLong());
-
-                long studentId1 = ef.createStudent(getSelfEmployeeIdAsLong());
-                long studentId2 = ef.createStudent(getSelfEmployeeIdAsLong());
-
-                int attendedClass = faker.number().numberBetween(1, 6);
-
-                var context1 = createGetAttendanceByStudentContext(studentId1, courseId1, attendedClass);
-                var context2 = createGetAttendanceByStudentContext(studentId1, courseId2, attendedClass + 1);
-                createGetAttendanceByStudentContext(studentId2, courseId3, attendedClass + 2);
-
-                securePerform(get("/attendances/student/{id}", studentId1)
-                        .queryParam("sort", "course,asc"))
-                        .andExpect(status().isOk())
-                       .andExpect(jsonPath("$", hasSize(2)))
-                        .andExpectAll(context1.getMatchers("$[0]"))
-                        .andExpectAll(context2.getMatchers("$[1]"));
-            }
-        };
-    }
-
-    @Test
-    void getAttendanceByStudentId__otherAsAdmin__valid() {
-        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
-            @Override
-            void run() throws Exception {
-                long employeeId = ef.createEmployee();
-                long courseId1 = ef.createCourse(employeeId);
-                long courseId2 = ef.createCourse(employeeId);
-                long courseId3 = ef.createCourse(employeeId);
-
-                long studentId1 = ef.createStudent();
-                long studentId2 = ef.createStudent();
-
-                int attendedClass = faker.number().numberBetween(1, 6);
-
-                var context1 = createGetAttendanceByStudentContext(studentId1, courseId1, attendedClass);
-                var context2 = createGetAttendanceByStudentContext(studentId1, courseId2, attendedClass + 1);
-                createGetAttendanceByStudentContext(studentId2, courseId3, attendedClass + 2);
-
-
-                securePerform(get("/attendances/student/{id}", studentId1)
-                        .queryParam("sort", "course,asc"))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$", hasSize(2)))
-                        .andExpectAll(context1.getMatchers("$[0]"))
-                        .andExpectAll(context2.getMatchers("$[1]"));
-            }
-        };
-    }
-
-    @Test
-    void getAttendanceByStudentId__otherAsTeacher__invalid() {
-        long id = ef.createStudent();
-
-        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
-            @Override
-            void run() throws Exception {
-                securePerform(get("/attendances/student/{id}", id))
-                    .andExpect(status().isForbidden());
-            }
-        };
-    }
-
-    @Test
-    void getAttendanceByStudent__notAuthenticated__invalid() throws Exception {
-        long id = ef.createStudent();
-        mvc.perform(get("/attendances/student/{id}", id)).andExpect(status().isUnauthorized());
-    }
-
-    // =================================================================================================================
-
     RequestContext<Long> createGetAttendanceByCourseContext(long studentId, long courseId, int attendedClass) {
         LocalDate attendedDate = LocalDate.now().minusDays(1);
         AttendanceType attendanceType = TestUtils.randomAttendanceType();
@@ -740,7 +634,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers());
 
-                securePerform(get("/attendances/student/{id}", studentId)
+                securePerform(get("/attendances/course/{id}", courseId)
                         .queryParam("sort", "attendedClass,asc"))
                         .andExpect(status().isOk())
                        .andExpect(jsonPath("$", hasSize(2)))
@@ -774,7 +668,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers());
 
-                securePerform(get("/attendances/student/{id}", studentId)
+                securePerform(get("/attendances/course/{id}", courseId)
                         .queryParam("sort", "attendedClass,asc"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))

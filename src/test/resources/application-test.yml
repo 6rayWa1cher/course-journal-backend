@@ -20,7 +20,7 @@ spring.datasource.password: postgres
 # ===============================
 # JPA / HIBERNATE
 # ===============================
-spring.jpa.show-sql: false
+spring.jpa.show-sql: true
 spring.jpa.hibernate.ddl-auto: create-drop
 spring.jpa.database-platform: org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.properties:

@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.TestComponent;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.stream.Stream;
 
@@ -122,12 +123,13 @@ public class EntityFactory {
     }
 
     public long createCourse(EntityFactoryBag bag) {
-        CourseDto dto = CourseDto.builder()
+        CourseFullDto dto = CourseFullDto.builder()
                 .name(faker.lorem().sentence())
                 .owner(bag.getEmployeeId())
+                .students(new ArrayList<>())
                 .build();
 
-        CourseDto dtoFromBag = bag.getDto(CourseDto.class);
+        CourseFullDto dtoFromBag = bag.getDto(CourseFullDto.class);
         if (dtoFromBag != null) {
             mapper.merge(dtoFromBag, dto);
         }
@@ -197,7 +199,6 @@ public class EntityFactory {
         StudentDto dto = StudentDto.builder()
                 .firstName(faker.name().firstName())
                 .lastName(faker.name().lastName())
-                .course(bag.getCourseId())
                 .group(bag.getGroupId())
                 .build();
 

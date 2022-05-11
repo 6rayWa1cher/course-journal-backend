@@ -1,7 +1,7 @@
 package com.a6raywa1cher.coursejournalbackend.integration;
 
 import com.a6raywa1cher.coursejournalbackend.RequestContext;
-import com.a6raywa1cher.coursejournalbackend.dto.CourseDto;
+import com.a6raywa1cher.coursejournalbackend.dto.CourseFullDto;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
 import com.a6raywa1cher.coursejournalbackend.model.repo.EmployeeRepository;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
@@ -39,12 +39,12 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String sentence1 = faker.lorem().sentence();
                 String sentence2 = faker.lorem().sentence();
 
-                courseService.create(CourseDto.builder()
+                courseService.create(CourseFullDto.builder()
                         .name(sentence1)
                         .owner(ef.createEmployee())
                         .build());
 
-                courseService.create(CourseDto.builder()
+                courseService.create(CourseFullDto.builder()
                         .name(sentence2)
                         .owner(ef.createEmployee())
                         .build());
@@ -85,17 +85,17 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String sentence2 = "DEF>>" + faker.lorem().sentence();
                 String sentence3 = faker.lorem().sentence();
 
-                courseService.create(CourseDto.builder()
+                courseService.create(CourseFullDto.builder()
                         .name(sentence1)
                         .owner(getSelfEmployeeIdAsLong())
                         .build());
 
-                courseService.create(CourseDto.builder()
+                courseService.create(CourseFullDto.builder()
                         .name(sentence2)
                         .owner(getSelfEmployeeIdAsLong())
                         .build());
 
-                courseService.create(CourseDto.builder()
+                courseService.create(CourseFullDto.builder()
                         .name(sentence3)
                         .owner(ef.createEmployee())
                         .build());
@@ -143,12 +143,12 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 long owner1 = ef.createEmployee();
                 long owner2 = ef.createEmployee();
 
-                courseService.create(CourseDto.builder()
+                courseService.create(CourseFullDto.builder()
                         .name(sentence1)
                         .owner(owner1)
                         .build());
 
-                courseService.create(CourseDto.builder()
+                courseService.create(CourseFullDto.builder()
                         .name(sentence2)
                         .owner(owner2)
                         .build());
@@ -201,7 +201,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long id = courseService.create(CourseDto.builder()
+                long id = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(getSelfEmployeeIdAsLong())
                         .build()).getId();
@@ -219,7 +219,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long id = courseService.create(CourseDto.builder()
+                long id = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(getSelfEmployeeIdAsLong())
                         .build()).getId();
@@ -237,7 +237,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                long id = courseService.create(CourseDto.builder()
+                long id = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ef.createEmployee())
                         .build()).getId();
@@ -251,7 +251,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void getCourseById__withCourseToken__valid() {
         String name = faker.lorem().sentence();
-        long id = courseService.create(CourseDto.builder()
+        long id = courseService.create(CourseFullDto.builder()
                 .name(name)
                 .owner(ef.createEmployee())
                 .build()).getId();
@@ -269,7 +269,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void getCourseById__notAuthenticated__invalid() throws Exception {
         String name = faker.lorem().sentence();
-        long id = courseService.create(CourseDto.builder()
+        long id = courseService.create(CourseFullDto.builder()
                 .name(name)
                 .owner(ef.createEmployee())
                 .build()).getId();
@@ -281,7 +281,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void getCourseById__notExists__invalid() {
         String name = faker.lorem().sentence();
-        long id = courseService.create(CourseDto.builder()
+        long id = courseService.create(CourseFullDto.builder()
                 .name(name)
                 .owner(ef.createEmployee())
                 .build()).getId();
@@ -303,7 +303,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                courseService.create(CourseDto.builder()
+                courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(getSelfEmployeeIdAsLong())
                         .build());
@@ -317,7 +317,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void getCourseByName__otherAsAdmin__valid() {
         String name = faker.lorem().sentence();
-        courseService.create(CourseDto.builder()
+        courseService.create(CourseFullDto.builder()
                 .name(name)
                 .owner(ef.createEmployee())
                 .build());
@@ -339,7 +339,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String name = faker.lorem().sentence();
-                courseService.create(CourseDto.builder()
+                courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ef.createEmployee())
                         .build());
@@ -353,7 +353,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void getCourseByName__withCourseToken__invalid() {
         String name = faker.lorem().sentence();
-        long id = courseService.create(CourseDto.builder()
+        long id = courseService.create(CourseFullDto.builder()
                 .name(name)
                 .owner(ef.createEmployee())
                 .build()).getId();
@@ -370,7 +370,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void getCourseByName__notAuthenticated__invalid() throws Exception {
         String name = faker.lorem().sentence();
-        courseService.create(CourseDto.builder()
+        courseService.create(CourseFullDto.builder()
                 .name(name)
                 .owner(ef.createEmployee())
                 .build());
@@ -382,7 +382,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void getCourseByName__notExists__invalid() {
         String name = faker.lorem().sentence();
-        courseService.create(CourseDto.builder()
+        courseService.create(CourseFullDto.builder()
                 .name(name)
                 .owner(ef.createEmployee())
                 .build());
@@ -401,9 +401,12 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     // ================================================================================================================
 
     RequestContext<ObjectNode> getCreateCourseContext(long ownerId, String name) {
+
         ObjectNode request = objectMapper.createObjectNode()
                 .put("name", name)
                 .put("owner", ownerId);
+
+        request.putArray("students");
 
         Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
                 jsonPath(prefix + ".id").isNumber(),
@@ -520,7 +523,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
                 ef.createCourse(ef.bag()
                         .withEmployeeId(ownerId)
-                        .withDto(CourseDto.builder().name(name).build())
+                        .withDto(CourseFullDto.builder().name(name).build())
                 );
 
                 var ctx = getCreateCourseContext(ownerId, name);
@@ -558,7 +561,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = getSelfEmployeeIdAsLong();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -596,7 +599,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -634,7 +637,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -660,7 +663,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 String name = faker.lorem().sentence();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -686,7 +689,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -725,7 +728,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = getSelfEmployeeIdAsLong();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -752,7 +755,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -779,7 +782,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -807,12 +810,12 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name2 = faker.lorem().sentence();
                 long ownerId = getSelfEmployeeIdAsLong();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name1)
                         .owner(ownerId)
                         .build()).getId();
 
-                courseService.create(CourseDto.builder()
+                courseService.create(CourseFullDto.builder()
                         .name(name2)
                         .owner(ownerId)
                         .build());
@@ -837,12 +840,12 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 long ownerId1 = ef.createEmployee();
                 long ownerId2 = ef.createEmployee();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId1)
                         .build()).getId();
 
-                courseService.create(CourseDto.builder()
+                courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId2)
                         .build());
@@ -863,7 +866,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         String name = faker.lorem().sentence();
         long ownerId = ef.createEmployee();
 
-        long courseId = courseService.create(CourseDto.builder()
+        long courseId = courseService.create(CourseFullDto.builder()
                 .name(name)
                 .owner(ownerId)
                 .build()).getId();
@@ -888,7 +891,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = getSelfEmployeeIdAsLong();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -925,7 +928,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -962,7 +965,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -987,7 +990,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 String name = faker.lorem().sentence();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -1012,7 +1015,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -1049,7 +1052,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = getSelfEmployeeIdAsLong();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -1074,7 +1077,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -1099,7 +1102,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -1125,12 +1128,12 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name2 = faker.lorem().sentence();
                 long ownerId = getSelfEmployeeIdAsLong();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name1)
                         .owner(ownerId)
                         .build()).getId();
 
-                courseService.create(CourseDto.builder()
+                courseService.create(CourseFullDto.builder()
                         .name(name2)
                         .owner(ownerId)
                         .build());
@@ -1154,12 +1157,12 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 long ownerId1 = ef.createEmployee();
                 long ownerId2 = ef.createEmployee();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId1)
                         .build()).getId();
 
-                courseService.create(CourseDto.builder()
+                courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId2)
                         .build());
@@ -1179,7 +1182,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         String name = faker.lorem().sentence();
         long ownerId = ef.createEmployee();
 
-        long courseId = courseService.create(CourseDto.builder()
+        long courseId = courseService.create(CourseFullDto.builder()
                 .name(name)
                 .owner(ownerId)
                 .build()).getId();
@@ -1205,7 +1208,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = getSelfEmployeeIdAsLong();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -1227,7 +1230,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -1249,7 +1252,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -1268,7 +1271,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 String name = faker.lorem().sentence();
 
-                long courseId = courseService.create(CourseDto.builder()
+                long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
                         .build()).getId();
@@ -1284,7 +1287,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         String name = faker.lorem().sentence();
         long ownerId = ef.createEmployee();
 
-        long courseId = courseService.create(CourseDto.builder()
+        long courseId = courseService.create(CourseFullDto.builder()
                 .name(name)
                 .owner(ownerId)
                 .build()).getId();

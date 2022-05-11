@@ -17,6 +17,11 @@ public interface MapStructRestDtoMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    CourseFullDto mapFull(CourseRestDto dto);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
     TaskDto map(TaskRestDto dto);
 
     ShortTaskRestDto map(TaskDto dto);
@@ -34,7 +39,6 @@ public interface MapStructRestDtoMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
-    @Mapping(target = "course", ignore = true)
     @Mapping(target = "group", ignore = true)
     StudentDto map(BatchCreateStudentDto.StudentInfo studentInfo);
 

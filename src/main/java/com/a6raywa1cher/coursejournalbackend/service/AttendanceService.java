@@ -14,8 +14,6 @@ public interface AttendanceService {
 
     List<AttendanceDto> getByCourseAndStudentIds(long courseId, long studentId, Sort sort);
 
-    List<AttendanceDto> getByStudentId(long studentId, Sort sort);
-
     List<AttendanceDto> getByCourseId(long courseId, Sort sort);
 
     AttendanceDto create(AttendanceDto dto);

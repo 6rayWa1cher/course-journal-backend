@@ -198,7 +198,6 @@ public class SubmissionServiceImpl implements SubmissionService {
                         .toList()
         );
         courseIds.add(task.getCourse().getId());
-        courseIds.add(student.getCourse().getId());
         if (courseIds.size() != 1) {
             throw new VariousParentEntitiesException(courseIds.stream().toList());
         }

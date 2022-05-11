@@ -30,6 +30,9 @@ public class Student implements IdEntity<Long> {
     @ManyToOne(optional = false)
     private Group group;
 
+    @ManyToMany(mappedBy = "students", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Course> courses;
+
     @Column(name = "first_name", nullable = false)
     private String firstName;
 

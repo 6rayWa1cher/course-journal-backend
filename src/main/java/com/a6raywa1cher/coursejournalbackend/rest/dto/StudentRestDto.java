@@ -15,10 +15,6 @@ import static com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary.COMM
 public class StudentRestDto {
     @NotNull(groups = {OnCreate.class, OnUpdate.class})
     @Positive
-    private Long course;
-
-    @NotNull(groups = {OnCreate.class, OnUpdate.class})
-    @Positive
     private Long group;
 
     @NotBlank(groups = {OnCreate.class, OnUpdate.class})
