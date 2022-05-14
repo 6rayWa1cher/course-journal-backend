@@ -47,10 +47,10 @@ public class AuthUser implements IUser, IdEntity<Long> {
     @ReadOnlyProperty
     private Long id;
 
-    @Column(name = "username", unique = true)
+    @Column(name = "username", nullable = false, unique = true)
     private String username;
 
-    @Column(name = "password")
+    @Column(name = "password", nullable = false)
     @JsonIgnore
     private String password;
 
@@ -58,11 +58,11 @@ public class AuthUser implements IUser, IdEntity<Long> {
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
 
-    @OneToOne(cascade = {CascadeType.REFRESH, CascadeType.MERGE})
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "employee_id", unique = true)
     private Employee employee;
 
-    @OneToOne(cascade = {CascadeType.REFRESH, CascadeType.MERGE})
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "student_id", unique = true)
     private Student student;
 

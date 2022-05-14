@@ -18,6 +18,8 @@ public class StudentDto {
 
     private String middleName;
 
+    private Boolean headman;
+
     private ZonedDateTime createdAt;
 
     private ZonedDateTime lastModifiedAt;

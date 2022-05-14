@@ -34,6 +34,7 @@ public abstract class MapStructMapper {
     // ================================================================================================================
 
     @CreatedModifiedMapping
+    @Mapping(target = "hasAuthUser", expression = "java(employee.getAuthUser() != null)")
     public abstract EmployeeDto map(Employee employee);
 
     @CreatedModifiedRestrictMapping
@@ -153,6 +154,7 @@ public abstract class MapStructMapper {
 
     @CreatedModifiedMapping
     @Mapping(target = "group", source = "group.id")
+    @Mapping(target = "headman", expression = "java(student.getAuthUser() != null)")
     public abstract StudentDto map(Student student);
 
     @CreatedModifiedRestrictMapping
@@ -235,7 +237,7 @@ public abstract class MapStructMapper {
 
     @CreatedModifiedMapping
     @Mapping(target = "course", source = "course.id")
-    public abstract CourseTokenDto map(CourseToken criteria);
+    public abstract CourseTokenDto map(CourseToken courseToken);
 
     // ================================================================================================================
     // Group

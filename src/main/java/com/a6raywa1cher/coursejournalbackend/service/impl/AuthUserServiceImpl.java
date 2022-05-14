@@ -140,6 +140,12 @@ public class AuthUserServiceImpl implements AuthUserService {
     @Override
     public void delete(long id) {
         AuthUser authUser = getAuthUserById(id);
+        if (authUser.getEmployee() != null) {
+            authUser.getEmployee().setAuthUser(null);
+        }
+        if (authUser.getStudent() != null) {
+            authUser.getStudent().setAuthUser(null);
+        }
         repository.delete(authUser);
     }
 

@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Component
 public class WebSecurityUserService extends AbstractUserService<AuthUser> {
     @Autowired
@@ -21,9 +23,12 @@ public class WebSecurityUserService extends AbstractUserService<AuthUser> {
             throw new IllegalArgumentException("cannot create non-admin user this way");
         }
         AuthUser authUser = new AuthUser();
+        LocalDateTime now = LocalDateTime.now();
         authUser.setUsername(login);
         authUser.setPassword(passwordEncoder.encode(rawPassword));
         authUser.setUserRole(UserRole.valueOf(role));
+        authUser.setCreatedAt(now);
+        authUser.setLastModifiedAt(now);
         return userRepository.save(authUser);
     }
 }

@@ -653,7 +653,8 @@ public class EmployeeControllerIntegrationTests extends AbstractIntegrationTests
                 jsonPath(prefix + ".firstName").value(firstName),
                 jsonPath(prefix + ".middleName").value(middleName),
                 jsonPath(prefix + ".lastName").value(lastName),
-                jsonPath(prefix + ".department").value(department)
+                jsonPath(prefix + ".department").value(department),
+                jsonPath(prefix + ".hasAuthUser").value(false)
         };
     }
 }

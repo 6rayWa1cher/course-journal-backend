@@ -16,7 +16,7 @@ public class TaskRestDto {
     @Positive
     private Long course;
 
-    @NotNull(groups = {OnCreate.class, OnUpdate.class})
+    @NotNull(groups = {OnUpdate.class})
     private Integer taskNumber;
 
     @NotBlank(groups = {OnCreate.class, OnUpdate.class})

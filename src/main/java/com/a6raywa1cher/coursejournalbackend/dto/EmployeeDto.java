@@ -18,6 +18,8 @@ public class EmployeeDto {
 
     private String department;
 
+    private Boolean hasAuthUser;
+
     private ZonedDateTime createdAt;
 
     private ZonedDateTime lastModifiedAt;

@@ -68,6 +68,7 @@ public class EntityFactory {
     public long createAuthUser(EntityFactoryBag bag) {
         CreateEditAuthUserDto dto = CreateEditAuthUserDto.builder()
                 .username(faker.name().username())
+                .password(faker.internet().password())
                 .userRole(bag.getUserRole())
                 .userInfo(bag.getUserInfoId())
                 .build();

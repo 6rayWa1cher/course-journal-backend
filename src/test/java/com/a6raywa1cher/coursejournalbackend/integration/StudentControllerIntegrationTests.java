@@ -6,7 +6,6 @@ import com.a6raywa1cher.coursejournalbackend.dto.StudentDto;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
 import com.a6raywa1cher.coursejournalbackend.service.StudentService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -21,7 +20,8 @@ import java.util.function.Function;
 import static com.a6raywa1cher.coursejournalbackend.TestUtils.getIdFromResult;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
 public class StudentControllerIntegrationTests extends AbstractIntegrationTests {
@@ -61,6 +61,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                         jsonPath("$.group").value(groupId),
                         jsonPath("$.firstName").value(firstName),
                         jsonPath("$.lastName").value(lastName),
+                        jsonPath("$.headman").value(false)
                 };
 
                 securePerform(get("/students/{id}", id))
@@ -90,6 +91,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                         jsonPath("$.group").value(groupId),
                         jsonPath("$.firstName").value(firstName),
                         jsonPath("$.lastName").value(lastName),
+                        jsonPath("$.headman").value(false)
                 };
 
                 securePerform(get("/students/{id}", id))
@@ -770,9 +772,11 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                         jsonPath(prefix + "[0].firstName").value(firstName1),
                         jsonPath(prefix + "[0].middleName").value(middleName1),
                         jsonPath(prefix + "[0].lastName").value(lastName1),
+                        jsonPath(prefix + "[0].headman").value(false),
                         jsonPath(prefix + "[1].firstName").value(firstName2),
                         jsonPath(prefix + "[1].middleName").value(middleName2),
-                        jsonPath(prefix + "[1].lastName").value(lastName2)
+                        jsonPath(prefix + "[1].lastName").value(lastName2),
+                        jsonPath(prefix + "[1].headman").value(false),
                 });
     }
 
@@ -854,7 +858,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                 jsonPath("$.firstName").value(firstName),
                 jsonPath("$.middleName").value(middleName),
                 jsonPath("$.lastName").value(lastName),
-                jsonPath("$.group").value(groupId)
+                jsonPath("$.group").value(groupId),
+                jsonPath("$.headman").value(false)
         };
 
         return new RequestContext<>(request, matchers);
@@ -997,7 +1002,8 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                 jsonPath("$.firstName").value(firstName),
                 jsonPath("$.middleName").value(middleName),
                 jsonPath("$.lastName").value(lastName),
-                jsonPath("$.group").value(groupId)
+                jsonPath("$.group").value(groupId),
+                jsonPath("$.headman").value(false)
         };
 
         return new RequestContext<>(request, matchers);
