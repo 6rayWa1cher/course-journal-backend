@@ -5,7 +5,6 @@ import com.a6raywa1cher.coursejournalbackend.dto.exc.ConflictException;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.NotFoundException;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.TransferNotAllowedException;
 import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
-import com.a6raywa1cher.coursejournalbackend.model.Course;
 import com.a6raywa1cher.coursejournalbackend.model.Faculty;
 import com.a6raywa1cher.coursejournalbackend.model.Group;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
@@ -77,7 +76,7 @@ public class GroupServiceImpl implements GroupService {
         Faculty faculty = getFacultyById(dto.getFaculty());
 
         assertNoFacultyChanged(group.getFaculty(), faculty);
-        assertUniqueFacultyAndNamePair(faculty, dto.getName());
+        assertUniqueFacultyAndNamePairOrNotChanged(faculty, group.getName(), dto.getName());
         mapper.put(dto, group);
 
         group.setLastModifiedAt(LocalDateTime.now());
@@ -90,7 +89,7 @@ public class GroupServiceImpl implements GroupService {
         Faculty faculty = dto.getFaculty() != null ? getFacultyById(dto.getFaculty()) : group.getFaculty();
 
         assertNoFacultyChanged(group.getFaculty(), faculty);
-        assertUniqueFacultyAndNamePair(faculty, dto.getName());
+        if (dto.getName() != null) assertUniqueFacultyAndNamePairOrNotChanged(faculty, group.getName(), dto.getName());
         mapper.patch(dto, group);
 
         group.setLastModifiedAt(LocalDateTime.now());
@@ -111,15 +110,17 @@ public class GroupServiceImpl implements GroupService {
         return facultyRepository.findById(id).orElseThrow(() -> new NotFoundException(Faculty.class, id));
     }
 
-    private Course getCourseById(long id) {
-        return courseRepository.findById(id).orElseThrow(() -> new NotFoundException(Course.class, id));
-    }
-
     private void assertUniqueFacultyAndNamePair(Faculty faculty, String name) {
         if (repository.findByFacultyAndName(faculty, name).isPresent()) {
             throw new ConflictException(Faculty.class,
                     "faculty", Long.toString(faculty.getId()),
                     "name", name);
+        }
+    }
+
+    private void assertUniqueFacultyAndNamePairOrNotChanged(Faculty faculty, String prevName, String newName) {
+        if (!Objects.equals(prevName, newName)) {
+            assertUniqueFacultyAndNamePair(faculty, newName);
         }
     }
 

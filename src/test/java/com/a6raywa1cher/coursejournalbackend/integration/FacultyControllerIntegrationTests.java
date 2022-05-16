@@ -15,7 +15,6 @@ import org.springframework.test.web.servlet.ResultMatcher;
 import java.util.Map;
 import java.util.function.Function;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -87,6 +86,7 @@ public class FacultyControllerIntegrationTests extends AbstractIntegrationTests 
         mvc.perform(get("/faculties/{id}", id))
                 .andExpect(status().isUnauthorized());
     }
+
     // ================================================================================================================
 
     RequestContext<Long> createGetAllFacultiesContext(String name) {
@@ -336,6 +336,35 @@ public class FacultyControllerIntegrationTests extends AbstractIntegrationTests 
     }
 
     @Test
+    void putFaculty__notChanged__valid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                String name = faker.lorem().sentence(2);
+
+                long id = ef.createFaculty(ef.bag().withDto(
+                        FacultyDto.builder()
+                                .name(name)
+                                .build()
+                ));
+
+                RequestContext<ObjectNode> context = createPutFacultyRequest(name);
+                ObjectNode request = context.getRequest();
+
+                securePerform(put("/faculties/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
+
+                securePerform(get("/faculties/{id}", id))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
+            }
+        };
+    }
+
+    @Test
     void putFaculty__notExists__invalid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
@@ -476,6 +505,35 @@ public class FacultyControllerIntegrationTests extends AbstractIntegrationTests 
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isConflict());
+            }
+        };
+    }
+
+    @Test
+    void patchFaculty__notChanged__valid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                String name = faker.lorem().sentence(2);
+
+                long id = ef.createFaculty(ef.bag().withDto(
+                        FacultyDto.builder()
+                                .name(name)
+                                .build()
+                ));
+
+                RequestContext<ObjectNode> context = createPatchFacultyRequest(name);
+                ObjectNode request = context.getRequest();
+
+                securePerform(patch("/faculties/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
+
+                securePerform(get("/faculties/{id}", id))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
             }
         };
     }

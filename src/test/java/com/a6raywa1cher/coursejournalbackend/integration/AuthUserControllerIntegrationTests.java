@@ -1277,6 +1277,9 @@ public class AuthUserControllerIntegrationTests extends AbstractIntegrationTests
                 mvc.perform(get("/auth/check")
                                 .header(HttpHeaders.AUTHORIZATION, basic(username, password)))
                         .andExpect(status().isUnauthorized());
+
+                securePerform(get("/auth-user/{id}", id))
+                        .andExpect(status().isNotFound());
             }
         };
     }
@@ -1323,8 +1326,8 @@ public class AuthUserControllerIntegrationTests extends AbstractIntegrationTests
         mvc.perform(delete("/auth-user/{id}", id + 1000))
                 .andExpect(status().isUnauthorized());
     }
-//
-//    // ================================================================================================================
+
+    // ================================================================================================================
 
     ResultMatcher getResultMatcherForUserInfo(String prefix, UserRole userRole, Long userInfoId) {
         return switch (userRole) {

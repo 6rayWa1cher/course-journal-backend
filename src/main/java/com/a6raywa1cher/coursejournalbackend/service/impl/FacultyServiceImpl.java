@@ -7,13 +7,12 @@ import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
 import com.a6raywa1cher.coursejournalbackend.model.Faculty;
 import com.a6raywa1cher.coursejournalbackend.model.repo.FacultyRepository;
 import com.a6raywa1cher.coursejournalbackend.service.FacultyService;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.StreamSupport;
 
 @Service
 public class FacultyServiceImpl implements FacultyService {
@@ -60,7 +59,7 @@ public class FacultyServiceImpl implements FacultyService {
     public FacultyDto update(long id, FacultyDto dto) {
         Faculty faculty = getFacultyById(id);
 
-        assertUniqueName(dto.getName());
+        assertUniqueNameOrNotChanged(faculty.getName(), dto.getName());
         mapper.put(dto, faculty);
 
         faculty.setLastModifiedAt(LocalDateTime.now());
@@ -72,7 +71,7 @@ public class FacultyServiceImpl implements FacultyService {
     public FacultyDto patch(long id, FacultyDto dto) {
         Faculty faculty = getFacultyById(id);
 
-        assertUniqueName(dto.getName());
+        if (dto.getName() != null) assertUniqueNameOrNotChanged(faculty.getName(), dto.getName());
         mapper.patch(dto, faculty);
 
         faculty.setLastModifiedAt(LocalDateTime.now());
@@ -95,6 +94,12 @@ public class FacultyServiceImpl implements FacultyService {
             throw new ConflictException(Faculty.class,
                     "name", name
             );
+        }
+    }
+
+    private void assertUniqueNameOrNotChanged(String prevName, String newName) {
+        if (!Objects.equals(prevName, newName)) {
+            assertUniqueName(newName);
         }
     }
 }

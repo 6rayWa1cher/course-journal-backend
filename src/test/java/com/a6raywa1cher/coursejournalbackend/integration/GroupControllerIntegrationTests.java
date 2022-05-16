@@ -12,7 +12,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 
-import java.util.Map;
 import java.util.function.Function;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -470,6 +469,36 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
     }
 
     @Test
+    void putGroup__notChanged__valid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                long facultyId = ef.createFaculty();
+                String name = faker.lorem().sentence(1);
+
+                long id = ef.createGroup(ef.bag().withFacultyId(facultyId)
+                        .withDto(GroupDto.builder()
+                                .name(name)
+                                .build()
+                        ));
+
+                var context = createPutGroupContext(facultyId, name);
+                ObjectNode request = context.getRequest();
+
+                securePerform(put("/groups/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
+
+                securePerform(get("/groups/{id}", id))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
+            }
+        };
+    }
+
+    @Test
     void putGroup__notExists__invalid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
@@ -664,6 +693,36 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isConflict());
+            }
+        };
+    }
+
+    @Test
+    void patchGroup__notChanged__valid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                long facultyId = ef.createFaculty();
+                String name = faker.lorem().sentence(1);
+
+                long id = ef.createGroup(ef.bag().withFacultyId(facultyId)
+                        .withDto(GroupDto.builder()
+                                .name(name)
+                                .build()
+                        ));
+
+                var context = createPatchGroupContext(facultyId, name);
+                ObjectNode request = context.getRequest();
+
+                securePerform(patch("/groups/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
+
+                securePerform(get("/groups/{id}", id))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
             }
         };
     }

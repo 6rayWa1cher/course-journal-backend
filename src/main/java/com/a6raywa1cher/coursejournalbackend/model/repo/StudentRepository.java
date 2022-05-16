@@ -14,10 +14,10 @@ import java.util.List;
 
 @Repository
 public interface StudentRepository extends PagingAndSortingRepository<Student, Long> {
-    @Query("select s from Student s join s.courses c where c=:course")
+    @Query("select s from Student s join s.courses c where c = :course")
     Page<Student> getAllByCourse(@Param("course") Course course, Pageable pageable);
 
-    @Query("select s from Student s join s.courses c where c=:course")
+    @Query("select s from Student s join s.courses c where c = :course")
     List<Student> getAllByCourse(@Param("course") Course course);
 
     List<Student> getAllByGroup(Group group);
