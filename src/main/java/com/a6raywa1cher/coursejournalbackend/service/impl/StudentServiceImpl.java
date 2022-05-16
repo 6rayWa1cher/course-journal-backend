@@ -2,14 +2,14 @@ package com.a6raywa1cher.coursejournalbackend.service.impl;
 
 import com.a6raywa1cher.coursejournalbackend.dto.StudentDto;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.NotFoundException;
-import com.a6raywa1cher.coursejournalbackend.dto.exc.TransferNotAllowedException;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.VariousParentEntitiesException;
 import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
 import com.a6raywa1cher.coursejournalbackend.model.Course;
+import com.a6raywa1cher.coursejournalbackend.model.Group;
 import com.a6raywa1cher.coursejournalbackend.model.Student;
-import com.a6raywa1cher.coursejournalbackend.model.Task;
 import com.a6raywa1cher.coursejournalbackend.model.repo.StudentRepository;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
+import com.a6raywa1cher.coursejournalbackend.service.GroupService;
 import com.a6raywa1cher.coursejournalbackend.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,7 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -26,13 +29,14 @@ import java.util.stream.StreamSupport;
 @Transactional
 public class StudentServiceImpl implements StudentService {
     private final StudentRepository repository;
-    private final CourseService courseService;
+    private CourseService courseService;
+    private final GroupService groupService;
     private final MapStructMapper mapper;
 
     @Autowired
-    public StudentServiceImpl(StudentRepository repository, CourseService courseService, MapStructMapper mapper) {
+    public StudentServiceImpl(StudentRepository repository, GroupService groupService, MapStructMapper mapper) {
         this.repository = repository;
-        this.courseService = courseService;
+        this.groupService = groupService;
         this.mapper = mapper;
     }
 
@@ -47,6 +51,9 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    public List<Student> findRawById(List<Long> ids) { return StreamSupport.stream(repository.findAllById(ids).spliterator(), false).toList(); }
+
+    @Override
     public Page<StudentDto> getByCourseId(long courseId, Pageable pageable) {
         return repository.getAllByCourse(getCourseById(courseId), pageable).map(mapper::map);
     }
@@ -57,13 +64,18 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    public List<StudentDto> getByGroupId(long groupId) {
+        return repository.getAllByGroup(getGroupById(groupId)).stream().map(mapper::map).toList();
+    }
+
+    @Override
     public StudentDto create(StudentDto dto) {
         Student student = new Student();
-        Course course = getCourseById(dto.getCourse());
+        Group group = getGroupById(dto.getGroup());
 
         mapper.put(dto, student);
 
-        student.setCourse(course);
+        student.setGroup(group);
         student.setCreatedAt(LocalDateTime.now());
         student.setLastModifiedAt(LocalDateTime.now());
 
@@ -73,7 +85,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public List<StudentDto> batchCreate(List<StudentDto> dtoList) {
         List<Student> students = new ArrayList<>();
-        Course course = extractCourse(dtoList);
+        Group group = extractGroup(dtoList);
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -82,7 +94,7 @@ public class StudentServiceImpl implements StudentService {
 
             mapper.put(dto, student);
 
-            student.setCourse(course);
+            student.setGroup(group);
             student.setCreatedAt(now);
             student.setLastModifiedAt(now);
 
@@ -97,12 +109,11 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public StudentDto update(long id, StudentDto dto) {
         Student student = getStudentById(id);
-        Course course = getCourseById(dto.getCourse());
+        Group group = getGroupById(dto.getGroup());
 
-        assertNoCourseChange(student.getCourse(), course);
         mapper.put(dto, student);
 
-        student.setCourse(course);
+        student.setGroup(group);
         student.setCreatedAt(LocalDateTime.now());
         student.setLastModifiedAt(LocalDateTime.now());
 
@@ -112,12 +123,11 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public StudentDto patch(long id, StudentDto dto) {
         Student student = getStudentById(id);
-        Course course = dto.getCourse() != null ? getCourseById(dto.getCourse()) : student.getCourse();
+        Group group = dto.getGroup() != null ? getGroupById(dto.getGroup()) : student.getGroup();
 
-        assertNoCourseChange(student.getCourse(), course);
         mapper.patch(dto, student);
 
-        student.setCourse(course);
+        student.setGroup(group);
         student.setCreatedAt(LocalDateTime.now());
         student.setLastModifiedAt(LocalDateTime.now());
 
@@ -138,20 +148,22 @@ public class StudentServiceImpl implements StudentService {
         return courseService.findRawById(id).orElseThrow(() -> new NotFoundException(Course.class, id));
     }
 
-
-    private void assertNoCourseChange(Course left, Course right) {
-        if (!Objects.equals(left, right)) {
-            throw new TransferNotAllowedException(Task.class, "course", left.getId(), right.getId());
-        }
+    private Group getGroupById(long id) {
+        return groupService.findRawById(id).orElseThrow(() -> new NotFoundException(Group.class, id));
     }
 
-    private Course extractCourse(List<StudentDto> dtoList) {
-        Set<Long> courseIds = dtoList.stream()
-                .map(StudentDto::getCourse)
+    private Group extractGroup(List<StudentDto> dtoList) {
+        Set<Long> groupIds = dtoList.stream()
+                .map(StudentDto::getGroup)
                 .collect(Collectors.toSet());
-        if (courseIds.size() != 1) {
-            throw new VariousParentEntitiesException(new ArrayList<>(courseIds));
+        if (groupIds.size() != 1) {
+            throw new VariousParentEntitiesException(new ArrayList<>(groupIds));
         }
-        return getCourseById(courseIds.iterator().next());
+        return getGroupById(groupIds.iterator().next());
+    }
+
+    @Autowired
+    public void setCourseService(CourseService courseService) {
+        this.courseService = courseService;
     }
 }

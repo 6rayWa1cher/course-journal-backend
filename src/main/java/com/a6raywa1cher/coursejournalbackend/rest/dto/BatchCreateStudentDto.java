@@ -12,7 +12,7 @@ import static com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary.COMM
 public class BatchCreateStudentDto {
     @NotNull
     @Positive
-    private Long course;
+    private Long group;
 
     @NotNull
     @Size(min = 1)

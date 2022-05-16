@@ -13,9 +13,13 @@ public interface StudentService {
 
     Optional<Student> findRawById(long id);
 
+    List<Student> findRawById(List<Long> ids);
+
     Page<StudentDto> getByCourseId(long courseId, Pageable pageable);
 
     List<StudentDto> getByCourseId(long courseId);
+
+    List<StudentDto> getByGroupId(long groupId);
 
     StudentDto create(StudentDto dto);
 

@@ -35,9 +35,18 @@ public class Course implements IdEntity<Long> {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "owner_id")
-    private User owner;
+    private Employee owner;
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "course_student",
+            joinColumns = {
+                    @JoinColumn(name = "course_id", referencedColumnName = "id"),
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "student_id", referencedColumnName = "id")
+            }
+    )
     @ToString.Exclude
     private List<Student> students;
 

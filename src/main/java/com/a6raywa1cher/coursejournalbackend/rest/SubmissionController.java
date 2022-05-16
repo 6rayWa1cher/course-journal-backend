@@ -49,13 +49,13 @@ public class SubmissionController {
     }
 
     @GetMapping("/course/{cid}/student/{sid}")
-    @PreAuthorize("@accessChecker.readCourseAccess(#cid, authentication) and @accessChecker.readStudentAccess(#sid, authentication)")
+    @PreAuthorize("@accessChecker.readCourseAccess(#cid, authentication)")
     public List<SubmissionDto> getByCourseAndStudent(@PathVariable long cid, @PathVariable long sid, @ParameterObject Sort sort) {
         return service.getByStudentAndCourse(sid, cid, sort);
     }
 
     @PostMapping("/")
-    @PreAuthorize("@accessChecker.createSubmissionAccess(#dto.task, #dto.student, authentication)")
+    @PreAuthorize("@accessChecker.createSubmissionAccess(#dto.task, authentication)")
     @ResponseStatus(HttpStatus.CREATED)
     @Validated(OnCreate.class)
     public SubmissionDto create(@RequestBody @Valid SubmissionRestDto dto) {

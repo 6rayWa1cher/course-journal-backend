@@ -2,27 +2,53 @@ package com.a6raywa1cher.coursejournalbackend.dto.mapper;
 
 import com.a6raywa1cher.coursejournalbackend.dto.*;
 import com.a6raywa1cher.coursejournalbackend.model.*;
-import com.a6raywa1cher.coursejournalbackend.service.UserService;
+import com.a6raywa1cher.coursejournalbackend.service.EmployeeService;
 import org.mapstruct.*;
 
-@Mapper(uses = {MapperHelper.class, UserService.class}, componentModel = "spring")
+@Mapper(uses = {MapperHelper.class, EmployeeService.class}, componentModel = "spring")
 public abstract class MapStructMapper {
-
     // ================================================================================================================
-    // User
+    // AuthUser
     // ================================================================================================================
 
     @Mapping(target = "createdAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
     @Mapping(target = "lastModifiedAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
     @Mapping(target = "lastVisitAt", qualifiedByName = {"MapperHelper", "FromLocalDateTime"})
-    public abstract UserDto map(User user);
+    @Mapping(target = "student", source = "student.id")
+    @Mapping(target = "employee", source = "employee.id")
+    public abstract AuthUserDto map(AuthUser authUser);
 
     @CreateEditUserDtoToUserMapping
-    public abstract void put(CreateEditUserDto dto, @MappingTarget User user);
+    @Mapping(target = "employee", ignore = true)
+    @Mapping(target = "student", ignore = true)
+    public abstract void put(CreateEditAuthUserDto dto, @MappingTarget AuthUser authUser);
 
     @CreateEditUserDtoToUserMapping
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    public abstract void patch(CreateEditUserDto dto, @MappingTarget User user);
+    @Mapping(target = "employee", ignore = true)
+    @Mapping(target = "student", ignore = true)
+    public abstract void patch(CreateEditAuthUserDto dto, @MappingTarget AuthUser authUser);
+
+    // ================================================================================================================
+    // Employee
+    // ================================================================================================================
+
+    @CreatedModifiedMapping
+    @Mapping(target = "hasAuthUser", expression = "java(employee.getAuthUser() != null)")
+    public abstract EmployeeDto map(Employee employee);
+
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "courseList", ignore = true)
+    @Mapping(target = "authUser", ignore = true)
+    public abstract void put(EmployeeDto dto, @MappingTarget Employee employee);
+
+    @CreatedModifiedRestrictMapping
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "courseList", ignore = true)
+    @Mapping(target = "authUser", ignore = true)
+    public abstract void patch(EmployeeDto dto, @MappingTarget Employee employee);
 
     // ================================================================================================================
     // Course
@@ -31,6 +57,11 @@ public abstract class MapStructMapper {
     @CreatedModifiedMapping
     @Mapping(target = "owner", source = "owner.id")
     public abstract CourseDto map(Course course);
+
+    @CreatedModifiedMapping
+    @Mapping(target = "owner", source = "owner.id")
+    @Mapping(target = "students", qualifiedByName = {"MapperHelper", "ExtractIds"})
+    public abstract CourseFullDto mapFull(Course course);
 
     @CreatedModifiedRestrictMapping
     @Mapping(target = "id", ignore = true)
@@ -49,8 +80,25 @@ public abstract class MapStructMapper {
     @Mapping(target = "courseToken", ignore = true)
     public abstract void patch(CourseDto dto, @MappingTarget Course target);
 
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "students", ignore = true)
+    @Mapping(target = "tasks", ignore = true)
+    @Mapping(target = "courseToken", ignore = true)
+    public abstract void put(CourseFullDto dto, @MappingTarget Course target);
+
+    @CreatedModifiedRestrictMapping
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "students", ignore = true)
+    @Mapping(target = "tasks", ignore = true)
+    @Mapping(target = "courseToken", ignore = true)
+    public abstract void patch(CourseFullDto dto, @MappingTarget Course target);
+
     // ================================================================================================================
-    // Course
+    // Task
     // ================================================================================================================
 
     @CreatedModifiedMapping
@@ -105,20 +153,25 @@ public abstract class MapStructMapper {
     // ================================================================================================================
 
     @CreatedModifiedMapping
-    @Mapping(target = "course", source = "course.id")
+    @Mapping(target = "group", source = "group.id")
+    @Mapping(target = "headman", expression = "java(student.getAuthUser() != null)")
     public abstract StudentDto map(Student student);
 
     @CreatedModifiedRestrictMapping
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "course", ignore = true)
     @Mapping(target = "submissions", ignore = true)
+    @Mapping(target = "group", ignore = true)
+    @Mapping(target = "authUser", ignore = true)
+    @Mapping(target = "courses", ignore = true)
     public abstract void put(StudentDto dto, @MappingTarget Student target);
 
     @CreatedModifiedRestrictMapping
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "course", ignore = true)
     @Mapping(target = "submissions", ignore = true)
+    @Mapping(target = "group", ignore = true)
+    @Mapping(target = "authUser", ignore = true)
+    @Mapping(target = "courses", ignore = true)
     public abstract void patch(StudentDto dto, @MappingTarget Student target);
 
     // ================================================================================================================
@@ -184,5 +237,42 @@ public abstract class MapStructMapper {
 
     @CreatedModifiedMapping
     @Mapping(target = "course", source = "course.id")
-    public abstract CourseTokenDto map(CourseToken criteria);
+    public abstract CourseTokenDto map(CourseToken courseToken);
+
+    // ================================================================================================================
+    // Group
+    // ================================================================================================================
+
+    @CreatedModifiedMapping
+    @Mapping(target = "faculty", source = "faculty.id")
+    public abstract GroupDto map(Group group);
+
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "faculty", ignore = true)
+    @Mapping(target = "students", ignore = true)
+    public abstract void put(GroupDto dto, @MappingTarget Group target);
+
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "faculty", ignore = true)
+    @Mapping(target = "students", ignore = true)
+    public abstract void patch(GroupDto dto, @MappingTarget Group target);
+
+    // ================================================================================================================
+    // Faculty
+    // ================================================================================================================
+
+    @CreatedModifiedMapping
+    public abstract FacultyDto map(Faculty faculty);
+
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "groups", ignore = true)
+    public abstract void put(FacultyDto dto, @MappingTarget Faculty target);
+
+    @CreatedModifiedRestrictMapping
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "groups", ignore = true)
+    public abstract void patch(FacultyDto dto, @MappingTarget Faculty target);
 }

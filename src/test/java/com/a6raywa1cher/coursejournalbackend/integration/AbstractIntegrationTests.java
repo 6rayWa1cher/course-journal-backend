@@ -2,10 +2,14 @@ package com.a6raywa1cher.coursejournalbackend.integration;
 
 import com.a6raywa1cher.coursejournalbackend.EntityFactory;
 import com.a6raywa1cher.coursejournalbackend.dto.CourseTokenDto;
-import com.a6raywa1cher.coursejournalbackend.dto.CreateEditUserDto;
+import com.a6raywa1cher.coursejournalbackend.dto.CreateEditAuthUserDto;
+import com.a6raywa1cher.coursejournalbackend.dto.EmployeeDto;
+import com.a6raywa1cher.coursejournalbackend.dto.StudentDto;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
+import com.a6raywa1cher.coursejournalbackend.service.AuthUserService;
 import com.a6raywa1cher.coursejournalbackend.service.CourseTokenService;
-import com.a6raywa1cher.coursejournalbackend.service.UserService;
+import com.a6raywa1cher.coursejournalbackend.service.EmployeeService;
+import com.a6raywa1cher.coursejournalbackend.service.StudentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import com.jayway.jsonpath.JsonPath;
@@ -51,7 +55,13 @@ public abstract class AbstractIntegrationTests {
     protected ObjectMapper objectMapper;
 
     @Autowired
-    protected UserService userService;
+    protected EmployeeService employeeService;
+
+    @Autowired
+    protected StudentService studentService;
+
+    @Autowired
+    protected AuthUserService authUserService;
 
     @Autowired
     protected TransactionTemplate transactionTemplate;
@@ -67,17 +77,55 @@ public abstract class AbstractIntegrationTests {
         private String username;
         private String password;
 
+        public WithUser(String username, String password, UserRole userRole) {
+            this.username = username;
+            this.password = password;
+            createUser(userRole);
+            this.wrappedRun();
+        }
+
         public WithUser(String username, String password, boolean create) {
             this.username = username;
             this.password = password;
             if (create) {
-                userService.createUser(CreateEditUserDto.builder()
-                        .username(username)
-                        .password(password)
-                        .userRole(UserRole.TEACHER)
-                        .build());
+                createUser(UserRole.TEACHER);
             }
             this.wrappedRun();
+        }
+
+        private void createEmployee() {
+            EmployeeDto dto = employeeService.create(EmployeeDto.builder()
+                    .firstName(faker.name().firstName())
+                    .lastName(faker.name().lastName())
+                    .build());
+            authUserService.create(CreateEditAuthUserDto.builder()
+                    .username(username)
+                    .password(password)
+                    .userRole(UserRole.TEACHER)
+                    .userInfo(dto.getId())
+                    .build());
+        }
+
+        private void createStudent() {
+            StudentDto dto = studentService.create(StudentDto.builder()
+                    .firstName(faker.name().firstName())
+                    .lastName(faker.name().lastName())
+                    .group(ef.createGroup())
+                    .build());
+            authUserService.create(CreateEditAuthUserDto.builder()
+                    .username(username)
+                    .password(password)
+                    .userRole(UserRole.HEADMAN)
+                    .userInfo(dto.getId())
+                    .build());
+        }
+
+        private void createUser(UserRole userRole) {
+            switch (userRole) {
+                case TEACHER -> createEmployee();
+                case HEADMAN -> createStudent();
+                default -> throw new IllegalArgumentException();
+            }
         }
 
         public WithUser(String username, String password) {
@@ -99,6 +147,22 @@ public abstract class AbstractIntegrationTests {
                     builder
                             .header(AUTHORIZATION, basic(username, password))
             );
+        }
+
+        protected String getSelfEmployeeId() {
+            try {
+                String authUserId = getId();
+                String content = securePerform(get("/auth-user/{id}", authUserId)).andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString();
+                int id = JsonPath.read(content, "$.employee");
+                return Integer.toString(id);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        protected long getSelfEmployeeIdAsLong() {
+            return Long.parseLong(getSelfEmployeeId());
         }
 
         protected String getId() {

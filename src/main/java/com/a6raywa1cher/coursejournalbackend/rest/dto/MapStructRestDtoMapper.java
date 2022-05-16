@@ -7,14 +7,17 @@ import org.mapstruct.Mapping;
 
 @Mapper(uses = MapperHelper.class, componentModel = "spring")
 public interface MapStructRestDtoMapper {
-    CreateEditUserDto map(CreateUserDto dto);
-
-    CreateEditUserDto map(EditUserDto dto);
+    CreateEditAuthUserDto map(AuthUserRestDto dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
     CourseDto map(CourseRestDto dto);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
+    CourseFullDto mapFull(CourseRestDto dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
@@ -36,7 +39,7 @@ public interface MapStructRestDtoMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
-    @Mapping(target = "course", ignore = true)
+    @Mapping(target = "group", ignore = true)
     StudentDto map(BatchCreateStudentDto.StudentInfo studentInfo);
 
     @Mapping(target = "id", ignore = true)
@@ -62,4 +65,19 @@ public interface MapStructRestDtoMapper {
     @Mapping(target = "lastModifiedAt", ignore = true)
     @Mapping(target = "token", ignore = true)
     CourseTokenDto map(CourseTokenRestDto dto);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
+    FacultyDto map(FacultyRestDto dto);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
+    GroupDto map(GroupRestDto dto);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
+    EmployeeDto map(EmployeeRestDto dto);
 }

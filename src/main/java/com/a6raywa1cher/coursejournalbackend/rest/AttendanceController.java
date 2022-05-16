@@ -11,6 +11,7 @@ import com.a6raywa1cher.coursejournalbackend.service.AttendanceService;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -32,10 +33,6 @@ public class AttendanceController {
     @GetMapping("/{id}")
     @PreAuthorize("@accessChecker.readAttendanceAccess(#id, authentication)")
     public AttendanceDto getById(@PathVariable long id) { return service.getById(id); }
-
-    @GetMapping("/student/{id}")
-    @PreAuthorize("@accessChecker.readStudentAccess(#id, authentication)")
-    public List<AttendanceDto> getByStudent(@PathVariable long id, @ParameterObject Sort sort) { return service.getByStudentId(id, sort); }
 
     @GetMapping("/course/{id}")
     @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")

@@ -10,13 +10,15 @@ import java.time.ZonedDateTime;
 public class StudentDto {
     private Long id;
 
-    private Long course;
+    private Long group;
 
     private String firstName;
 
     private String lastName;
 
     private String middleName;
+
+    private Boolean headman;
 
     private ZonedDateTime createdAt;
 

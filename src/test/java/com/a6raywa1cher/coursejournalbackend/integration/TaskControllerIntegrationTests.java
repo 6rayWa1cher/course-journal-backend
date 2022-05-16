@@ -33,8 +33,8 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String sentence1 = faker.lorem().sentence();
                 String sentence2 = faker.lorem().sentence();
 
-                long courseId1 = ef.createCourse(getIdAsLong());
-                long courseId2 = ef.createCourse(ef.createUser());
+                long courseId1 = ef.createCourse(getSelfEmployeeIdAsLong());
+                long courseId2 = ef.createCourse(ef.createEmployee());
 
                 taskService.create(TaskDto.builder()
                         .title(sentence1)
@@ -68,7 +68,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String sentence1 = faker.lorem().sentence();
                 String sentence2 = faker.lorem().sentence();
 
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
 
                 taskService.create(TaskDto.builder()
                         .title(sentence1)
@@ -91,7 +91,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void getTasksByCourse__otherAsTeacher__invalid() {
-        long id = ef.createCourse(ef.createUser());
+        long id = ef.createCourse(ef.createEmployee());
 
         new WithUser(USERNAME, PASSWORD) {
             @Override
@@ -139,7 +139,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void getTasksByCourse__notAuthenticated__invalid() throws Exception {
-        long id = ef.createCourse(ef.createUser());
+        long id = ef.createCourse(ef.createEmployee());
         mvc.perform(get("/tasks/course/{id}", id)).andExpect(status().isUnauthorized());
     }
 
@@ -153,8 +153,8 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String sentence1 = faker.lorem().sentence();
                 String sentence2 = faker.lorem().sentence();
 
-                long courseId1 = ef.createCourse(getIdAsLong());
-                long courseId2 = ef.createCourse(ef.createUser());
+                long courseId1 = ef.createCourse(getSelfEmployeeIdAsLong());
+                long courseId2 = ef.createCourse(ef.createEmployee());
 
                 taskService.create(TaskDto.builder()
                         .title(sentence1)
@@ -189,8 +189,8 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String sentence1 = faker.lorem().sentence();
                 String sentence2 = faker.lorem().sentence();
 
-                long courseId1 = ef.createCourse(ef.createUser());
-                long courseId2 = ef.createCourse(ef.createUser());
+                long courseId1 = ef.createCourse(ef.createEmployee());
+                long courseId2 = ef.createCourse(ef.createEmployee());
 
                 taskService.create(TaskDto.builder()
                         .title(sentence1)
@@ -219,7 +219,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void getTasksByCourseNotPaged__otherAsTeacher__invalid() {
-        long id = ef.createCourse(ef.createUser());
+        long id = ef.createCourse(ef.createEmployee());
 
         new WithUser(USERNAME, PASSWORD) {
             @Override
@@ -268,7 +268,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void getTasksByCourseNotPaged__notAuthenticated__invalid() throws Exception {
-        long id = ef.createCourse(ef.createUser());
+        long id = ef.createCourse(ef.createEmployee());
         mvc.perform(get("/tasks/course/{id}/all", id)).andExpect(status().isUnauthorized());
     }
 
@@ -283,7 +283,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 long id = taskService.create(TaskDto.builder()
                         .title(title)
                         .taskNumber(2)
-                        .course(ef.createCourse(getIdAsLong()))
+                        .course(ef.createCourse(getSelfEmployeeIdAsLong()))
                         .build()).getId();
 
                 securePerform(get("/tasks/{id}", id))
@@ -302,7 +302,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 long id = taskService.create(TaskDto.builder()
                         .title(title)
                         .taskNumber(2)
-                        .course(ef.createCourse(ef.createUser()))
+                        .course(ef.createCourse(ef.createEmployee()))
                         .build()).getId();
 
                 securePerform(get("/tasks/{id}", id))
@@ -321,7 +321,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 long id = taskService.create(TaskDto.builder()
                         .title(title)
                         .taskNumber(2)
-                        .course(ef.createCourse(ef.createUser()))
+                        .course(ef.createCourse(ef.createEmployee()))
                         .build()).getId();
 
                 securePerform(get("/tasks/{id}", id))
@@ -355,7 +355,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         long id = taskService.create(TaskDto.builder()
                 .title(title)
                 .taskNumber(2)
-                .course(ef.createCourse(ef.createUser()))
+                .course(ef.createCourse(ef.createEmployee()))
                 .build()).getId();
 
         mvc.perform(get("/tasks/{id}", id))
@@ -368,7 +368,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         long id = taskService.create(TaskDto.builder()
                 .title(title)
                 .taskNumber(2)
-                .course(ef.createCourse(ef.createUser()))
+                .course(ef.createCourse(ef.createEmployee()))
                 .build()).getId();
 
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
@@ -388,7 +388,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String title = faker.lorem().sentence();
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
 
                 securePerform(post("/tasks/")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -416,7 +416,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String title = faker.lorem().sentence();
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
 
                 securePerform(post("/tasks/")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -444,7 +444,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String title = faker.lorem().sentence();
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
 
                 securePerform(post("/tasks/")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -484,7 +484,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String title1 = faker.lorem().sentence();
                 String title2 = faker.lorem().sentence();
 
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
 
                 taskService.create(TaskDto.builder()
                         .title(title1)
@@ -512,7 +512,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String title1 = faker.lorem().sentence();
                 String title2 = faker.lorem().sentence();
 
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
 
                 taskService.create(TaskDto.builder()
                         .title(title1)
@@ -542,7 +542,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String title1 = faker.lorem().sentence();
                 String title2 = faker.lorem().sentence();
 
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
 
                 taskService.create(TaskDto.builder()
                         .title(title1)
@@ -571,7 +571,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String title = faker.lorem().sentence();
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 ZonedDateTime softDeadlineAt = ZonedDateTime.now().plusDays(2);
 
                 securePerform(post("/tasks/")
@@ -605,7 +605,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.createObjectNode()
                                 .put("title", faker.lorem().sentence())
-                                .put("course", ef.createCourse(ef.createUser()))
+                                .put("course", ef.createCourse(ef.createEmployee()))
                                 .toString()))
                 .andExpect(status().isUnauthorized());
     }
@@ -620,7 +620,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String sentence1 = faker.lorem().sentence();
                 String sentence2 = faker.lorem().sentence();
 
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
 
                 long task1 = taskService.create(TaskDto.builder()
                         .title(sentence1)
@@ -665,8 +665,8 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String sentence1 = faker.lorem().sentence();
                 String sentence2 = faker.lorem().sentence();
 
-                long courseId1 = ef.createCourse(getIdAsLong());
-                long courseId2 = ef.createCourse(getIdAsLong());
+                long courseId1 = ef.createCourse(getSelfEmployeeIdAsLong());
+                long courseId2 = ef.createCourse(getSelfEmployeeIdAsLong());
 
                 long task1 = taskService.create(TaskDto.builder()
                         .title(sentence1)
@@ -704,7 +704,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String sentence1 = faker.lorem().sentence();
                 String sentence2 = faker.lorem().sentence();
 
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
 
                 long task1 = taskService.create(TaskDto.builder()
                         .title(sentence1)
@@ -749,7 +749,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String sentence1 = faker.lorem().sentence();
                 String sentence2 = faker.lorem().sentence();
 
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
 
                 long task1 = taskService.create(TaskDto.builder()
                         .title(sentence1)
@@ -823,7 +823,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String sentence1 = faker.lorem().sentence();
                 String sentence2 = faker.lorem().sentence();
 
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
 
                 long task1 = taskService.create(TaskDto.builder()
                         .title(sentence1)
@@ -860,7 +860,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String sentence1 = faker.lorem().sentence();
                 String sentence2 = faker.lorem().sentence();
 
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
                 int taskNumber = 2;
 
                 long task1 = taskService.create(TaskDto.builder()
@@ -897,8 +897,8 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 String sentence1 = faker.lorem().sentence();
                 String sentence2 = faker.lorem().sentence();
 
-                long courseId1 = ef.createCourse(getIdAsLong());
-                long courseId2 = ef.createCourse(getIdAsLong());
+                long courseId1 = ef.createCourse(getSelfEmployeeIdAsLong());
+                long courseId2 = ef.createCourse(getSelfEmployeeIdAsLong());
 
                 long task1 = taskService.create(TaskDto.builder()
                         .title(sentence1)
@@ -935,7 +935,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         String sentence1 = faker.lorem().sentence();
         String sentence2 = faker.lorem().sentence();
 
-        long courseId = ef.createCourse(ef.createUser());
+        long courseId = ef.createCourse(ef.createEmployee());
 
         long task1 = taskService.create(TaskDto.builder()
                 .title(sentence1)
@@ -968,7 +968,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 int taskNumber = 1;
                 String title = faker.lorem().sentence();
                 String description = faker.lorem().paragraph();
@@ -1035,7 +1035,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
                 int taskNumber = 1;
                 String title = faker.lorem().sentence();
                 String description = faker.lorem().paragraph();
@@ -1102,7 +1102,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
                 int taskNumber = 1;
                 String title = faker.lorem().sentence();
                 String description = faker.lorem().paragraph();
@@ -1194,7 +1194,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
                 int taskNumber = 1;
                 String title = faker.lorem().sentence();
                 String description = faker.lorem().paragraph();
@@ -1206,7 +1206,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 ZonedDateTime softDeadlineAt = ZonedDateTime.now().plusDays(15);
                 ZonedDateTime hardDeadlineAt = ZonedDateTime.now().plusDays(30);
 
-                long prevCourseId = ef.createCourse(ef.createUser());
+                long prevCourseId = ef.createCourse(ef.createEmployee());
                 String prevTitle = faker.lorem().sentence();
                 String prevDescription = faker.lorem().paragraph();
 
@@ -1241,7 +1241,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 int taskNumber = 123;
                 String title = faker.lorem().sentence();
                 String description = faker.lorem().paragraph();
@@ -1297,7 +1297,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
                 int taskNumber = 1;
                 String title = faker.lorem().sentence();
                 String description = faker.lorem().paragraph();
@@ -1343,7 +1343,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 int taskNumber = 1;
                 String title = faker.lorem().sentence();
                 String description = faker.lorem().paragraph();
@@ -1388,7 +1388,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 int taskNumber = 1;
                 String title = faker.lorem().sentence();
                 String description = faker.lorem().paragraph();
@@ -1450,7 +1450,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void putTask__notAuthenticated__invalid() throws Exception {
-        long courseId = ef.createCourse(ef.createUser());
+        long courseId = ef.createCourse(ef.createEmployee());
         int taskNumber = 123;
         String title = faker.lorem().sentence();
         String description = faker.lorem().paragraph();
@@ -1494,7 +1494,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 int taskNumber = 1;
                 String description = faker.lorem().paragraph();
                 int maxScore = 150;
@@ -1555,7 +1555,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
                 int taskNumber = 1;
                 String description = faker.lorem().paragraph();
                 int maxScore = 150;
@@ -1616,7 +1616,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
                 ZonedDateTime announcementAt = ZonedDateTime.now().minusSeconds(5);
 
                 String title = faker.lorem().sentence();
@@ -1670,9 +1670,10 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long employeeId = ef.createEmployee();
+                long courseId = ef.createCourse(employeeId);
 
-                long prevCourseId = ef.createCourse(getIdAsLong());
+                long prevCourseId = ef.createCourse(employeeId);
                 String title = faker.lorem().sentence();
                 String description = faker.lorem().paragraph();
 
@@ -1697,7 +1698,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
                 int taskNumber = 123;
 
                 long taskId = taskService.create(TaskDto.builder()
@@ -1728,9 +1729,10 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long employeeId = ef.createEmployee();
+                long courseId = ef.createCourse(employeeId);
 
-                long prevCourseId = ef.createCourse(getIdAsLong());
+                long prevCourseId = ef.createCourse(employeeId);
                 String title = faker.lorem().sentence();
                 String description = faker.lorem().paragraph();
 
@@ -1755,7 +1757,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 ZonedDateTime announcementAt = ZonedDateTime.now().minusSeconds(5);
 
                 String title = faker.lorem().sentence();
@@ -1784,7 +1786,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
                 int taskNumber = 1;
                 String title = faker.lorem().sentence();
                 String description = faker.lorem().paragraph();
@@ -1846,7 +1848,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void patchTask__notAuthenticated__invalid() throws Exception {
-        long courseId = ef.createCourse(ef.createUser());
+        long courseId = ef.createCourse(ef.createEmployee());
         int taskNumber = 123;
 
         long taskId = taskService.create(TaskDto.builder()
@@ -1874,7 +1876,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String title = faker.lorem().sentence();
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
 
                 long taskId = taskService.create(TaskDto.builder()
                         .title(title)
@@ -1896,7 +1898,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String title = faker.lorem().sentence();
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
 
                 long taskId = taskService.create(TaskDto.builder()
                         .title(title)
@@ -1918,7 +1920,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String title = faker.lorem().sentence();
-                long courseId = ef.createCourse(ef.createUser());
+                long courseId = ef.createCourse(ef.createEmployee());
 
                 long taskId = taskService.create(TaskDto.builder()
                         .title(title)
@@ -1956,7 +1958,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
             @Override
             void run() throws Exception {
                 String title = faker.lorem().sentence();
-                long courseId = ef.createCourse(getIdAsLong());
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
 
                 long taskId = taskService.create(TaskDto.builder()
                         .title(title)
@@ -1972,7 +1974,7 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
     @Test
     void deleteTask__notAuthenticated__invalid() throws Exception {
         String title = faker.lorem().sentence();
-        long courseId = ef.createCourse(ef.createUser());
+        long courseId = ef.createCourse(ef.createEmployee());
 
         long taskId = taskService.create(TaskDto.builder()
                 .title(title)

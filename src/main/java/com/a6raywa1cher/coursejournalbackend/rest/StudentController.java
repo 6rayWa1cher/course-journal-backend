@@ -49,12 +49,20 @@ public class StudentController {
     @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
     public List<StudentDto> getAllByCourse(@PathVariable long id) {
         return service.getByCourseId(id).stream()
-                .sorted(Comparator.comparing(s -> s.getLastName() + "1" + s.getFirstName() + "1" + s.getLastName()))
+                .sorted(Comparator.comparingLong(StudentDto::getId))
+                .toList();
+    }
+
+    @GetMapping("/group/{id}")
+    @PreAuthorize("@accessChecker.readStudentByGroupAccess(#id, authentication)")
+    public List<StudentDto> getAllByGroup(@PathVariable long id) {
+        return service.getByGroupId(id).stream()
+                .sorted(Comparator.comparingLong(StudentDto::getId))
                 .toList();
     }
 
     @PostMapping("/")
-    @PreAuthorize("@accessChecker.createStudentAccess(#dto.course, authentication)")
+    @PreAuthorize("@accessChecker.createStudentAccess(authentication)")
     @ResponseStatus(HttpStatus.CREATED)
     @Validated(OnCreate.class)
     public StudentDto create(@RequestBody @Valid StudentRestDto dto) {
@@ -62,32 +70,32 @@ public class StudentController {
     }
 
     @PostMapping("/batch")
-    @PreAuthorize("@accessChecker.createStudentAccess(#dto.course, authentication)")
+    @PreAuthorize("@accessChecker.createStudentAccess(authentication)")
     @ResponseStatus(HttpStatus.CREATED)
     @Validated(OnCreate.class)
     public List<StudentDto> batchCreate(@RequestBody @Valid BatchCreateStudentDto dto) {
         return service.batchCreate(dto.getStudents().stream()
                 .map(mapper::map)
-                .peek(d -> d.setCourse(dto.getCourse()))
+                .peek(d -> d.setGroup(dto.getGroup()))
                 .toList());
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("@accessChecker.editStudentAccess(#id, authentication)")
+    @PreAuthorize("@accessChecker.editStudentAccess(authentication)")
     @Validated(OnUpdate.class)
     public StudentDto update(@RequestBody @Valid StudentRestDto dto, @PathVariable long id) {
         return service.update(id, mapper.map(dto));
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("@accessChecker.editStudentAccess(#id, authentication)")
+    @PreAuthorize("@accessChecker.editStudentAccess(authentication)")
     @Validated(OnPatch.class)
     public StudentDto patch(@RequestBody @Valid StudentRestDto dto, @PathVariable long id) {
         return service.patch(id, mapper.map(dto));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("@accessChecker.editStudentAccess(#id, authentication)")
+    @PreAuthorize("@accessChecker.editStudentAccess(authentication)")
     public void delete(@PathVariable long id) {
         service.delete(id);
     }

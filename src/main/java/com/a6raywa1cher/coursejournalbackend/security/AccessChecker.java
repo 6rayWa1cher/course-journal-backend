@@ -2,7 +2,6 @@ package com.a6raywa1cher.coursejournalbackend.security;
 
 import com.a6raywa1cher.coursejournalbackend.model.*;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
-import com.a6raywa1cher.coursejournalbackend.rest.dto.AttendanceRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.CourseRestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -12,8 +11,7 @@ import javax.persistence.EntityManager;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.a6raywa1cher.coursejournalbackend.security.Permission.getPermissionForCourse;
-import static com.a6raywa1cher.coursejournalbackend.security.Permission.getPermissionForUser;
+import static com.a6raywa1cher.coursejournalbackend.security.Permission.*;
 
 @Component
 public class AccessChecker {
@@ -24,6 +22,12 @@ public class AccessChecker {
     public AccessChecker(CourseRepository courseRepository, EntityManager em) {
         this.courseRepository = courseRepository;
         this.em = em;
+    }
+
+    private boolean isTeacher(Authentication authentication) {
+        return authentication != null && authentication.getAuthorities()
+                .stream()
+                .anyMatch(ga -> ga.getAuthority().equals("ROLE_TEACHER"));
     }
 
     private boolean isAdmin(Authentication authentication) {
@@ -38,17 +42,21 @@ public class AccessChecker {
         } else if (entity instanceof Task task) {
             return getPermissionForCourse(task.getCourse(), type);
         } else if (entity instanceof Student student) {
-            return getPermissionForCourse(student.getCourse(), type);
+            return getPermissionForGroup(student.getGroup(), type);
         } else if (entity instanceof Criteria criteria) {
             return getPermissionForCourse(criteria.getTask().getCourse(), type);
-        } else if (entity instanceof User user) {
-            return getPermissionForUser(user, type);
+        } else if (entity instanceof Employee employee) {
+            return getPermissionForEmployee(employee, type);
+        } else if (entity instanceof AuthUser authUser) {
+            return getPermissionForAuthUser(authUser, type);
         } else if (entity instanceof Attendance attendance) {
             return getPermissionForCourse(attendance.getCourse(), type);
         } else if (entity instanceof Submission submission) {
             return getPermissionForCourse(submission.getTask().getCourse(), type);
         } else if (entity instanceof CourseToken courseToken) {
             return getPermissionForCourse(courseToken.getCourse(), type);
+        } else if (entity instanceof Group group) {
+            return getPermissionForGroup(group, type);
         } else {
             throw new IllegalArgumentException("Unknown entity " + entity.getClass().getSimpleName());
         }
@@ -78,7 +86,7 @@ public class AccessChecker {
     }
 
     public boolean createCourseAccess(Long ownerId, Authentication authentication) {
-        return hasAuthority(ownerId, User.class, ActionType.WRITE, authentication);
+        return hasAuthority(ownerId, Employee.class, ActionType.WRITE_CASCADE, authentication);
     }
 
     public boolean readCourseAccess(Long id, Authentication authentication) {
@@ -116,16 +124,20 @@ public class AccessChecker {
     }
 
 
-    public boolean createStudentAccess(Long courseId, Authentication authentication) {
-        return hasAuthority(courseId, Course.class, ActionType.WRITE, authentication);
+    public boolean createStudentAccess(Authentication authentication) {
+        return isAdmin(authentication);
     }
 
     public boolean readStudentAccess(Long id, Authentication authentication) {
-        return hasAuthority(id, Student.class, ActionType.READ, authentication);
+        return isTeacher(authentication) || hasAuthority(id, Student.class, ActionType.READ, authentication);
     }
 
-    public boolean editStudentAccess(Long id, Authentication authentication) {
-        return hasAuthority(id, Student.class, ActionType.WRITE, authentication);
+    public boolean readStudentByGroupAccess(Long id, Authentication authentication) {
+        return isTeacher(authentication) || hasAuthority(id, Group.class, ActionType.READ, authentication);
+    }
+
+    public boolean editStudentAccess(Authentication authentication) {
+        return isAdmin(authentication);
     }
 
 
@@ -142,9 +154,8 @@ public class AccessChecker {
     }
 
 
-    public boolean createSubmissionAccess(Long taskId, Long studentId, Authentication authentication) {
-        return hasAuthority(taskId, Task.class, ActionType.WRITE, authentication) &&
-                hasAuthority(studentId, Student.class, ActionType.WRITE, authentication);
+    public boolean createSubmissionAccess(Long taskId, Authentication authentication) {
+        return hasAuthority(taskId, Task.class, ActionType.WRITE, authentication);
     }
 
     public boolean readSubmissionAccess(Long id, Authentication authentication) {
@@ -169,25 +180,34 @@ public class AccessChecker {
     }
 
 
-    public boolean createUserAccess(UserRole userRole, Authentication authentication) {
+    public boolean createEmployeeAccess(Authentication authentication) {
         return isAdmin(authentication);
     }
 
-    public boolean readUserAccess(Long id, Authentication authentication) {
-        return hasAuthority(id, User.class, ActionType.READ, authentication);
+    public boolean readEmployeeAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Employee.class, ActionType.READ, authentication);
     }
 
-    public boolean editUserAccess(Long id, Authentication authentication) {
-        return hasAuthority(id, User.class, ActionType.WRITE, authentication);
+    public boolean editEmployeeAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, Employee.class, ActionType.WRITE, authentication);
     }
 
-    public boolean editUserAccessWithRole(Long id, UserRole userRole, Authentication authentication) {
-        return editUserAccess(id, authentication) && isValidUserRoleRequest(userRole, authentication);
+
+    public boolean createAuthUserAccess(Authentication authentication) {
+        return isAdmin(authentication);
+    }
+
+    public boolean readAuthUserAccess(Long id, Authentication authentication) {
+        return hasAuthority(id, AuthUser.class, ActionType.READ, authentication);
+    }
+
+    public boolean editAuthUserAccess(Long id, UserRole userRole, Authentication authentication) {
+        return hasAuthority(id, AuthUser.class, ActionType.WRITE, authentication);
     }
 
 
     public boolean readAttendanceAccess(Long id, Authentication authentication) {
-        return hasAuthority(id, Attendance.class, ActionType.READ, authentication);
+        return hasAuthority(id, Attendance.class, ActionType.READ, authentication) || hasAuthority("ROLE_HEADMAN", authentication);
     }
 
     public boolean createAttendanceAccess(Long courseId, Authentication authentication) {
@@ -196,5 +216,21 @@ public class AccessChecker {
 
     public boolean editAttendanceAccess(Long id, Authentication authentication) {
         return hasAuthority(id, Attendance.class, ActionType.WRITE, authentication);
+    }
+
+    public boolean createFacultyAccess(Authentication authentication) {
+        return isAdmin(authentication);
+    }
+
+    public boolean editFacultyAccess(Authentication authentication) {
+        return isAdmin(authentication);
+    }
+
+    public boolean createGroupAccess(Authentication authentication) {
+        return isAdmin(authentication);
+    }
+
+    public boolean editGroupAccess(Authentication authentication) {
+        return isAdmin(authentication);
     }
 }

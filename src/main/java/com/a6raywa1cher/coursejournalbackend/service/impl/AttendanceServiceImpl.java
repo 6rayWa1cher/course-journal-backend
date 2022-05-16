@@ -15,6 +15,7 @@ import com.a6raywa1cher.coursejournalbackend.service.*;
 import com.a6raywa1cher.coursejournalbackend.utils.CommonUtils;
 import org.checkerframework.checker.units.qual.A;
 import org.checkerframework.checker.units.qual.C;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -31,15 +32,13 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     private final MapStructMapper mapper;
 
-    private final StudentService studentService;
+    private StudentService studentService;
 
-    private final CourseService courseService;
+    private CourseService courseService;
 
-    public AttendanceServiceImpl(AttendanceRepository attendanceRepository, MapStructMapper mapper, StudentService studentService, CourseService courseService) {
+    public AttendanceServiceImpl(AttendanceRepository attendanceRepository, MapStructMapper mapper) {
         this.repository = attendanceRepository;
         this.mapper = mapper;
-        this.studentService = studentService;
-        this.courseService = courseService;
     }
 
     @Override
@@ -50,14 +49,6 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     public Optional<Attendance> findRawById(long id) {
         return repository.findById(id);
-    }
-
-    @Override
-    public List<AttendanceDto> getByStudentId(long studentId, Sort sort) {
-        Student student = getStudentById(studentId);
-        return repository.getAllByStudent(student, sort).stream()
-                .map(mapper::map)
-                .toList();
     }
 
     @Override
@@ -216,4 +207,14 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         return attendance;
     };
+
+    @Autowired
+    public void setStudentService(StudentService studentService) {
+        this.studentService = studentService;
+    }
+
+    @Autowired
+    public void setCourseService(CourseService courseService) {
+        this.courseService = courseService;
+    }
 }

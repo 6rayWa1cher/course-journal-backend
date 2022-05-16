@@ -28,7 +28,10 @@ public class Student implements IdEntity<Long> {
     private Long id;
 
     @ManyToOne(optional = false)
-    private Course course;
+    private Group group;
+
+    @ManyToMany(mappedBy = "students", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Course> courses;
 
     @Column(name = "first_name", nullable = false)
     private String firstName;
@@ -38,6 +41,9 @@ public class Student implements IdEntity<Long> {
 
     @Column(name = "middle_name")
     private String middleName;
+
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "student", orphanRemoval = true)
+    private AuthUser authUser;
 
     @OneToMany(mappedBy = "student", orphanRemoval = true, cascade = CascadeType.ALL)
     @ToString.Exclude
