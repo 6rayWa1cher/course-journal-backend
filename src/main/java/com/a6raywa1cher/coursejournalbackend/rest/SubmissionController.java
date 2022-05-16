@@ -7,15 +7,14 @@ import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnCreate;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnPatch;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnUpdate;
 import com.a6raywa1cher.coursejournalbackend.service.SubmissionService;
-import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Comparator;
 import java.util.List;
 
 @RestController
@@ -38,20 +37,26 @@ public class SubmissionController {
 
     @GetMapping("/task/{id}")
     @PreAuthorize("@accessChecker.readTaskAccess(#id, authentication)")
-    public List<SubmissionDto> getByTask(@PathVariable long id, @ParameterObject Sort sort) {
-        return service.getByTask(id, sort);
+    public List<SubmissionDto> getByTask(@PathVariable long id) {
+        return service.getByTask(id).stream()
+                .sorted(Comparator.comparingLong(SubmissionDto::getId))
+                .toList();
     }
 
     @GetMapping("/course/{id}")
     @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
-    public List<SubmissionDto> getByCourse(@PathVariable long id, @ParameterObject Sort sort) {
-        return service.getByCourse(id, sort);
+    public List<SubmissionDto> getByCourse(@PathVariable long id) {
+        return service.getByCourse(id).stream()
+                .sorted(Comparator.comparingLong(SubmissionDto::getId))
+                .toList();
     }
 
     @GetMapping("/course/{cid}/student/{sid}")
     @PreAuthorize("@accessChecker.readCourseAccess(#cid, authentication)")
-    public List<SubmissionDto> getByCourseAndStudent(@PathVariable long cid, @PathVariable long sid, @ParameterObject Sort sort) {
-        return service.getByStudentAndCourse(sid, cid, sort);
+    public List<SubmissionDto> getByCourseAndStudent(@PathVariable long cid, @PathVariable long sid) {
+        return service.getByStudentAndCourse(sid, cid).stream()
+                .sorted(Comparator.comparingLong(SubmissionDto::getId))
+                .toList();
     }
 
     @PostMapping("/")

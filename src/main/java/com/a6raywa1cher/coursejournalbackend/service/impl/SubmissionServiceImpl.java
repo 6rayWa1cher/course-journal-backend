@@ -1,6 +1,8 @@
 package com.a6raywa1cher.coursejournalbackend.service.impl;
 
+import com.a6raywa1cher.coursejournalbackend.dto.CriteriaDto;
 import com.a6raywa1cher.coursejournalbackend.dto.SubmissionDto;
+import com.a6raywa1cher.coursejournalbackend.dto.TaskDto;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.ConflictException;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.NotFoundException;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.TransferNotAllowedException;
@@ -10,7 +12,7 @@ import com.a6raywa1cher.coursejournalbackend.model.*;
 import com.a6raywa1cher.coursejournalbackend.model.repo.SubmissionRepository;
 import com.a6raywa1cher.coursejournalbackend.service.*;
 import com.a6raywa1cher.coursejournalbackend.utils.EntityUtils;
-import org.springframework.data.domain.Sort;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,9 +24,9 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     private final StudentService studentService;
 
-    private final TaskService taskService;
+    private TaskService taskService;
 
-    private final CriteriaService criteriaService;
+    private CriteriaService criteriaService;
 
     private final MapStructMapper mapper;
 
@@ -32,13 +34,10 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     private final SubmissionScoringService scoringService;
 
-    public SubmissionServiceImpl(SubmissionRepository repository, StudentService studentService,
-                                 TaskService taskService, CriteriaService criteriaService, MapStructMapper mapper,
+    public SubmissionServiceImpl(SubmissionRepository repository, StudentService studentService, MapStructMapper mapper,
                                  CourseService courseService, SubmissionScoringService scoringService) {
         this.repository = repository;
         this.studentService = studentService;
-        this.taskService = taskService;
-        this.criteriaService = criteriaService;
         this.mapper = mapper;
         this.courseService = courseService;
         this.scoringService = scoringService;
@@ -55,28 +54,44 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
     @Override
-    public List<SubmissionDto> getByStudentAndCourse(long studentId, long courseId, Sort sort) {
+    public List<SubmissionDto> getByStudentAndCourse(long studentId, long courseId) {
         Student student = getStudentById(studentId);
         Course course = getCourseById(courseId);
-        return repository.getAllByStudentAndCourse(student, course, sort).stream()
+        return repository.getAllByStudentAndCourse(student, course).stream()
                 .map(mapper::map)
                 .toList();
     }
 
     @Override
-    public List<SubmissionDto> getByCourse(long courseId, Sort sort) {
+    public List<SubmissionDto> getByCourse(long courseId) {
         Course course = getCourseById(courseId);
-        return repository.getAllByCourse(course, sort).stream()
+        return repository.getAllByCourse(course).stream()
                 .map(mapper::map)
                 .toList();
     }
 
     @Override
-    public List<SubmissionDto> getByTask(long taskId, Sort sort) {
+    public List<SubmissionDto> getByTask(long taskId) {
         Task task = getTaskById(taskId);
-        return repository.getAllByTask(task, sort).stream()
+        return repository.getAllByTask(task).stream()
                 .map(mapper::map)
                 .toList();
+    }
+
+    @Override
+    public void recalculateMainScoreForTask(long taskId) {
+        Task task = getTaskById(taskId);
+        List<Submission> submissions = repository.getAllByTask(task);
+        List<CriteriaDto> criteria = criteriaService.getByTaskId(taskId);
+        TaskDto taskDto = mapper.map(task);
+        for (Submission submission : submissions) {
+            submission.setMainScore(scoringService.getMainScore(
+                    mapper.map(submission),
+                    taskDto,
+                    criteria
+            ));
+        }
+        repository.saveAll(submissions);
     }
 
     @Override
@@ -96,7 +111,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         submission.setMainScore(scoringService.getMainScore(
                 mapper.map(submission),
                 mapper.map(task),
-                task.getCriteria().stream().map(mapper::map).toList()
+                criteriaService.getByTaskId(task.getId())
         ));
         submission.setCreatedAt(LocalDateTime.now());
         submission.setLastModifiedAt(LocalDateTime.now());
@@ -176,7 +191,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         if (rawById.size() != ids.size()) {
             throw new NotFoundException(Criteria.class, EntityUtils.getAnyNotFound(rawById, ids));
         }
-        return rawById;
+        return new ArrayList<>(rawById);
     }
 
     private void assertNoTaskChange(Task oldTask, Task newTask) {
@@ -219,5 +234,15 @@ public class SubmissionServiceImpl implements SubmissionService {
                     "task", Long.toString(task.getId()),
                     "student", Long.toString(student.getId()));
         }
+    }
+
+    @Autowired
+    public void setTaskService(TaskService taskService) {
+        this.taskService = taskService;
+    }
+
+    @Autowired
+    public void setCriteriaService(CriteriaService criteriaService) {
+        this.criteriaService = criteriaService;
     }
 }
