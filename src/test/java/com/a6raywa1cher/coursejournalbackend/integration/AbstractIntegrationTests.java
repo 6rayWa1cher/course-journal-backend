@@ -93,6 +93,10 @@ public abstract class AbstractIntegrationTests {
             this.wrappedRun();
         }
 
+        public WithUser(String username, String password) {
+            this(username, password, true);
+        }
+
         private void createEmployee() {
             EmployeeDto dto = employeeService.create(EmployeeDto.builder()
                     .firstName(faker.name().firstName())
@@ -126,10 +130,6 @@ public abstract class AbstractIntegrationTests {
                 case HEADMAN -> createStudent();
                 default -> throw new IllegalArgumentException();
             }
-        }
-
-        public WithUser(String username, String password) {
-            this(username, password, true);
         }
 
         private void wrappedRun() {

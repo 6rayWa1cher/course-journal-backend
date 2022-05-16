@@ -211,7 +211,9 @@ public class EntityFactory {
         return studentService.create(dto).getId();
     }
 
-    public long createAttendance() { return createAttendance(bag()); }
+    public long createAttendance() {
+        return createAttendance(bag());
+    }
 
     public long createAttendance(Long userId) {
         return createAttendance(bag().withEmployeeId(userId));

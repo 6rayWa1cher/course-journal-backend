@@ -305,8 +305,8 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         ObjectNode request = context.getRequest();
 
         mvc.perform(post("/groups/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .contentType(request.toString()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(request.toString()))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -361,7 +361,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 long facultyId = ef.createFaculty();
                 String name1 = faker.lorem().sentence(1);
                 String name2 = faker.lorem().sentence(1);
-                
+
                 long id = ef.createGroup(ef.bag().withFacultyId(facultyId)
                         .withDto(GroupDto.builder()
                                 .name(name1)
@@ -436,7 +436,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
             }
         };
     }
-    
+
     @Test
     void putGroup__newNameNotUnique__invalid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
@@ -534,8 +534,8 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
         ObjectNode request = context.getRequest();
 
         mvc.perform(put("/groups/{id}", id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request.toString()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -814,9 +814,10 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void deleteGroup__notAuthenticated__invalid() throws Exception {
-                long id = ef.createGroup();
+        long id = ef.createGroup();
 
-                mvc.perform(delete("/groups/{id}", id))
-                        .andExpect(status().isUnauthorized());
-        };
+        mvc.perform(delete("/groups/{id}", id))
+                .andExpect(status().isUnauthorized());
+    }
+
 }

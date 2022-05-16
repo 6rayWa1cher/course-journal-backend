@@ -1,8 +1,6 @@
 package com.a6raywa1cher.coursejournalbackend.rest.dto;
 
 import com.a6raywa1cher.coursejournalbackend.model.AttendanceType;
-import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnCreate;
-import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnUpdate;
 import lombok.Data;
 
 import javax.validation.Valid;

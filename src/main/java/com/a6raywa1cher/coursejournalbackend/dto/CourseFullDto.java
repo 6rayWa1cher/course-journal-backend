@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data

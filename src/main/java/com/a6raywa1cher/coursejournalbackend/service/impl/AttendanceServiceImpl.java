@@ -1,7 +1,6 @@
 package com.a6raywa1cher.coursejournalbackend.service.impl;
 
 import com.a6raywa1cher.coursejournalbackend.dto.AttendanceDto;
-import com.a6raywa1cher.coursejournalbackend.dto.StudentDto;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.ConflictException;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.NotFoundException;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.TransferNotAllowedException;
@@ -11,17 +10,16 @@ import com.a6raywa1cher.coursejournalbackend.model.Attendance;
 import com.a6raywa1cher.coursejournalbackend.model.Course;
 import com.a6raywa1cher.coursejournalbackend.model.Student;
 import com.a6raywa1cher.coursejournalbackend.model.repo.AttendanceRepository;
-import com.a6raywa1cher.coursejournalbackend.service.*;
+import com.a6raywa1cher.coursejournalbackend.service.AttendanceService;
+import com.a6raywa1cher.coursejournalbackend.service.CourseService;
+import com.a6raywa1cher.coursejournalbackend.service.StudentService;
 import com.a6raywa1cher.coursejournalbackend.utils.CommonUtils;
-import org.checkerframework.checker.units.qual.A;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -206,7 +204,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         attendance.setLastModifiedAt(createAndModifyDateTime);
 
         return attendance;
-    };
+    }
 
     @Autowired
     public void setStudentService(StudentService studentService) {

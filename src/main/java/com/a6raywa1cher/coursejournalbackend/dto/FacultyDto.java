@@ -1,11 +1,9 @@
 package com.a6raywa1cher.coursejournalbackend.dto;
 
-import com.a6raywa1cher.coursejournalbackend.model.Group;
 import lombok.Builder;
 import lombok.Data;
 
 import java.time.ZonedDateTime;
-import java.util.List;
 
 @Data
 @Builder

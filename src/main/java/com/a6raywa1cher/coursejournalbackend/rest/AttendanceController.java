@@ -11,7 +11,6 @@ import com.a6raywa1cher.coursejournalbackend.service.AttendanceService;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -32,11 +31,15 @@ public class AttendanceController {
 
     @GetMapping("/{id}")
     @PreAuthorize("@accessChecker.readAttendanceAccess(#id, authentication)")
-    public AttendanceDto getById(@PathVariable long id) { return service.getById(id); }
+    public AttendanceDto getById(@PathVariable long id) {
+        return service.getById(id);
+    }
 
     @GetMapping("/course/{id}")
     @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
-    public List<AttendanceDto> getByCourse(@PathVariable long id, @ParameterObject Sort sort) { return service.getByCourseId(id, sort); }
+    public List<AttendanceDto> getByCourse(@PathVariable long id, @ParameterObject Sort sort) {
+        return service.getByCourseId(id, sort);
+    }
 
     @GetMapping("/course/{courseId}/student/{studentId}")
     @PreAuthorize("@accessChecker.readCourseAccess(#courseId, authentication)")
@@ -48,7 +51,9 @@ public class AttendanceController {
     @PreAuthorize("@accessChecker.createAttendanceAccess(#dto.course, authentication)")
     @ResponseStatus(HttpStatus.CREATED)
     @Validated(OnCreate.class)
-    public AttendanceDto create(@RequestBody @Valid AttendanceRestDto dto) { return service.create(mapper.map(dto)); }
+    public AttendanceDto create(@RequestBody @Valid AttendanceRestDto dto) {
+        return service.create(mapper.map(dto));
+    }
 
     @PostMapping("/batch")
     @PreAuthorize("@accessChecker.createAttendanceAccess(#dto.course, authentication)")
@@ -77,5 +82,7 @@ public class AttendanceController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@accessChecker.editAttendanceAccess(#id, authentication)")
-    public void delete(@PathVariable long id) { service.delete(id); }
+    public void delete(@PathVariable long id) {
+        service.delete(id);
+    }
 }

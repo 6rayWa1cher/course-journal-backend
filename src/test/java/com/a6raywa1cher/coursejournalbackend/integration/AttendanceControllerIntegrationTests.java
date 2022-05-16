@@ -142,7 +142,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     void getAttendanceById__otherAsTeacher__invalid() {
         new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
-            void run() throws  Exception {
+            void run() throws Exception {
                 LocalDate attendedDate = LocalDate.now();
                 int attendedClass = faker.number().numberBetween(1, 6);
                 long courseId = ef.createCourse();
@@ -384,7 +384,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 int attendedClass = faker.number().numberBetween(1, 6);
 
                 var context1 = createGetAttendanceByCourseContext(studentId1, courseId1, attendedClass);
-                var context2 = createGetAttendanceByCourseContext(studentId1, courseId1, attendedClass + 1 );
+                var context2 = createGetAttendanceByCourseContext(studentId1, courseId1, attendedClass + 1);
                 createGetAttendanceByCourseContext(studentId1, courseId2, attendedClass + 2);
                 createGetAttendanceByCourseContext(studentId2, courseId1, attendedClass + 3);
 
@@ -412,7 +412,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 int attendedClass = faker.number().numberBetween(1, 6);
 
                 createGetAttendanceByCourseContext(studentId1, courseId1, attendedClass);
-                createGetAttendanceByCourseContext(studentId1, courseId1, attendedClass + 1 );
+                createGetAttendanceByCourseContext(studentId1, courseId1, attendedClass + 1);
                 createGetAttendanceByCourseContext(studentId1, courseId2, attendedClass + 2);
                 createGetAttendanceByCourseContext(studentId2, courseId1, attendedClass + 3);
 
@@ -468,7 +468,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 var context = getCreateAttendanceRequest(studentId, courseId);
 
                 ObjectNode request = context.getRequest();
-                
+
                 MvcResult mvcResult = securePerform(post("/attendances/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
@@ -561,7 +561,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
                         .andExpect(status().isConflict());
-                
+
             }
         };
     }
@@ -576,8 +576,8 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         ObjectNode request = context.getRequest();
 
         mvc.perform(post("/attendances/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request.toString()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -637,13 +637,13 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 securePerform(get("/attendances/course/{id}", courseId)
                         .queryParam("sort", "attendedClass,asc"))
                         .andExpect(status().isOk())
-                       .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers("$.content"));
 
                 securePerform(get("/attendances/course/{id}", courseId)
                         .queryParam("sort", "attendedClass,asc"))
                         .andExpect(status().isOk())
-                       .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers("$.content"));
             }
         };
@@ -712,8 +712,8 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         ObjectNode request = context.getRequest();
 
         mvc.perform(post("/attendances/batch")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request.toString()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -754,11 +754,11 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 AttendanceType attendanceType = TestUtils.randomAttendanceType();
                 int attendedClass = faker.number().numberBetween(1, 6);
                 long attendanceId = attendanceService.create(AttendanceDto.builder()
-                                .course(courseId)
-                                .student(studentId)
-                                .attendedDate(attendedDate)
-                                .attendedClass(attendedClass)
-                                .attendanceType(attendanceType)
+                        .course(courseId)
+                        .student(studentId)
+                        .attendedDate(attendedDate)
+                        .attendedClass(attendedClass)
+                        .attendanceType(attendanceType)
                         .build()).getId();
 
                 RequestContext<ObjectNode> context = getPutAttendanceRequest(studentId, courseId, attendedDate, attendedClass);
@@ -1017,7 +1017,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
         mvc.perform(put("/attendances/{id}", attendanceId)
                         .contentType(MediaType.APPLICATION_JSON)
-                .content(request.toString()))
+                        .content(request.toString()))
                 .andExpect(status().isUnauthorized());
     }
 

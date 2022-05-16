@@ -29,9 +29,9 @@ import java.util.stream.StreamSupport;
 @Transactional
 public class StudentServiceImpl implements StudentService {
     private final StudentRepository repository;
-    private CourseService courseService;
     private final GroupService groupService;
     private final MapStructMapper mapper;
+    private CourseService courseService;
 
     @Autowired
     public StudentServiceImpl(StudentRepository repository, GroupService groupService, MapStructMapper mapper) {
@@ -51,7 +51,9 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public List<Student> findRawById(List<Long> ids) { return StreamSupport.stream(repository.findAllById(ids).spliterator(), false).toList(); }
+    public List<Student> findRawById(List<Long> ids) {
+        return StreamSupport.stream(repository.findAllById(ids).spliterator(), false).toList();
+    }
 
     @Override
     public Page<StudentDto> getByCourseId(long courseId, Pageable pageable) {

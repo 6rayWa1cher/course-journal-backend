@@ -133,7 +133,7 @@ public class FacultyControllerIntegrationTests extends AbstractIntegrationTests 
         createGetAllFacultiesContext("A" + name);
 
         mvc.perform(get("/faculties/all")
-                .queryParam("sort", "name,asc"))
+                        .queryParam("sort", "name,asc"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -230,8 +230,8 @@ public class FacultyControllerIntegrationTests extends AbstractIntegrationTests 
         ObjectNode request = context.getRequest();
 
         mvc.perform(post("/faculties/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request.toString()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -391,23 +391,23 @@ public class FacultyControllerIntegrationTests extends AbstractIntegrationTests 
 
     @Test
     void putFaculty__notAuthenticated__invalid() throws Exception {
-                String name1 = faker.lorem().sentence(2);
-                String name2 = name1 + faker.lorem().sentence(1);
+        String name1 = faker.lorem().sentence(2);
+        String name2 = name1 + faker.lorem().sentence(1);
 
-                long id = ef.createFaculty(ef.bag().withDto(
-                        FacultyDto.builder()
-                                .name(name1)
-                                .build()
-                ));
+        long id = ef.createFaculty(ef.bag().withDto(
+                FacultyDto.builder()
+                        .name(name1)
+                        .build()
+        ));
 
-                RequestContext<ObjectNode> context = createPutFacultyRequest(name2);
-                ObjectNode request = context.getRequest();
+        RequestContext<ObjectNode> context = createPutFacultyRequest(name2);
+        ObjectNode request = context.getRequest();
 
-                mvc.perform(put("/faculties/{id}", id + 1000)
+        mvc.perform(put("/faculties/{id}", id + 1000)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request.toString()))
-                        .andExpect(status().isUnauthorized());
-            }
+                .andExpect(status().isUnauthorized());
+    }
 
     // ================================================================================================================
 

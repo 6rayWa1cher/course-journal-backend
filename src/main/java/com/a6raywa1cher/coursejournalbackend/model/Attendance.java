@@ -71,5 +71,7 @@ public class Attendance implements IdEntity<Long> {
     }
 
     @Override
-    public int hashCode() { return getClass().hashCode(); }
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

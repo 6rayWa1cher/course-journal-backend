@@ -385,13 +385,13 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                         .lastName(faker.name().lastName())
                         .group(groupId)
                         .build()).getId();
-                
+
                 List<Long> students1 = new ArrayList<>();
                 students1.add(student1);
                 students1.add(student2);
                 List<Long> students2 = new ArrayList<>();
                 students2.add(student3);
-                
+
                 long courseId1 = ef.createCourse(ef.bag().withEmployeeId(getSelfEmployeeIdAsLong())
                         .withDto(CourseFullDto.builder()
                                 .students(students1)
@@ -1018,7 +1018,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                 String middleName = faker.name().firstName();
 
                 long studentId = ef.createStudent(ef.bag()
-                        
+
                         .withGroupId(groupId)
                         .withDto(StudentDto.builder()
                                 .lastName(lastName)
@@ -1054,7 +1054,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                 String middleName = faker.name().firstName();
 
                 long studentId = ef.createStudent(ef.bag()
-                        
+
                         .withGroupId(groupId)
                         .withDto(StudentDto.builder()
                                 .lastName(lastName)
@@ -1084,7 +1084,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                 String middleName = faker.name().firstName();
 
                 long studentId = ef.createStudent(ef.bag()
-                        
+
                         .withGroupId(groupId)
                         .withDto(StudentDto.builder()
                                 .lastName(lastName)
@@ -1115,7 +1115,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
                 String middleName = faker.name().firstName();
 
                 long studentId = ef.createStudent(ef.bag()
-                        
+
                         .withGroupId(groupId)
                         .withDto(StudentDto.builder()
                                 .lastName(lastName)
@@ -1143,7 +1143,7 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         String middleName = faker.name().firstName();
 
         long studentId = ef.createStudent(ef.bag()
-                
+
                 .withGroupId(groupId)
                 .withDto(StudentDto.builder()
                         .lastName(lastName)
