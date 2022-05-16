@@ -68,7 +68,11 @@ public class CriteriaServiceImpl implements CriteriaService {
         criteria.setTask(task);
         criteria.setCreatedAt(LocalDateTime.now());
         criteria.setLastModifiedAt(LocalDateTime.now());
-        return mapper.map(repository.save(criteria));
+
+        Criteria saved = repository.save(criteria);
+        submissionService.recalculateMainScoreForTask(task.getId());
+
+        return mapper.map(saved);
     }
 
     @Override
@@ -82,7 +86,11 @@ public class CriteriaServiceImpl implements CriteriaService {
 
         criteria.setTask(task);
         criteria.setLastModifiedAt(LocalDateTime.now());
-        return mapper.map(repository.save(criteria));
+
+        Criteria saved = repository.save(criteria);
+        submissionService.recalculateMainScoreForTask(task.getId());
+
+        return mapper.map(saved);
     }
 
     @Override

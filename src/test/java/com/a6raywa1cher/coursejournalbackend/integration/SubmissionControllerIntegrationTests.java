@@ -1497,7 +1497,91 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
     // ================================================================================================================
 
     @Test
-    void updateCriteriaUpdatesMainScore() {
+    void createCriteriaUpdatesMainScore() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                long taskId = ef.createTask(ef.bag().withEmployeeId(getSelfEmployeeIdAsLong())
+                        .withDto(TaskDto.builder().maxScore(100).deadlinesEnabled(false).build()));
+                long criteriaId1 = ef.createCriteria(ef.bag().withTaskId(taskId)
+                        .withDto(CriteriaDto.builder().criteriaPercent(50).build()));
+                long submissionId = ef.createSubmission(ef.bag().withTaskId(taskId)
+                        .withDto(SubmissionDto.builder().satisfiedCriteria(new ArrayList<>(List.of(criteriaId1))).build()));
+
+                securePerform(get("/submissions/{id}", submissionId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.mainScore").value(100));
+
+                // WHEN
+                securePerform(post("/criteria/", criteriaId1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("name", faker.lorem().word())
+                                .put("task", taskId)
+                                .put("criteriaPercent", 50)
+                                .toString()
+                        ))
+                        .andExpect(status().isCreated());
+
+                // THEN
+                securePerform(get("/submissions/{id}", submissionId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.mainScore").value(50));
+            }
+        };
+    }
+
+    @Test
+    void putCriteriaUpdatesMainScore() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                long taskId = ef.createTask(ef.bag().withEmployeeId(getSelfEmployeeIdAsLong())
+                        .withDto(TaskDto.builder().maxScore(100).deadlinesEnabled(false).build()));
+                long criteriaId1 = ef.createCriteria(ef.bag().withTaskId(taskId)
+                        .withDto(CriteriaDto.builder().criteriaPercent(60).build()));
+                long criteriaId2 = ef.createCriteria(ef.bag().withTaskId(taskId)
+                        .withDto(CriteriaDto.builder().criteriaPercent(40).build()));
+                long submissionId = ef.createSubmission(ef.bag().withTaskId(taskId)
+                        .withDto(SubmissionDto.builder().satisfiedCriteria(new ArrayList<>(List.of(criteriaId1))).build()));
+
+                securePerform(get("/submissions/{id}", submissionId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.mainScore").value(60));
+
+                // WHEN
+                securePerform(put("/criteria/{id}", criteriaId1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("name", faker.lorem().word())
+                                .put("task", taskId)
+                                .put("criteriaPercent", 80)
+                                .toString()
+                        ))
+                        .andExpect(status().isOk());
+
+                securePerform(put("/criteria/{id}", criteriaId2)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("name", faker.lorem().word())
+                                .put("task", taskId)
+                                .put("criteriaPercent", 20)
+                                .toString()
+                        ))
+                        .andExpect(status().isOk());
+
+                // THEN
+                securePerform(get("/submissions/{id}", submissionId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.mainScore").value(80));
+            }
+        };
+    }
+
+    @Test
+    void patchCriteriaUpdatesMainScore() {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
@@ -1541,7 +1625,56 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
     }
 
     @Test
-    void updateTaskUpdatesMainScore() {
+    void putTaskUpdatesMainScore() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
+                long taskId = ef.createTask(ef.bag().withCourseId(courseId)
+                        .withDto(TaskDto.builder().maxScore(100).deadlinesEnabled(false).build()));
+                long criteriaId1 = ef.createCriteria(ef.bag().withTaskId(taskId)
+                        .withDto(CriteriaDto.builder().criteriaPercent(60).build()));
+                ef.createCriteria(ef.bag().withTaskId(taskId)
+                        .withDto(CriteriaDto.builder().criteriaPercent(40).build()));
+                long submissionId = ef.createSubmission(ef.bag().withTaskId(taskId)
+                        .withDto(SubmissionDto.builder()
+                                .submittedAt(ZonedDateTime.now())
+                                .satisfiedCriteria(new ArrayList<>(List.of(criteriaId1)))
+                                .build()
+                        )
+                );
+
+                securePerform(get("/submissions/{id}", submissionId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.mainScore").value(60));
+
+                // WHEN
+                securePerform(put("/tasks/{id}", taskId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.createObjectNode()
+                                .put("title", faker.lorem().sentence())
+                                .put("taskNumber", 1)
+                                .put("course", courseId)
+                                .put("maxScore", 100)
+                                .put("deadlinesEnabled", true)
+                                .put("softDeadlineAt", ZonedDateTime.now().minusDays(3).toString())
+                                .put("hardDeadlineAt", ZonedDateTime.now().minusDays(2).toString())
+                                .put("maxPenaltyPercent", 50)
+                                .toString()
+                        ))
+                        .andExpect(status().isOk());
+
+                // THEN
+                securePerform(get("/submissions/{id}", submissionId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.mainScore").value(30));
+            }
+        };
+    }
+
+    @Test
+    void patchTaskUpdatesMainScore() {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
