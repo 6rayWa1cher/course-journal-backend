@@ -7,9 +7,11 @@ import com.a6raywa1cher.coursejournalbackend.model.Course;
 import com.a6raywa1cher.coursejournalbackend.model.Task;
 import com.a6raywa1cher.coursejournalbackend.model.repo.TaskRepository;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
+import com.a6raywa1cher.coursejournalbackend.service.SubmissionService;
 import com.a6raywa1cher.coursejournalbackend.service.TaskService;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class TaskServiceImpl implements TaskService {
     private final MapStructMapper mapper;
     private final TaskRepository repository;
     private final CourseService courseService;
+    private SubmissionService submissionService;
 
     @Autowired
     public TaskServiceImpl(MapStructMapper mapper, TaskRepository repository, CourseService courseService) {
@@ -123,7 +126,11 @@ public class TaskServiceImpl implements TaskService {
 
         task.setCourse(course);
         task.setLastModifiedAt(LocalDateTime.now());
-        return mapper.map(repository.save(task));
+
+        Task saved = repository.save(task);
+        submissionService.recalculateMainScoreForTask(task.getId());
+
+        return mapper.map(saved);
     }
 
     @Override
@@ -139,7 +146,11 @@ public class TaskServiceImpl implements TaskService {
 
         task.setCourse(course);
         task.setLastModifiedAt(LocalDateTime.now());
-        return mapper.map(repository.save(task));
+
+        Task saved = repository.save(task);
+        submissionService.recalculateMainScoreForTask(task.getId());
+
+        return mapper.map(saved);
     }
 
     @Override
@@ -216,5 +227,11 @@ public class TaskServiceImpl implements TaskService {
         if ((hardDeadlineAt == null) || (softDeadlineAt == null)) {
             throw new NoDataPresentedException(Task.class, "hardDeadlineAt", "softDeadlineAt");
         }
+    }
+
+    @Autowired
+    @Lazy
+    public void setSubmissionService(SubmissionService submissionService) {
+        this.submissionService = submissionService;
     }
 }

@@ -273,15 +273,16 @@ public class EntityFactory {
                 .additionalScore(faker.number().numberBetween(0, 5))
                 .task(bag.getTaskId())
                 .student(bag.getStudentId())
-                .satisfiedCriteria(
-                        Stream.generate(() -> createCriteria(bag))
-                                .limit(faker.number().numberBetween(1, 5))
-                                .toList())
+                .satisfiedCriteria(new ArrayList<>())
                 .build();
 
         SubmissionDto dtoFromBag = bag.getDto(SubmissionDto.class);
         if (dtoFromBag != null) {
             mapper.merge(dtoFromBag, dto);
+        } else {
+            dto.getSatisfiedCriteria().addAll(Stream.generate(() -> createCriteria(bag))
+                    .limit(faker.number().numberBetween(1, 5))
+                    .toList());
         }
 
         return submissionService.create(dto).getId();

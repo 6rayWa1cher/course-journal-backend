@@ -9,8 +9,10 @@ import com.a6raywa1cher.coursejournalbackend.model.Criteria;
 import com.a6raywa1cher.coursejournalbackend.model.Task;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CriteriaRepository;
 import com.a6raywa1cher.coursejournalbackend.service.CriteriaService;
+import com.a6raywa1cher.coursejournalbackend.service.SubmissionService;
 import com.a6raywa1cher.coursejournalbackend.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ public class CriteriaServiceImpl implements CriteriaService {
     private final CriteriaRepository repository;
     private final MapStructMapper mapper;
     private final TaskService taskService;
+    private SubmissionService submissionService;
 
     @Autowired
     public CriteriaServiceImpl(CriteriaRepository repository, MapStructMapper mapper, TaskService taskService) {
@@ -65,7 +68,11 @@ public class CriteriaServiceImpl implements CriteriaService {
         criteria.setTask(task);
         criteria.setCreatedAt(LocalDateTime.now());
         criteria.setLastModifiedAt(LocalDateTime.now());
-        return mapper.map(repository.save(criteria));
+
+        Criteria saved = repository.save(criteria);
+        submissionService.recalculateMainScoreForTask(task.getId());
+
+        return mapper.map(saved);
     }
 
     @Override
@@ -79,7 +86,11 @@ public class CriteriaServiceImpl implements CriteriaService {
 
         criteria.setTask(task);
         criteria.setLastModifiedAt(LocalDateTime.now());
-        return mapper.map(repository.save(criteria));
+
+        Criteria saved = repository.save(criteria);
+        submissionService.recalculateMainScoreForTask(task.getId());
+
+        return mapper.map(saved);
     }
 
     @Override
@@ -93,7 +104,11 @@ public class CriteriaServiceImpl implements CriteriaService {
 
         criteria.setTask(task);
         criteria.setLastModifiedAt(LocalDateTime.now());
-        return mapper.map(repository.save(criteria));
+
+        Criteria saved = repository.save(criteria);
+        submissionService.recalculateMainScoreForTask(task.getId());
+
+        return mapper.map(saved);
     }
 
     @Override
@@ -132,5 +147,11 @@ public class CriteriaServiceImpl implements CriteriaService {
         if (!Objects.equals(criteria.getTask(), newTask)) {
             throw new TransferNotAllowedException(Criteria.class, "task", criteria.getTask().getId(), newTask.getId());
         }
+    }
+
+    @Autowired
+    @Lazy
+    public void setSubmissionService(SubmissionService submissionService) {
+        this.submissionService = submissionService;
     }
 }
