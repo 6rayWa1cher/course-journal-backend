@@ -1277,6 +1277,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         };
     }
 
+    @Test
     void patchAttendance__classChange__invalid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override

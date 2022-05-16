@@ -15,10 +15,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(
-        name = "faculty",
-        uniqueConstraints = @UniqueConstraint(name = "one_name_per_instance", columnNames = {"name"})
-)
+@Table(name = "faculty")
 @Getter
 @Setter
 @ToString
@@ -30,7 +27,7 @@ public class Faculty implements IdEntity<Long> {
     @ReadOnlyProperty
     private Long id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
     @OneToMany(mappedBy = "faculty", cascade = CascadeType.ALL, orphanRemoval = true)

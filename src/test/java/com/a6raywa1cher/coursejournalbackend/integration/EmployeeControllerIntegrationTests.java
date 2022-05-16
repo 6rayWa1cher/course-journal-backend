@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ActiveProfiles("test")
 public class EmployeeControllerIntegrationTests extends AbstractIntegrationTests {
-    RequestContext<Long> createGetUserListContext() {
+    RequestContext<Long> createGetEmployeeListContext() {
         String firstName = faker.name().firstName();
         String middleName = faker.name().firstName();
         String lastName = faker.name().lastName();
@@ -41,12 +41,12 @@ public class EmployeeControllerIntegrationTests extends AbstractIntegrationTests
     }
 
     @Test
-    void getUserList__asAdmin__valid() {
+    void getEmployeeList__asAdmin__valid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                var ctx1 = createGetUserListContext();
-                var ctx2 = createGetUserListContext();
+                var ctx1 = createGetEmployeeListContext();
+                var ctx2 = createGetEmployeeListContext();
 
                 securePerform(get("/employees/")
                         .param("sort", "id,desc"))
@@ -59,12 +59,12 @@ public class EmployeeControllerIntegrationTests extends AbstractIntegrationTests
     }
 
     @Test
-    void getUserList__asTeacher__valid() {
+    void getEmployeeList__asTeacher__valid() {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                var ctx1 = createGetUserListContext();
-                var ctx2 = createGetUserListContext();
+                var ctx1 = createGetEmployeeListContext();
+                var ctx2 = createGetEmployeeListContext();
 
                 securePerform(get("/employees/")
                         .param("sort", "id,desc"))
@@ -78,12 +78,12 @@ public class EmployeeControllerIntegrationTests extends AbstractIntegrationTests
     }
 
     @Test
-    void getUserList__withCourseToken__valid() {
+    void getEmployeeList__withCourseToken__valid() {
         new WithCourseToken() {
             @Override
             void run() throws Exception {
-                var ctx1 = createGetUserListContext();
-                var ctx2 = createGetUserListContext();
+                var ctx1 = createGetEmployeeListContext();
+                var ctx2 = createGetEmployeeListContext();
 
                 securePerform(get("/employees/")
                         .param("sort", "id,desc"))
@@ -96,23 +96,23 @@ public class EmployeeControllerIntegrationTests extends AbstractIntegrationTests
     }
 
     @Test
-    void getUserList__notAuthenticated__invalid() throws Exception {
+    void getEmployeeList__notAuthenticated__invalid() throws Exception {
         mvc.perform(get("/employees/"))
                 .andExpect(status().isUnauthorized());
     }
 
     // ================================================================================================================
 
-    RequestContext<Long> createGetUserByIdContext() {
-        return createGetUserListContext();
+    RequestContext<Long> createGetEmployeeByIdContext() {
+        return createGetEmployeeListContext();
     }
 
     @Test
-    void getUserById__asAdmin__valid() {
+    void getEmployeeById__asAdmin__valid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                var ctx = createGetUserByIdContext();
+                var ctx = createGetEmployeeByIdContext();
                 long id = ctx.getRequest();
 
                 securePerform(get("/employees/{id}", id))
@@ -123,11 +123,11 @@ public class EmployeeControllerIntegrationTests extends AbstractIntegrationTests
     }
 
     @Test
-    void getUserById__asTeacher__valid() {
+    void getEmployeeById__asTeacher__valid() {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
-                var ctx = createGetUserByIdContext();
+                var ctx = createGetEmployeeByIdContext();
                 long id = ctx.getRequest();
 
                 securePerform(get("/employees/{id}", id))
@@ -138,11 +138,11 @@ public class EmployeeControllerIntegrationTests extends AbstractIntegrationTests
     }
 
     @Test
-    void getUserById__withCourseToken__valid() {
+    void getEmployeeById__withCourseToken__valid() {
         new WithCourseToken() {
             @Override
             void run() throws Exception {
-                var ctx = createGetUserByIdContext();
+                var ctx = createGetEmployeeByIdContext();
                 long id = ctx.getRequest();
 
                 securePerform(get("/employees/{id}", id))
@@ -153,8 +153,8 @@ public class EmployeeControllerIntegrationTests extends AbstractIntegrationTests
     }
 
     @Test
-    void getUserById__notAuthenticated__invalid() throws Exception {
-        var ctx = createGetUserByIdContext();
+    void getEmployeeById__notAuthenticated__invalid() throws Exception {
+        var ctx = createGetEmployeeByIdContext();
         long id = ctx.getRequest();
 
         mvc.perform(get("/employees/{id}", id))

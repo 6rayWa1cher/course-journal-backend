@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.Check;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -19,6 +20,7 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "auth_user")
@@ -83,4 +85,17 @@ public class AuthUser implements IUser, IdEntity<Long> {
 
     @Column(name = "last_visit_at")
     private LocalDateTime lastVisitAt;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        AuthUser course = (AuthUser) o;
+        return id != null && Objects.equals(id, course.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

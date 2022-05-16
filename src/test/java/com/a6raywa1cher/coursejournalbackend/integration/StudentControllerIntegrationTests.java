@@ -616,7 +616,6 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
         };
     }
 
-
     @Test
     void getStudentByGroup__withCourseToken__invalid() {
         long ownerId = ef.createEmployee();
@@ -682,7 +681,6 @@ public class StudentControllerIntegrationTests extends AbstractIntegrationTests 
 
         return new RequestContext<>(request, matchers);
     }
-
 
     @Test
     void createStudent__admin__valid() {
