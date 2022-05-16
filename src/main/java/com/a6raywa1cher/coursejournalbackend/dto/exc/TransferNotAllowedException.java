@@ -11,7 +11,7 @@ public class TransferNotAllowedException extends RuntimeException {
             Class<?> clazz, String transferredField, String currentField, String newField
     ) {
         super(
-                "Couldn't transfer object of %s class with field%s = %s to %s: not allowed"
+                "Couldn't transfer object of %s class with field %s = %s to %s: not allowed"
                         .formatted(
                                 clazz.getSimpleName(),
                                 transferredField,
