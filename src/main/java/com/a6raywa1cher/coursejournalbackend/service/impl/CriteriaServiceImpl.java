@@ -190,7 +190,7 @@ public class CriteriaServiceImpl implements CriteriaService {
 
     private void assertNoTaskChange(Criteria criteria, Task newTask) {
         if (!Objects.equals(criteria.getTask(), newTask)) {
-            throw new TransferNotAllowedException(Criteria.class, "task", criteria.getTask().getId(), newTask.getId());
+            throw new TransferNotAllowedException(Criteria.class, "task", criteria.getTask(), newTask);
         }
     }
 
