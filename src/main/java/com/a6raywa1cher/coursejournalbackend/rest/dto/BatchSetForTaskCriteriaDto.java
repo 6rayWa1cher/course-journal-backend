@@ -6,7 +6,7 @@ import lombok.Data;
 import javax.validation.constraints.*;
 import java.util.List;
 
-import static com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary.COMMON_NAME;
+import static com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary.CRITERIA_NAME;
 
 @Data
 public class BatchSetForTaskCriteriaDto {
@@ -17,7 +17,7 @@ public class BatchSetForTaskCriteriaDto {
     @Data
     public static final class CriteriaSetForTaskDto {
         @NotBlank
-        @Pattern(regexp = COMMON_NAME)
+        @Pattern(regexp = CRITERIA_NAME)
         private String name;
 
         @NotNull

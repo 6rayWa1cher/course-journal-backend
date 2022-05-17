@@ -6,7 +6,7 @@ import lombok.Data;
 
 import javax.validation.constraints.*;
 
-import static com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary.COMMON_NAME;
+import static com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary.CRITERIA_NAME;
 
 @Data
 public class CriteriaRestDto {
@@ -15,7 +15,7 @@ public class CriteriaRestDto {
     private Long task;
 
     @NotBlank(groups = {OnCreate.class, OnUpdate.class})
-    @Pattern(regexp = COMMON_NAME)
+    @Pattern(regexp = CRITERIA_NAME)
     private String name;
 
     @NotNull(groups = {OnCreate.class, OnUpdate.class})

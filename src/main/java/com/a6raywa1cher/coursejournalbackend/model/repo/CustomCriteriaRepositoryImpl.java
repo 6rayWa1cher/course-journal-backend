@@ -22,7 +22,11 @@ public class CustomCriteriaRepositoryImpl implements CustomCriteriaRepository {
         for (int i = 0; i < criteriaList.size(); i++) {
             Criteria criteria = criteriaList.get(i);
             names.put(criteria, criteria.getName());
-            criteria.setName("tmp" + i);
+
+            // unique constraint bypass: criteriaList contains all criteria for the task
+            // therefore we can rename all of them to some dummy string
+            // $tmp0, ... will not occur in db since dollar sign isn't allowed
+            criteria.setName("$tmp" + i);
         }
         criteriaList.forEach(em::merge);
         em.flush();

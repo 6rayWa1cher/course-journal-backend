@@ -239,7 +239,6 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
     private void setSatisfiedCriteria(Submission submission, List<Criteria> satisfiedCriteria) {
-//        submission.setSatisfiedCriteria(new ArrayList<>(satisfiedCriteria));
         submission.setSatisfiedCriteria(satisfiedCriteria);
         satisfiedCriteria.forEach(c -> c.getSubmissionList().add(submission));
     }
