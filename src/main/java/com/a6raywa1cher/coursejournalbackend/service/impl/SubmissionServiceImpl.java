@@ -104,7 +104,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         List<Criteria> satisfiedCriteria = getCriteriaListByIds(dto.getSatisfiedCriteria());
 
         assertUniqueTaskStudentPair(task, student);
-        assertSameCourseAndTask(satisfiedCriteria, task, student);
+        assertSameCourseAndTask(satisfiedCriteria, task);
         mapper.put(dto, submission);
 
         submission.setTask(task);
@@ -161,17 +161,20 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         for (SubmissionDto req : submissionDtoList) {
             Long taskId = req.getTask();
+            Task task = idToTask.get(taskId);
             Submission db = taskToSubmission.getOrDefault(taskId, new Submission());
             boolean existsInDb = db.getId() != null;
 
             mapper.put(req, db);
 
             if (!existsInDb) {
-                db.setTask(idToTask.get(taskId));
+                db.setTask(task);
                 db.setStudent(student);
                 db.setCreatedAt(now);
             }
-            setSatisfiedCriteria(db, pickCriteria(idToCriteria, req.getSatisfiedCriteria()));
+            List<Criteria> satisfiedCriteria = pickCriteria(idToCriteria, req.getSatisfiedCriteria());
+            assertSameCourseAndTask(satisfiedCriteria, task);
+            setSatisfiedCriteria(db, satisfiedCriteria);
             db.setMainScore(scoringService.getMainScore(
                     mapper.map(db),
                     idToTaskDto.get(taskId),
@@ -205,7 +208,7 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         assertNoTaskChange(submission.getTask(), task);
         assertNoStudentChange(submission.getStudent(), student);
-        assertSameCourseAndTask(satisfiedCriteria, task, student);
+        assertSameCourseAndTask(satisfiedCriteria, task);
         mapper.put(dto, submission);
 
         setSatisfiedCriteria(submission, satisfiedCriteria);
@@ -229,7 +232,7 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         assertNoTaskChange(submission.getTask(), task);
         assertNoStudentChange(submission.getStudent(), student);
-        assertSameCourseAndTask(satisfiedCriteria, task, student);
+        assertSameCourseAndTask(satisfiedCriteria, task);
         mapper.patch(dto, submission);
 
         setSatisfiedCriteria(submission, satisfiedCriteria);
@@ -286,7 +289,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         }
     }
 
-    private void assertSameCourseAndTask(List<Criteria> satisfiedCriteria, Task task, Student student) {
+    private void assertSameCourseAndTask(List<Criteria> satisfiedCriteria, Task task) {
         Set<Long> courseIds = new HashSet<>(
                 satisfiedCriteria.stream()
                         .map(c -> c.getTask().getCourse().getId())

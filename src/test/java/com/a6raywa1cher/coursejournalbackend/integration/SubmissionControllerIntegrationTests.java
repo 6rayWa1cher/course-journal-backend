@@ -5,6 +5,7 @@ import com.a6raywa1cher.coursejournalbackend.TestUtils;
 import com.a6raywa1cher.coursejournalbackend.dto.CriteriaDto;
 import com.a6raywa1cher.coursejournalbackend.dto.SubmissionDto;
 import com.a6raywa1cher.coursejournalbackend.dto.TaskDto;
+import com.a6raywa1cher.coursejournalbackend.dto.exc.VariousParentEntitiesException;
 import com.a6raywa1cher.coursejournalbackend.integration.models.SubmissionInfo;
 import com.a6raywa1cher.coursejournalbackend.service.SubmissionService;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -28,6 +29,7 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -1258,6 +1260,39 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                         .content(request.toString()))
                         // THEN
                         .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void setSubmissionsForStudentAndCourse__criteriaFromDifferentTasks__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
+                long taskId = ef.createTask(ef.bag().withCourseId(courseId));
+                long studentId = ef.createStudent();
+                long otherCriteriaId = ef.createCriteria(ef.bag().withCourseId(courseId));
+
+                ObjectNode request = objectMapper.createObjectNode();
+                ObjectNode info = objectMapper.createObjectNode()
+                        .put("task", taskId)
+                        .put("submittedAt", ZonedDateTime.now().toString())
+                        .put("additionalScore", 2);
+                info.putArray("satisfiedCriteria").add(otherCriteriaId);
+                request.putArray("submissions").add(info);
+
+                // WHEN
+                securePerform(post("/submissions/course/{cid}/student/{sid}/set", courseId, studentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        // THEN
+                        .andExpect(status().isBadRequest())
+                        .andExpect(result ->
+                                assertThat(result.getResolvedException())
+                                        .isInstanceOf(VariousParentEntitiesException.class)
+                        );
             }
         };
     }
