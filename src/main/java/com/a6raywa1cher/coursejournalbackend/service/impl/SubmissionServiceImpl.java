@@ -107,7 +107,7 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         submission.setTask(task);
         submission.setStudent(student);
-        submission.setSatisfiedCriteria(satisfiedCriteria);
+        setSatisfiedCriteria(submission, satisfiedCriteria);
         submission.setMainScore(scoringService.getMainScore(
                 mapper.map(submission),
                 mapper.map(task),
@@ -130,7 +130,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         assertSameCourseAndTask(satisfiedCriteria, task, student);
         mapper.put(dto, submission);
 
-        submission.setSatisfiedCriteria(new ArrayList<>(satisfiedCriteria));
+        setSatisfiedCriteria(submission, satisfiedCriteria);
         submission.setMainScore(scoringService.getMainScore(
                 mapper.map(submission),
                 mapper.map(task),
@@ -154,7 +154,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         assertSameCourseAndTask(satisfiedCriteria, task, student);
         mapper.patch(dto, submission);
 
-        submission.setSatisfiedCriteria(new ArrayList<>(satisfiedCriteria));
+        setSatisfiedCriteria(submission, satisfiedCriteria);
         submission.setMainScore(scoringService.getMainScore(
                 mapper.map(submission),
                 mapper.map(task),
@@ -167,6 +167,8 @@ public class SubmissionServiceImpl implements SubmissionService {
     @Override
     public void delete(long id) {
         Submission submission = getSubmissionById(id);
+        submission.getSatisfiedCriteria().forEach(c -> c.getSubmissionList().remove(submission));
+        submission.getSatisfiedCriteria().clear();
         repository.delete(submission);
     }
 
@@ -234,6 +236,11 @@ public class SubmissionServiceImpl implements SubmissionService {
                     "task", Long.toString(task.getId()),
                     "student", Long.toString(student.getId()));
         }
+    }
+
+    private void setSatisfiedCriteria(Submission submission, List<Criteria> satisfiedCriteria) {
+        submission.setSatisfiedCriteria(satisfiedCriteria);
+        satisfiedCriteria.forEach(c -> c.getSubmissionList().add(submission));
     }
 
     @Autowired

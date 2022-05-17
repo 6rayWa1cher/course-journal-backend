@@ -13,14 +13,16 @@ import com.a6raywa1cher.coursejournalbackend.service.SubmissionService;
 import com.a6raywa1cher.coursejournalbackend.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.StreamSupport;
+import java.util.stream.Stream;
 
 @Service
 @Transactional
@@ -49,7 +51,7 @@ public class CriteriaServiceImpl implements CriteriaService {
 
     @Override
     public List<Criteria> findRawById(List<Long> ids) {
-        return StreamSupport.stream(repository.findAllById(ids).spliterator(), false).toList();
+        return repository.findAllById(ids).stream().toList();
     }
 
     @Override
@@ -94,6 +96,47 @@ public class CriteriaServiceImpl implements CriteriaService {
     }
 
     @Override
+    public List<CriteriaDto> setForTask(long taskId, List<CriteriaDto> criteriaDtoList) {
+        Task task = getTaskById(taskId);
+        List<Criteria> existingCriteria = repository.getAllByTask(task, Sort.by(Sort.Order.asc("id")));
+        int inputSize = criteriaDtoList.size();
+        int dbSize = existingCriteria.size();
+        List<Criteria> toCreate = new ArrayList<>();
+        List<Criteria> toSave = new ArrayList<>();
+        List<Criteria> toDelete = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+        for (int i = 0; i < Math.max(inputSize, dbSize); i++) {
+            if (i < inputSize && i < dbSize) {
+                CriteriaDto input = criteriaDtoList.get(i);
+                Criteria db = existingCriteria.get(i);
+                mapper.put(input, db);
+                db.setLastModifiedAt(now);
+                toSave.add(db);
+            } else if (i < inputSize) {
+                CriteriaDto input = criteriaDtoList.get(i);
+                Criteria criteria = new Criteria();
+                mapper.put(input, criteria);
+                criteria.setTask(task);
+                criteria.setCreatedAt(now);
+                criteria.setLastModifiedAt(now);
+                toCreate.add(criteria);
+            } else {
+                Criteria db = existingCriteria.get(i);
+                db.getSubmissionList().forEach(s -> s.getSatisfiedCriteria().remove(db));
+                db.getSubmissionList().clear();
+                toDelete.add(db);
+            }
+        }
+        repository.deleteAll(toDelete);
+        return Stream.concat(
+                        repository.saveAllForTaskWithRename(toSave).stream(),
+                        repository.saveAll(toCreate).stream()
+                )
+                .map(mapper::map)
+                .toList();
+    }
+
+    @Override
     public CriteriaDto patch(long id, CriteriaDto dto) {
         Criteria criteria = getCriteriaById(id);
         Task task = dto.getTask() != null ? getTaskById(dto.getTask()) : criteria.getTask();
@@ -114,6 +157,8 @@ public class CriteriaServiceImpl implements CriteriaService {
     @Override
     public void delete(long id) {
         Criteria criteria = getCriteriaById(id);
+        criteria.getSubmissionList().forEach(s -> s.getSatisfiedCriteria().remove(criteria));
+        criteria.getSubmissionList().clear();
         repository.delete(criteria);
     }
 
@@ -145,7 +190,7 @@ public class CriteriaServiceImpl implements CriteriaService {
 
     private void assertNoTaskChange(Criteria criteria, Task newTask) {
         if (!Objects.equals(criteria.getTask(), newTask)) {
-            throw new TransferNotAllowedException(Criteria.class, "task", criteria.getTask().getId(), newTask.getId());
+            throw new TransferNotAllowedException(Criteria.class, "task", criteria.getTask(), newTask);
         }
     }
 

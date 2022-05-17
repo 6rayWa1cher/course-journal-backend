@@ -19,6 +19,8 @@ public interface CriteriaService {
 
     CriteriaDto update(long id, CriteriaDto dto);
 
+    List<CriteriaDto> setForTask(long taskId, List<CriteriaDto> criteriaDtoList);
+
     CriteriaDto patch(long id, CriteriaDto dto);
 
     void delete(long id);

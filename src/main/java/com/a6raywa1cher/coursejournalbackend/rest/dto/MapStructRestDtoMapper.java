@@ -34,12 +34,20 @@ public interface MapStructRestDtoMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "task", ignore = true)
+    CriteriaDto map(BatchSetForTaskCriteriaDto.CriteriaSetForTaskDto dto);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "headman", ignore = true)
     StudentDto map(StudentRestDto dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
     @Mapping(target = "group", ignore = true)
+    @Mapping(target = "headman", ignore = true)
     StudentDto map(BatchCreateStudentDto.StudentInfo studentInfo);
 
     @Mapping(target = "id", ignore = true)
@@ -79,5 +87,6 @@ public interface MapStructRestDtoMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
+    @Mapping(target = "hasAuthUser", ignore = true)
     EmployeeDto map(EmployeeRestDto dto);
 }
