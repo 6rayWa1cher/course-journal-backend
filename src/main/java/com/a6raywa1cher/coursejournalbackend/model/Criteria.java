@@ -11,10 +11,12 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "criteria", uniqueConstraints = @UniqueConstraint(columnNames = {"task_id", "name"}))
+@Table(name = "criteria", uniqueConstraints = @UniqueConstraint(name = "criteria_task_name_uniq", columnNames = {"task_id", "name"}))
 @Getter
 @Setter
 @ToString
@@ -35,6 +37,10 @@ public class Criteria implements IdEntity<Long> {
 
     @Column(name = "criteria_percent")
     private Integer criteriaPercent;
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "satisfiedCriteria")
+    @ToString.Exclude
+    private List<Submission> submissionList = new ArrayList<>();
 
     @Column(name = "created_at")
     @CreatedDate

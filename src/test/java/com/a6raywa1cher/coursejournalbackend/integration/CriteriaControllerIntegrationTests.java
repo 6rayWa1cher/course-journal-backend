@@ -1,16 +1,28 @@
 package com.a6raywa1cher.coursejournalbackend.integration;
 
 
+import com.a6raywa1cher.coursejournalbackend.ObjectRequestContext;
+import com.a6raywa1cher.coursejournalbackend.RequestContext;
 import com.a6raywa1cher.coursejournalbackend.dto.CriteriaDto;
+import com.a6raywa1cher.coursejournalbackend.dto.SubmissionDto;
+import com.a6raywa1cher.coursejournalbackend.integration.models.CriteriaInfo;
+import com.a6raywa1cher.coursejournalbackend.integration.models.GetSetForTaskData;
 import com.a6raywa1cher.coursejournalbackend.service.CriteriaService;
 import com.a6raywa1cher.coursejournalbackend.service.TaskService;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.ResultMatcher;
 
-import static org.hamcrest.Matchers.containsString;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -161,8 +173,8 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
 
                 securePerform(get("/criteria/task/{id}", taskId1))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$[0].name").value(sentence1))
-                        .andExpect(jsonPath("$[1].name").value(sentence2));
+                        .andExpect(jsonPath("$[0].name").value(sentence2))
+                        .andExpect(jsonPath("$[1].name").value(sentence1));
             }
         };
     }
@@ -671,6 +683,360 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
                                 .put("name", name)
                                 .put("criteriaPercent", criteriaPercent)
                                 .toString()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    // ================================================================================================================
+
+    RequestContext<ObjectNode> getSetForTaskContext(List<CriteriaInfo> criteriaInfoList) {
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        ArrayNode array = objectNode.putArray("criteria");
+        for (CriteriaInfo info : criteriaInfoList) {
+            array.add(objectMapper.createObjectNode()
+                    .put("name", info.name())
+                    .put("criteriaPercent", info.criteriaPercent()));
+        }
+
+        Function<String, ResultMatcher[]> matchers = prefix -> IntStream.range(0, criteriaInfoList.size())
+                .boxed()
+                .flatMap(i -> {
+                    CriteriaInfo info = criteriaInfoList.get(i);
+                    return Stream.of(
+                            jsonPath(prefix + "[%d].name".formatted(i)).value(info.name()),
+                            jsonPath(prefix + "[%d].criteriaPercent".formatted(i)).value(info.criteriaPercent())
+                    );
+                })
+                .toArray(ResultMatcher[]::new);
+
+        return RequestContext.<ObjectNode>builder()
+                .request(objectNode)
+                .matchersSupplier(matchers)
+                .build();
+    }
+
+    ObjectRequestContext<ObjectNode, GetSetForTaskData> prepareGetSetForTaskContext(
+            long employeeId, int dbSize, int requestSize
+    ) {
+        long taskId = ef.createTask(employeeId);
+        List<Long> criteria = IntStream.range(0, dbSize)
+                .boxed()
+                .map(i -> ef.createCriteria(ef.bag().withTaskId(taskId)))
+                .toList();
+        long submissionId = ef.createSubmission(ef.bag().withTaskId(taskId)
+                .withDto(SubmissionDto.builder().satisfiedCriteria(criteria).build()));
+
+        var ctx = getSetForTaskContext(IntStream.range(0, requestSize)
+                .boxed()
+                .map(i -> new CriteriaInfo(faker.lorem().word(), faker.number().numberBetween(20, 80)))
+                .toList());
+        return new ObjectRequestContext<>(
+                ctx.getRequest(),
+                ctx.getMatchersSupplier(),
+                new GetSetForTaskData(submissionId, taskId, criteria)
+        );
+    }
+
+    @Test
+    void setCriteriaForTask__requestSameSizeAsDb__self__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                var ctx = prepareGetSetForTaskContext(
+                        getSelfEmployeeIdAsLong(),
+                        2, 2
+                );
+                ObjectNode request = ctx.getRequest();
+                long taskId = ctx.getData().taskId();
+                long submissionId = ctx.getData().submissionId();
+                List<Long> criteria = ctx.getData().criteria();
+
+                // WHEN
+                securePerform(post("/criteria/task/{id}/set", taskId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx.getMatchers());
+
+                // THEN
+                securePerform(get("/criteria/task/{id}", taskId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx.getMatchers());
+
+                securePerform(get("/submissions/{id}", submissionId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.satisfiedCriteria",
+                                contains(criteria.stream()
+                                        .map(Math::toIntExact)
+                                        .toArray()
+                                )
+                        ));
+            }
+        };
+    }
+
+    @Test
+    void setCriteriaForTask__requestBiggerThanDb__self__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                var ctx = prepareGetSetForTaskContext(
+                        getSelfEmployeeIdAsLong(),
+                        2, 3
+                );
+                ObjectNode request = ctx.getRequest();
+                long taskId = ctx.getData().taskId();
+                long submissionId = ctx.getData().submissionId();
+                List<Long> criteria = ctx.getData().criteria();
+
+                // WHEN
+                securePerform(post("/criteria/task/{id}/set", taskId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(3)))
+                        .andExpectAll(ctx.getMatchers());
+
+                // THEN
+                securePerform(get("/criteria/task/{id}", taskId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(3)))
+                        .andExpectAll(ctx.getMatchers());
+
+                securePerform(get("/submissions/{id}", submissionId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.satisfiedCriteria",
+                                contains(criteria.stream()
+                                        .map(Math::toIntExact)
+                                        .toArray()
+                                )
+                        ));
+            }
+        };
+    }
+
+    @Test
+    void setCriteriaForTask__requestSmallerThanDb__self__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                var ctx = prepareGetSetForTaskContext(
+                        getSelfEmployeeIdAsLong(),
+                        3, 2
+                );
+                ObjectNode request = ctx.getRequest();
+                long taskId = ctx.getData().taskId();
+                long submissionId = ctx.getData().submissionId();
+                List<Long> criteria = ctx.getData().criteria();
+
+                // WHEN
+                securePerform(post("/criteria/task/{id}/set", taskId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx.getMatchers());
+
+                // THEN
+                securePerform(get("/criteria/task/{id}", taskId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx.getMatchers());
+
+                securePerform(get("/submissions/{id}", submissionId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.satisfiedCriteria",
+                                contains(criteria.stream()
+                                        .limit(2)
+                                        .map(Math::toIntExact)
+                                        .toArray()
+                                )
+                        ));
+            }
+        };
+    }
+
+    @Test
+    void setCriteriaForTask__moveOneWithoutSubmissions__self__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                long taskId = ef.createTask(getSelfEmployeeIdAsLong());
+                String sharedName = faker.lorem().word();
+                List<Long> criteria = List.of(
+                        ef.createCriteria(ef.bag().withTaskId(taskId)),
+                        ef.createCriteria(ef.bag().withTaskId(taskId)
+                                .withDto(CriteriaDto.builder().name(sharedName).build()))
+                );
+                long submissionId = ef.createSubmission(ef.bag().withTaskId(taskId)
+                        .withDto(SubmissionDto.builder().satisfiedCriteria(criteria).build()));
+
+                var ctx = getSetForTaskContext(List.of(
+                        new CriteriaInfo(sharedName, faker.number().numberBetween(20, 80)),
+                        new CriteriaInfo(faker.lorem().sentence(), faker.number().numberBetween(20, 80))
+                ));
+                ObjectNode request = ctx.getRequest();
+
+                // WHEN
+                securePerform(post("/criteria/task/{id}/set", taskId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx.getMatchers());
+
+                // THEN
+                securePerform(get("/criteria/task/{id}", taskId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx.getMatchers());
+
+                securePerform(get("/submissions/{id}", submissionId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.satisfiedCriteria",
+                                contains(criteria.stream()
+                                        .limit(2)
+                                        .map(Math::toIntExact)
+                                        .toArray()
+                                )
+                        ));
+            }
+        };
+    }
+
+    @Test
+    void setCriteriaForTask__otherAsAdmin__valid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                var ctx = prepareGetSetForTaskContext(
+                        ef.createEmployee(),
+                        2, 2
+                );
+                ObjectNode request = ctx.getRequest();
+                long taskId = ctx.getData().taskId();
+                long submissionId = ctx.getData().submissionId();
+                List<Long> criteria = ctx.getData().criteria();
+
+                // WHEN
+                securePerform(post("/criteria/task/{id}/set", taskId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx.getMatchers());
+
+                // THEN
+                securePerform(get("/criteria/task/{id}", taskId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx.getMatchers());
+
+                securePerform(get("/submissions/{id}", submissionId))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.satisfiedCriteria",
+                                contains(criteria.stream()
+                                        .map(Math::toIntExact)
+                                        .toArray()
+                                )
+                        ));
+            }
+        };
+    }
+
+    @Test
+    void setCriteriaForTask__otherAsTeacher__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                var ctx = prepareGetSetForTaskContext(
+                        ef.createEmployee(),
+                        2, 2
+                );
+                ObjectNode request = ctx.getRequest();
+                long taskId = ctx.getData().taskId();
+
+                // WHEN
+                securePerform(post("/criteria/task/{id}/set", taskId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        // THEN
+                        .andExpect(status().isForbidden());
+
+            }
+        };
+    }
+
+    @Test
+    void setCriteriaForTask__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                var ctx = prepareGetSetForTaskContext(
+                        ef.createEmployee(),
+                        2, 2
+                );
+                ObjectNode request = ctx.getRequest();
+                long taskId = ctx.getData().taskId();
+
+                // WHEN
+                securePerform(post("/criteria/task/{id}/set", taskId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        // THEN
+                        .andExpect(status().isForbidden());
+
+            }
+        };
+    }
+
+    @Test
+    void setCriteriaForTask__notExists__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                var ctx = prepareGetSetForTaskContext(
+                        getSelfEmployeeIdAsLong(),
+                        2, 2
+                );
+                ObjectNode request = ctx.getRequest();
+                long taskId = ctx.getData().taskId();
+
+                // WHEN
+                securePerform(post("/criteria/task/{id}/set", taskId + 1000)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        // THEN
+                        .andExpect(status().isNotFound());
+
+            }
+        };
+    }
+
+    @Test
+    void setCriteriaForTask__notAuthenticated__invalid() throws Exception {
+        // GIVEN
+        var ctx = prepareGetSetForTaskContext(
+                ef.createEmployee(),
+                2, 2
+        );
+        ObjectNode request = ctx.getRequest();
+        long taskId = ctx.getData().taskId();
+
+        // WHEN
+        mvc.perform(post("/criteria/task/{id}/set", taskId + 1000)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                // THEN
                 .andExpect(status().isUnauthorized());
     }
 
