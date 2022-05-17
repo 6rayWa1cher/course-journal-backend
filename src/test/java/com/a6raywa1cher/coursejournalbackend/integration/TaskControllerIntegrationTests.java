@@ -156,17 +156,17 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
                 long courseId1 = ef.createCourse(getSelfEmployeeIdAsLong());
                 long courseId2 = ef.createCourse(ef.createEmployee());
 
-                taskService.create(TaskDto.builder()
+                long taskId1 = taskService.create(TaskDto.builder()
                         .title(sentence1)
                         .taskNumber(2)
                         .course(courseId1)
-                        .build());
+                        .build()).getId();
 
-                taskService.create(TaskDto.builder()
+                long taskId2 = taskService.create(TaskDto.builder()
                         .title(sentence2)
                         .taskNumber(1)
                         .course(courseId1)
-                        .build());
+                        .build()).getId();
 
                 taskService.create(TaskDto.builder()
                         .title(sentence1)
@@ -175,7 +175,9 @@ public class TaskControllerIntegrationTests extends AbstractIntegrationTests {
 
                 securePerform(get("/tasks/course/{id}/all", courseId1))
                         .andExpect(status().isOk())
+                        .andExpect(jsonPath("$[0].id").value(taskId2))
                         .andExpect(jsonPath("$[0].title").value(sentence2))
+                        .andExpect(jsonPath("$[1].id").value(taskId1))
                         .andExpect(jsonPath("$[1].title").value(sentence1));
             }
         };

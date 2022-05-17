@@ -6,6 +6,8 @@ import java.time.ZonedDateTime;
 
 @Data
 public class ShortTaskRestDto {
+    private Long id;
+
     private Long course;
 
     private Integer taskNumber;
@@ -20,7 +22,13 @@ public class ShortTaskRestDto {
 
     private ZonedDateTime announcementAt;
 
+    private Boolean deadlinesEnabled;
+
     private ZonedDateTime softDeadlineAt;
 
     private ZonedDateTime hardDeadlineAt;
+
+    private ZonedDateTime createdAt;
+
+    private ZonedDateTime lastModifiedAt;
 }

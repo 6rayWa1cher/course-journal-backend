@@ -3,6 +3,7 @@ package com.a6raywa1cher.coursejournalbackend.rest.dto;
 import com.a6raywa1cher.coursejournalbackend.validation.UniqueByName;
 import lombok.Data;
 
+import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import static com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary.CRIT
 public class BatchSetForTaskCriteriaDto {
     @NotNull
     @UniqueByName
+    @Valid
     private List<CriteriaSetForTaskDto> criteria;
 
     @Data
