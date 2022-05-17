@@ -40,7 +40,15 @@ public class CriteriaController {
     @PreAuthorize("@accessChecker.readTaskAccess(#id, authentication)")
     public List<CriteriaDto> getByTask(@PathVariable long id) {
         return service.getByTaskId(id).stream()
-                .sorted(Comparator.comparing(CriteriaDto::getId))
+                .sorted(Comparator.comparingLong(CriteriaDto::getId))
+                .toList();
+    }
+
+    @GetMapping("/course/{id}")
+    @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
+    public List<CriteriaDto> getByCourse(@PathVariable long id) {
+        return service.getByCourseId(id).stream()
+                .sorted(Comparator.comparingLong(CriteriaDto::getId))
                 .toList();
     }
 

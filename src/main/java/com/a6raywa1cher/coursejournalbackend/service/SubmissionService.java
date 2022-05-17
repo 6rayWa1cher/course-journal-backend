@@ -21,6 +21,8 @@ public interface SubmissionService {
 
     SubmissionDto create(SubmissionDto dto);
 
+    List<SubmissionDto> setForStudentAndCourse(long studentId, long courseId, List<SubmissionDto> submissionDtoList);
+
     SubmissionDto update(long id, SubmissionDto dto);
 
     SubmissionDto patch(long id, SubmissionDto dto);

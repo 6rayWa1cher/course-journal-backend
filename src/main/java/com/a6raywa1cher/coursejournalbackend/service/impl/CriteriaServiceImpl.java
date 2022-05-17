@@ -5,9 +5,11 @@ import com.a6raywa1cher.coursejournalbackend.dto.exc.ConflictException;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.NotFoundException;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.TransferNotAllowedException;
 import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
+import com.a6raywa1cher.coursejournalbackend.model.Course;
 import com.a6raywa1cher.coursejournalbackend.model.Criteria;
 import com.a6raywa1cher.coursejournalbackend.model.Task;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CriteriaRepository;
+import com.a6raywa1cher.coursejournalbackend.service.CourseService;
 import com.a6raywa1cher.coursejournalbackend.service.CriteriaService;
 import com.a6raywa1cher.coursejournalbackend.service.SubmissionService;
 import com.a6raywa1cher.coursejournalbackend.service.TaskService;
@@ -29,13 +31,16 @@ import java.util.stream.Stream;
 public class CriteriaServiceImpl implements CriteriaService {
     private final CriteriaRepository repository;
     private final MapStructMapper mapper;
+    private final CourseService courseService;
     private final TaskService taskService;
     private SubmissionService submissionService;
 
     @Autowired
-    public CriteriaServiceImpl(CriteriaRepository repository, MapStructMapper mapper, TaskService taskService) {
+    public CriteriaServiceImpl(CriteriaRepository repository, MapStructMapper mapper, CourseService courseService,
+                               TaskService taskService) {
         this.repository = repository;
         this.mapper = mapper;
+        this.courseService = courseService;
         this.taskService = taskService;
     }
 
@@ -55,8 +60,21 @@ public class CriteriaServiceImpl implements CriteriaService {
     }
 
     @Override
+    public List<Criteria> findRawByCourseId(long courseId) {
+        Course course = getCourseById(courseId);
+        return repository.getAllByCourse(course);
+    }
+
+    @Override
     public List<CriteriaDto> getByTaskId(long taskId) {
         return repository.getAllByTask(getTaskById(taskId)).stream().map(mapper::map).toList();
+    }
+
+    @Override
+    public List<CriteriaDto> getByCourseId(long courseId) {
+        return findRawByCourseId(courseId).stream()
+                .map(mapper::map)
+                .toList();
     }
 
     @Override
@@ -182,6 +200,10 @@ public class CriteriaServiceImpl implements CriteriaService {
         if (match) {
             throw new ConflictException(Criteria.class, "taskId", Long.toString(task.getId()), "name", name);
         }
+    }
+
+    private Course getCourseById(long id) {
+        return courseService.findRawById(id).orElseThrow(() -> new NotFoundException(Course.class, id));
     }
 
     private Task getTaskById(long id) {

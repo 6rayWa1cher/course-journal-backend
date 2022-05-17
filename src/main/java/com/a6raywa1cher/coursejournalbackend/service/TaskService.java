@@ -14,6 +14,8 @@ public interface TaskService {
 
     Optional<Task> findRawById(long id);
 
+    List<Task> findRawByCourseId(long courseId);
+
     void reorder(long courseId, Map<Long, Integer> idToNumber);
 
     Page<TaskDto> getByCourseId(long courseId, Pageable pageable);

@@ -13,7 +13,11 @@ public interface CriteriaService {
 
     List<Criteria> findRawById(List<Long> ids);
 
+    List<Criteria> findRawByCourseId(long courseId);
+
     List<CriteriaDto> getByTaskId(long taskId);
+
+    List<CriteriaDto> getByCourseId(long courseId);
 
     CriteriaDto create(CriteriaDto dto);
 

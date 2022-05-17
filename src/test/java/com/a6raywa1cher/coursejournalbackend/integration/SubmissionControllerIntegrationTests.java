@@ -5,6 +5,7 @@ import com.a6raywa1cher.coursejournalbackend.TestUtils;
 import com.a6raywa1cher.coursejournalbackend.dto.CriteriaDto;
 import com.a6raywa1cher.coursejournalbackend.dto.SubmissionDto;
 import com.a6raywa1cher.coursejournalbackend.dto.TaskDto;
+import com.a6raywa1cher.coursejournalbackend.integration.models.SubmissionInfo;
 import com.a6raywa1cher.coursejournalbackend.service.SubmissionService;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -20,13 +21,14 @@ import org.springframework.test.web.servlet.ResultMatcher;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -1100,6 +1102,185 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
 
     // ================================================================================================================
 
+    RequestContext<ObjectNode> getSetForStudentAndCourseRequest(
+            List<SubmissionInfo> submissionInfos, long studentId
+    ) {
+        ObjectNode request = objectMapper.createObjectNode();
+        ArrayNode array = request.putArray("submissions");
+        for (SubmissionInfo info : submissionInfos) {
+            array.add(objectMapper.valueToTree(info));
+        }
+
+        Function<String, ResultMatcher[]> matchers = prefix -> IntStream.range(0, submissionInfos.size())
+                .boxed()
+                .flatMap(i -> {
+                    SubmissionInfo info = submissionInfos.get(i);
+                    return Arrays.stream(
+                            getSubmissionMatchers(prefix + "[%d]".formatted(i),
+                                    info.task(), info.submittedAt(), info.additionalScore(),
+                                    studentId, info.satisfiedCriteria())
+                    );
+                })
+                .toArray(ResultMatcher[]::new);
+        ;
+
+        return new RequestContext<>(request, matchers);
+    }
+
+    RequestContext<ObjectNode> prepareSetForStudentAndCourseRequest(long courseId, long studentId) {
+        long taskId1 = ef.createTask(ef.bag().withCourseId(courseId));
+        long taskId2 = ef.createTask(ef.bag().withCourseId(courseId));
+        long taskId3 = ef.createTask(ef.bag().withCourseId(courseId));
+
+        long task1Criteria1 = ef.createCriteria(ef.bag().withTaskId(taskId1));
+        long task1Criteria2 = ef.createCriteria(ef.bag().withTaskId(taskId1));
+        long task2Criteria = ef.createCriteria(ef.bag().withTaskId(taskId2));
+        long task3Criteria = ef.createCriteria(ef.bag().withTaskId(taskId3));
+
+        ZonedDateTime now = ZonedDateTime.now();
+
+        // submission to be edited
+        ef.createSubmission(ef.bag().withTaskId(taskId1).withStudentId(studentId)
+                .withDto(SubmissionDto.builder().satisfiedCriteria(List.of(task1Criteria1, task1Criteria2)).build()));
+
+        // submission to be deleted
+        ef.createSubmission(ef.bag().withTaskId(taskId2).withStudentId(studentId)
+                .withDto(SubmissionDto.builder().satisfiedCriteria(List.of(task2Criteria)).build()));
+
+        // and one submission to be created
+
+        var ctx = getSetForStudentAndCourseRequest(
+                List.of(
+                        new SubmissionInfo(taskId1, List.of(task1Criteria1), now, faker.number().numberBetween(0, 5)),
+                        new SubmissionInfo(taskId3, List.of(task3Criteria), now, faker.number().numberBetween(0, 5))
+                ),
+                studentId
+        );
+        return new RequestContext<>(ctx.getRequest(),
+                prefix -> Stream.concat(
+                        Stream.of(jsonPath(prefix, hasSize(2))),
+                        Arrays.stream(ctx.getMatchers(prefix))
+                ).toArray(ResultMatcher[]::new)
+        );
+    }
+
+    @Test
+    void setSubmissionsForStudentAndCourse__self__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
+                long studentId = ef.createStudent();
+
+                var ctx = prepareSetForStudentAndCourseRequest(courseId, studentId);
+                ObjectNode request = ctx.getRequest();
+
+                // WHEN
+                securePerform(post("/submissions/course/{cid}/student/{sid}/set", courseId, studentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isOk())
+                        .andExpectAll(ctx.getMatchers());
+
+                // THEN
+                securePerform(get("/submissions/course/{cid}/student/{sid}", courseId, studentId))
+                        .andExpect(status().isOk())
+                        .andExpectAll(ctx.getMatchers());
+            }
+        };
+    }
+
+    @Test
+    void setSubmissionsForStudentAndCourse__otherAsAdmin__valid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                long courseId = ef.createCourse();
+                long studentId = ef.createStudent();
+
+                var ctx = prepareSetForStudentAndCourseRequest(courseId, studentId);
+                ObjectNode request = ctx.getRequest();
+
+                // WHEN
+                securePerform(post("/submissions/course/{cid}/student/{sid}/set", courseId, studentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        .andExpect(status().isOk())
+                        .andExpectAll(ctx.getMatchers());
+
+                // THEN
+                securePerform(get("/submissions/course/{cid}/student/{sid}", courseId, studentId))
+                        .andExpect(status().isOk())
+                        .andExpectAll(ctx.getMatchers());
+            }
+        };
+    }
+
+    @Test
+    void setSubmissionsForStudentAndCourse__otherAsTeacher__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                long courseId = ef.createCourse();
+                long studentId = ef.createStudent();
+
+                var ctx = prepareSetForStudentAndCourseRequest(courseId, studentId);
+                ObjectNode request = ctx.getRequest();
+
+                // WHEN
+                securePerform(post("/submissions/course/{cid}/student/{sid}/set", courseId, studentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        // THEN
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void setSubmissionsForStudentAndCourse__withCourseToken__invalid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                long courseId = getCourseId();
+                long studentId = ef.createStudent();
+
+                var ctx = prepareSetForStudentAndCourseRequest(courseId, studentId);
+                ObjectNode request = ctx.getRequest();
+
+                // WHEN
+                securePerform(post("/submissions/course/{cid}/student/{sid}/set", courseId, studentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                        // THEN
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void setSubmissionsForStudentAndCourse__notAuthenticated__invalid() throws Exception {
+        // GIVEN
+        long courseId = ef.createCourse();
+        long studentId = ef.createStudent();
+
+        var ctx = prepareSetForStudentAndCourseRequest(courseId, studentId);
+        ObjectNode request = ctx.getRequest();
+
+        // WHEN
+        mvc.perform(post("/submissions/course/{cid}/student/{sid}/set", courseId, studentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request.toString()))
+                // THEN
+                .andExpect(status().isUnauthorized());
+    }
+
+    // ================================================================================================================
+
     RequestContext<ObjectNode> getPatchSubmissionRequest(long taskId, long studentId, int additionalScore) {
         ZonedDateTime submittedAt = ZonedDateTime.now().minusDays(2);
 
@@ -1723,5 +1904,33 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         return Stream.generate(() -> ef.createCriteria(ef.bag().withTaskId(taskId)))
                 .limit(count)
                 .toList();
+    }
+
+    private ResultMatcher[] getSubmissionMatchers(
+            String prefix, long taskId, ZonedDateTime submittedAt, Integer additionalScore, long studentId,
+            List<Long> satisfiedCriteria
+    ) {
+        return getSubmissionMatchers(prefix, null, taskId, submittedAt, additionalScore, studentId, satisfiedCriteria);
+    }
+
+    private ResultMatcher[] getSubmissionMatchers(
+            String prefix, Long id, long taskId, ZonedDateTime submittedAt, Integer additionalScore, long studentId,
+            List<Long> satisfiedCriteria
+    ) {
+        return new ResultMatcher[]{
+                id != null ?
+                        jsonPath(prefix + ".id").value(id) :
+                        jsonPath(prefix + ".id").isNumber(),
+                jsonPath(prefix + ".task").value(taskId),
+                jsonPath(prefix + ".student").value(studentId),
+                jsonPath(prefix + ".submittedAt").value(new TestUtils.DateMatcher(submittedAt)),
+                jsonPath(prefix + ".mainScore").value(new TestUtils.GreaterThanMatcher(0)),
+                jsonPath(prefix + ".additionalScore").value(additionalScore),
+                satisfiedCriteria != null ?
+                        jsonPath(prefix + ".satisfiedCriteria", containsInAnyOrder(satisfiedCriteria.stream()
+                                .map(Math::toIntExact)
+                                .toArray(Integer[]::new))) :
+                        jsonPath(prefix + ".satisfiedCriteria").exists(),
+        };
     }
 }
