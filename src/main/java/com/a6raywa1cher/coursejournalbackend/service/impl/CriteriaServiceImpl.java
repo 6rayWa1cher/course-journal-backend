@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 @Service
 @Transactional
@@ -52,7 +51,7 @@ public class CriteriaServiceImpl implements CriteriaService {
 
     @Override
     public List<Criteria> findRawById(List<Long> ids) {
-        return StreamSupport.stream(repository.findAllById(ids).spliterator(), false).toList();
+        return repository.findAllById(ids).stream().toList();
     }
 
     @Override
