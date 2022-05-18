@@ -18,5 +18,5 @@ public interface CriteriaRepository extends JpaRepository<Criteria, Long>, Custo
     List<Criteria> getAllByTask(Task task, Sort sort);
 
     @Query("select c from Criteria c join c.task t where t.course = :course")
-    List<Criteria> getAllByCourse(@Param("course") Course course);
+    List<Criteria> getAllByCourse(@Param("course") Course course, Sort sort);
 }

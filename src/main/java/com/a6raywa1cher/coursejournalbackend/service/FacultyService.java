@@ -2,6 +2,7 @@ package com.a6raywa1cher.coursejournalbackend.service;
 
 import com.a6raywa1cher.coursejournalbackend.dto.FacultyDto;
 import com.a6raywa1cher.coursejournalbackend.model.Faculty;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,7 +10,7 @@ import java.util.Optional;
 public interface FacultyService {
     FacultyDto getById(long id);
 
-    List<FacultyDto> getAllFaculties();
+    List<FacultyDto> getAllFaculties(Sort sort);
 
     Optional<Faculty> findRawById(long id);
 

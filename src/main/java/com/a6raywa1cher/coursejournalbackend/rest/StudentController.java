@@ -12,13 +12,13 @@ import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Comparator;
 import java.util.List;
 
 @RestController
@@ -48,17 +48,13 @@ public class StudentController {
     @GetMapping("/course/{id}/all")
     @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
     public List<StudentDto> getAllByCourse(@PathVariable long id) {
-        return service.getByCourseId(id).stream()
-                .sorted(Comparator.comparingLong(StudentDto::getId))
-                .toList();
+        return service.getByCourseId(id, Sort.by("id"));
     }
 
     @GetMapping("/group/{id}")
     @PreAuthorize("@accessChecker.readStudentByGroupAccess(#id, authentication)")
     public List<StudentDto> getAllByGroup(@PathVariable long id) {
-        return service.getByGroupId(id).stream()
-                .sorted(Comparator.comparingLong(StudentDto::getId))
-                .toList();
+        return service.getByGroupId(id, Sort.by("id"));
     }
 
     @PostMapping("/")

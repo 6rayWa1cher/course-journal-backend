@@ -4,6 +4,7 @@ import com.a6raywa1cher.coursejournalbackend.dto.StudentDto;
 import com.a6raywa1cher.coursejournalbackend.model.Student;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,9 +18,9 @@ public interface StudentService {
 
     Page<StudentDto> getByCourseId(long courseId, Pageable pageable);
 
-    List<StudentDto> getByCourseId(long courseId);
+    List<StudentDto> getByCourseId(long courseId, Sort sort);
 
-    List<StudentDto> getByGroupId(long groupId);
+    List<StudentDto> getByGroupId(long groupId, Sort sort);
 
     StudentDto create(StudentDto dto);
 

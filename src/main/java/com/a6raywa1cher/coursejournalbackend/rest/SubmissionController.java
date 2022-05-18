@@ -9,6 +9,7 @@ import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnPatch;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnUpdate;
 import com.a6raywa1cher.coursejournalbackend.service.SubmissionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -39,25 +40,19 @@ public class SubmissionController {
     @GetMapping("/task/{id}")
     @PreAuthorize("@accessChecker.readTaskAccess(#id, authentication)")
     public List<SubmissionDto> getByTask(@PathVariable long id) {
-        return service.getByTask(id).stream()
-                .sorted(Comparator.comparingLong(SubmissionDto::getId))
-                .toList();
+        return service.getByTask(id, Sort.by("id"));
     }
 
     @GetMapping("/course/{id}")
     @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
     public List<SubmissionDto> getByCourse(@PathVariable long id) {
-        return service.getByCourse(id).stream()
-                .sorted(Comparator.comparingLong(SubmissionDto::getId))
-                .toList();
+        return service.getByCourse(id, Sort.by("id"));
     }
 
     @GetMapping("/course/{cid}/student/{sid}")
     @PreAuthorize("@accessChecker.readCourseAccess(#cid, authentication)")
     public List<SubmissionDto> getByCourseAndStudent(@PathVariable long cid, @PathVariable long sid) {
-        return service.getByStudentAndCourse(sid, cid).stream()
-                .sorted(Comparator.comparingLong(SubmissionDto::getId))
-                .toList();
+        return service.getByStudentAndCourse(sid, cid, Sort.by("id"));
     }
 
     @PostMapping("/")

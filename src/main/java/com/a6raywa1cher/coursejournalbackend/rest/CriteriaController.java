@@ -9,13 +9,13 @@ import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnPatch;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnUpdate;
 import com.a6raywa1cher.coursejournalbackend.service.CriteriaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Comparator;
 import java.util.List;
 
 @RestController
@@ -39,17 +39,13 @@ public class CriteriaController {
     @GetMapping("/task/{id}")
     @PreAuthorize("@accessChecker.readTaskAccess(#id, authentication)")
     public List<CriteriaDto> getByTask(@PathVariable long id) {
-        return service.getByTaskId(id).stream()
-                .sorted(Comparator.comparingLong(CriteriaDto::getId))
-                .toList();
+        return service.getByTaskId(id, Sort.by("id"));
     }
 
     @GetMapping("/course/{id}")
     @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
     public List<CriteriaDto> getByCourse(@PathVariable long id) {
-        return service.getByCourseId(id).stream()
-                .sorted(Comparator.comparingLong(CriteriaDto::getId))
-                .toList();
+        return service.getByCourseId(id, Sort.by("id"));
     }
 
     @PostMapping("/")

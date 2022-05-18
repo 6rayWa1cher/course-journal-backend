@@ -255,8 +255,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 var context2 = createGetAttendanceByCourseContext(studentId2, courseId1, attendedClass + 1);
                 createGetAttendanceByCourseContext(studentId3, courseId2, attendedClass + 2);
 
-                securePerform(get("/attendances/course/{id}", courseId1)
-                        .queryParam("sort", "student,asc"))
+                securePerform(get("/attendances/course/{id}", courseId1))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context1.getMatchers("$[0]"))
@@ -284,8 +283,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 var context2 = createGetAttendanceByCourseContext(studentId2, courseId1, attendedClass + 1);
                 createGetAttendanceByCourseContext(studentId3, courseId2, attendedClass + 2);
 
-                securePerform(get("/attendances/course/{id}", courseId1)
-                        .queryParam("sort", "student,asc"))
+                securePerform(get("/attendances/course/{id}", courseId1))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context1.getMatchers("$[0]"))
@@ -360,8 +358,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 createGetAttendanceByCourseAndStudentContext(courseId2, studentId1, attendedClass + 2);
                 createGetAttendanceByCourseAndStudentContext(courseId1, studentId2, attendedClass + 3);
 
-                securePerform(get("/attendances/course/{courseId}/student/{studentId}", courseId1, studentId1)
-                        .queryParam("sort", "attendedClass,asc"))
+                securePerform(get("/attendances/course/{courseId}/student/{studentId}", courseId1, studentId1))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context1.getMatchers("$[0]"))
@@ -388,8 +385,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 createGetAttendanceByCourseContext(studentId1, courseId2, attendedClass + 2);
                 createGetAttendanceByCourseContext(studentId2, courseId1, attendedClass + 3);
 
-                securePerform(get("/attendances/course/{id}/student/{id}", courseId1, studentId1)
-                        .queryParam("sort", "attendedClass,asc"))
+                securePerform(get("/attendances/course/{id}/student/{id}", courseId1, studentId1))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context1.getMatchers("$[0]"))
@@ -416,8 +412,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 createGetAttendanceByCourseContext(studentId1, courseId2, attendedClass + 2);
                 createGetAttendanceByCourseContext(studentId2, courseId1, attendedClass + 3);
 
-                securePerform(get("/attendances/course/{id}/student/{id}", courseId1, studentId1)
-                        .queryParam("sort", "attendedClass,asc"))
+                securePerform(get("/attendances/course/{id}/student/{id}", courseId1, studentId1))
                         .andExpect(status().isForbidden());
             }
         };
@@ -634,14 +629,12 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers());
 
-                securePerform(get("/attendances/course/{id}", courseId)
-                        .queryParam("sort", "attendedClass,asc"))
+                securePerform(get("/attendances/course/{id}", courseId))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers("$.content"));
 
-                securePerform(get("/attendances/course/{id}", courseId)
-                        .queryParam("sort", "attendedClass,asc"))
+                securePerform(get("/attendances/course/{id}", courseId))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers("$.content"));
@@ -668,14 +661,12 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers());
 
-                securePerform(get("/attendances/course/{id}", courseId)
-                        .queryParam("sort", "attendedClass,asc"))
+                securePerform(get("/attendances/course/{id}", courseId))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers("$.content"));
 
-                securePerform(get("/attendances/course/{id}", courseId)
-                        .queryParam("sort", "attendedClass,asc"))
+                securePerform(get("/attendances/course/{id}", courseId))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context.getMatchers("$.content"));

@@ -8,7 +8,6 @@ import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnCreate;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnPatch;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnUpdate;
 import com.a6raywa1cher.coursejournalbackend.service.AttendanceService;
-import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,14 +36,14 @@ public class AttendanceController {
 
     @GetMapping("/course/{id}")
     @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
-    public List<AttendanceDto> getByCourse(@PathVariable long id, @ParameterObject Sort sort) {
-        return service.getByCourseId(id, sort);
+    public List<AttendanceDto> getByCourse(@PathVariable long id) {
+        return service.getByCourseId(id, Sort.by("id"));
     }
 
     @GetMapping("/course/{courseId}/student/{studentId}")
     @PreAuthorize("@accessChecker.readCourseAccess(#courseId, authentication)")
-    public List<AttendanceDto> getByCourseAndStudent(@PathVariable long courseId, @PathVariable long studentId, @ParameterObject Sort sort) {
-        return service.getByCourseAndStudentIds(courseId, studentId, sort);
+    public List<AttendanceDto> getByCourseAndStudent(@PathVariable long courseId, @PathVariable long studentId) {
+        return service.getByCourseAndStudentIds(courseId, studentId, Sort.by("id"));
     }
 
     @PostMapping("/")

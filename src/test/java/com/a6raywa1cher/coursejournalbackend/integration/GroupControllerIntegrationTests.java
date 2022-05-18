@@ -145,8 +145,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 var context2 = createGetGroupByFacultyContext(facultyId1, name2);
                 createGetGroupByFacultyContext(facultyId2, name1);
 
-                securePerform(get("/groups/faculty/{id}", facultyId1)
-                        .queryParam("sort", "name,asc"))
+                securePerform(get("/groups/faculty/{id}", facultyId1))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context1.getMatchers("$[0]"))
@@ -170,8 +169,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
                 var context2 = createGetGroupByFacultyContext(facultyId1, name2);
                 createGetGroupByFacultyContext(facultyId2, name1);
 
-                securePerform(get("/groups/faculty/{id}", facultyId1)
-                        .queryParam("sort", "name,asc"))
+                securePerform(get("/groups/faculty/{id}", facultyId1))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(2)))
                         .andExpectAll(context1.getMatchers("$[0]"))
@@ -190,8 +188,7 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
 
                 var context = createGetGroupByFacultyContext(facultyId, name);
 
-                securePerform(get("/groups/faculty/{id}", facultyId + 1000)
-                        .queryParam("sort", "name,asc"))
+                securePerform(get("/groups/faculty/{id}", facultyId + 1000))
                         .andExpect(status().isNotFound());
             }
         };

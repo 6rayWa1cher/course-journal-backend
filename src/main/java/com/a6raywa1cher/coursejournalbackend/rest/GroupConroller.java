@@ -6,7 +6,6 @@ import com.a6raywa1cher.coursejournalbackend.rest.dto.MapStructRestDtoMapper;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnCreate;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnUpdate;
 import com.a6raywa1cher.coursejournalbackend.service.GroupService;
-import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -38,8 +37,8 @@ public class GroupConroller {
 
 
     @GetMapping("/faculty/{id}")
-    public List<GroupDto> getByFaculty(@PathVariable long id, @ParameterObject Sort sort) {
-        return service.getByFaculty(id, sort);
+    public List<GroupDto> getByFaculty(@PathVariable long id) {
+        return service.getByFaculty(id, Sort.by("id"));
     }
 
     @PostMapping("/")

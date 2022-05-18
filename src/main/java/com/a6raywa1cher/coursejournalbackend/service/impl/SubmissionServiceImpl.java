@@ -13,6 +13,7 @@ import com.a6raywa1cher.coursejournalbackend.model.repo.SubmissionRepository;
 import com.a6raywa1cher.coursejournalbackend.service.*;
 import com.a6raywa1cher.coursejournalbackend.utils.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
@@ -56,26 +57,26 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
     @Override
-    public List<SubmissionDto> getByStudentAndCourse(long studentId, long courseId) {
+    public List<SubmissionDto> getByStudentAndCourse(long studentId, long courseId, Sort sort) {
         Student student = getStudentById(studentId);
         Course course = getCourseById(courseId);
-        return repository.getAllByStudentAndCourse(student, course).stream()
+        return repository.getAllByStudentAndCourse(student, course, sort).stream()
                 .map(mapper::map)
                 .toList();
     }
 
     @Override
-    public List<SubmissionDto> getByCourse(long courseId) {
+    public List<SubmissionDto> getByCourse(long courseId, Sort sort) {
         Course course = getCourseById(courseId);
-        return repository.getAllByCourse(course).stream()
+        return repository.getAllByCourse(course, sort).stream()
                 .map(mapper::map)
                 .toList();
     }
 
     @Override
-    public List<SubmissionDto> getByTask(long taskId) {
+    public List<SubmissionDto> getByTask(long taskId, Sort sort) {
         Task task = getTaskById(taskId);
-        return repository.getAllByTask(task).stream()
+        return repository.getAllByTask(task, sort).stream()
                 .map(mapper::map)
                 .toList();
     }
@@ -83,8 +84,8 @@ public class SubmissionServiceImpl implements SubmissionService {
     @Override
     public void recalculateMainScoreForTask(long taskId) {
         Task task = getTaskById(taskId);
-        List<Submission> submissions = repository.getAllByTask(task);
-        List<CriteriaDto> criteria = criteriaService.getByTaskId(taskId);
+        List<Submission> submissions = repository.getAllByTask(task, Sort.unsorted());
+        List<CriteriaDto> criteria = criteriaService.getByTaskId(taskId, Sort.unsorted());
         TaskDto taskDto = mapper.map(task);
         for (Submission submission : submissions) {
             submission.setMainScore(scoringService.getMainScore(
@@ -113,7 +114,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         submission.setMainScore(scoringService.getMainScore(
                 mapper.map(submission),
                 mapper.map(task),
-                criteriaService.getByTaskId(task.getId())
+                criteriaService.getByTaskId(task.getId(), Sort.unsorted())
         ));
         submission.setCreatedAt(LocalDateTime.now());
         submission.setLastModifiedAt(LocalDateTime.now());
@@ -126,7 +127,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         Course course = getCourseById(courseId);
         LocalDateTime now = LocalDateTime.now();
 
-        List<Submission> allSubmissions = repository.getAllByStudentAndCourse(student, course);
+        List<Submission> allSubmissions = repository.getAllByStudentAndCourse(student, course, Sort.unsorted());
         Map<Long, Submission> taskToSubmission = allSubmissions
                 .stream()
                 .collect(Collectors.toMap(s -> s.getTask().getId(), s -> s));

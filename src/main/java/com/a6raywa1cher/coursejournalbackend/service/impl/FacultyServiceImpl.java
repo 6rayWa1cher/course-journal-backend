@@ -7,6 +7,7 @@ import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
 import com.a6raywa1cher.coursejournalbackend.model.Faculty;
 import com.a6raywa1cher.coursejournalbackend.model.repo.FacultyRepository;
 import com.a6raywa1cher.coursejournalbackend.service.FacultyService;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -32,8 +33,8 @@ public class FacultyServiceImpl implements FacultyService {
     }
 
     @Override
-    public List<FacultyDto> getAllFaculties() {
-        return repository.findAll().stream().map(mapper::map).toList();
+    public List<FacultyDto> getAllFaculties(Sort sort) {
+        return repository.findAll(sort).stream().map(mapper::map).toList();
     }
 
     @Override

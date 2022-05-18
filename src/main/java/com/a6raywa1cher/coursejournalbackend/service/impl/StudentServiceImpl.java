@@ -14,6 +14,7 @@ import com.a6raywa1cher.coursejournalbackend.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,13 +62,13 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public List<StudentDto> getByCourseId(long courseId) {
-        return repository.getAllByCourse(getCourseById(courseId)).stream().map(mapper::map).toList();
+    public List<StudentDto> getByCourseId(long courseId, Sort sort) {
+        return repository.getAllByCourse(getCourseById(courseId), sort).stream().map(mapper::map).toList();
     }
 
     @Override
-    public List<StudentDto> getByGroupId(long groupId) {
-        return repository.getAllByGroup(getGroupById(groupId)).stream().map(mapper::map).toList();
+    public List<StudentDto> getByGroupId(long groupId, Sort sort) {
+        return repository.getAllByGroup(getGroupById(groupId), sort).stream().map(mapper::map).toList();
     }
 
     @Override

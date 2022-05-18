@@ -8,15 +8,14 @@ import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnPatch;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnUpdate;
 import com.a6raywa1cher.coursejournalbackend.service.FacultyService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/faculties")
@@ -39,9 +38,7 @@ public class FacultyController {
 
     @GetMapping("/all")
     public List<FacultyDto> getAllFaculties() {
-        return service.getAllFaculties().stream()
-                .sorted(Comparator.comparingLong(FacultyDto::getId))
-                .collect(Collectors.toList());
+        return service.getAllFaculties(Sort.by("id"));
     }
 
     @PostMapping("/")

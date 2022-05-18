@@ -62,17 +62,18 @@ public class CriteriaServiceImpl implements CriteriaService {
     @Override
     public List<Criteria> findRawByCourseId(long courseId) {
         Course course = getCourseById(courseId);
-        return repository.getAllByCourse(course);
+        return repository.getAllByCourse(course, Sort.unsorted());
     }
 
     @Override
-    public List<CriteriaDto> getByTaskId(long taskId) {
-        return repository.getAllByTask(getTaskById(taskId)).stream().map(mapper::map).toList();
+    public List<CriteriaDto> getByTaskId(long taskId, Sort sort) {
+        return repository.getAllByTask(getTaskById(taskId), sort).stream().map(mapper::map).toList();
     }
 
     @Override
-    public List<CriteriaDto> getByCourseId(long courseId) {
-        return findRawByCourseId(courseId).stream()
+    public List<CriteriaDto> getByCourseId(long courseId, Sort sort) {
+        Course course = getCourseById(courseId);
+        return repository.getAllByCourse(course, sort).stream()
                 .map(mapper::map)
                 .toList();
     }

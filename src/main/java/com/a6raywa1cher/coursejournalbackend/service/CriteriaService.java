@@ -2,6 +2,7 @@ package com.a6raywa1cher.coursejournalbackend.service;
 
 import com.a6raywa1cher.coursejournalbackend.dto.CriteriaDto;
 import com.a6raywa1cher.coursejournalbackend.model.Criteria;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,9 +16,9 @@ public interface CriteriaService {
 
     List<Criteria> findRawByCourseId(long courseId);
 
-    List<CriteriaDto> getByTaskId(long taskId);
+    List<CriteriaDto> getByTaskId(long taskId, Sort sort);
 
-    List<CriteriaDto> getByCourseId(long courseId);
+    List<CriteriaDto> getByCourseId(long courseId, Sort sort);
 
     CriteriaDto create(CriteriaDto dto);
 
