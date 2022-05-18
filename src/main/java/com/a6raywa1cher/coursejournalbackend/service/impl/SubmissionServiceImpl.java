@@ -139,15 +139,13 @@ public class SubmissionServiceImpl implements SubmissionService {
                 .stream()
                 .map(mapper::map)
                 .map(dto -> Pair.of(dto.getTask(), dto))
-                .reduce(new HashMap<>(), (map, pair) -> {
+                .collect(HashMap::new, (map, pair) -> {
                     long taskId = pair.getFirst();
                     map.computeIfAbsent(taskId, (l) -> new ArrayList<>()).add(pair.getSecond());
-                    return map;
                 }, (a, b) -> {
                     for (var item : b.entrySet()) {
                         a.computeIfAbsent(item.getKey(), (l) -> new ArrayList<>()).addAll(item.getValue());
                     }
-                    return a;
                 });
         Map<Long, Task> idToTask = taskService.findRawByCourseId(courseId)
                 .stream()
