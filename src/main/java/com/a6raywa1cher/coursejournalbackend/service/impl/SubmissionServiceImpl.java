@@ -13,10 +13,12 @@ import com.a6raywa1cher.coursejournalbackend.model.repo.SubmissionRepository;
 import com.a6raywa1cher.coursejournalbackend.service.*;
 import com.a6raywa1cher.coursejournalbackend.utils.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class SubmissionServiceImpl implements SubmissionService {
@@ -102,7 +104,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         List<Criteria> satisfiedCriteria = getCriteriaListByIds(dto.getSatisfiedCriteria());
 
         assertUniqueTaskStudentPair(task, student);
-        assertSameCourseAndTask(satisfiedCriteria, task, student);
+        assertSameCourseAndTask(satisfiedCriteria, task);
         mapper.put(dto, submission);
 
         submission.setTask(task);
@@ -119,6 +121,83 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
     @Override
+    public List<SubmissionDto> setForStudentAndCourse(long studentId, long courseId, List<SubmissionDto> submissionDtoList) {
+        Student student = getStudentById(studentId);
+        Course course = getCourseById(courseId);
+        LocalDateTime now = LocalDateTime.now();
+
+        List<Submission> allSubmissions = repository.getAllByStudentAndCourse(student, course);
+        Map<Long, Submission> taskToSubmission = allSubmissions
+                .stream()
+                .collect(Collectors.toMap(s -> s.getTask().getId(), s -> s));
+        List<Criteria> allCriteria = criteriaService.findRawByCourseId(courseId);
+        Map<Long, Criteria> idToCriteria = allCriteria
+                .stream()
+                .collect(Collectors.toMap(Criteria::getId, c -> c));
+        // this map contains all criteriaDto for the given task id
+        Map<Long, List<CriteriaDto>> taskToCriteriaList = allCriteria
+                .stream()
+                .map(mapper::map)
+                .map(dto -> Pair.of(dto.getTask(), dto))
+                .collect(HashMap::new, (map, pair) -> {
+                    long taskId = pair.getFirst();
+                    map.computeIfAbsent(taskId, (l) -> new ArrayList<>()).add(pair.getSecond());
+                }, (a, b) -> {
+                    for (var item : b.entrySet()) {
+                        a.computeIfAbsent(item.getKey(), (l) -> new ArrayList<>()).addAll(item.getValue());
+                    }
+                });
+        Map<Long, Task> idToTask = taskService.findRawByCourseId(courseId)
+                .stream()
+                .collect(Collectors.toMap(Task::getId, t -> t));
+        Map<Long, TaskDto> idToTaskDto = idToTask.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> mapper.map(e.getValue())));
+
+        List<Submission> toSave = new ArrayList<>();
+        List<Submission> toDelete = new ArrayList<>(allSubmissions);
+
+        for (SubmissionDto req : submissionDtoList) {
+            Long taskId = req.getTask();
+            Task task = idToTask.get(taskId);
+            Submission db = taskToSubmission.getOrDefault(taskId, new Submission());
+            boolean existsInDb = db.getId() != null;
+
+            mapper.put(req, db);
+
+            if (!existsInDb) {
+                db.setTask(task);
+                db.setStudent(student);
+                db.setCreatedAt(now);
+            }
+            List<Criteria> satisfiedCriteria = pickCriteria(idToCriteria, req.getSatisfiedCriteria());
+            assertSameCourseAndTask(satisfiedCriteria, task);
+            setSatisfiedCriteria(db, satisfiedCriteria);
+            db.setMainScore(scoringService.getMainScore(
+                    mapper.map(db),
+                    idToTaskDto.get(taskId),
+                    taskToCriteriaList.get(taskId)
+            ));
+            db.setLastModifiedAt(now);
+
+            if (existsInDb) {
+                toDelete.remove(db);
+            }
+            toSave.add(db);
+        }
+        for (Submission submission : toDelete) {
+            submission.getSatisfiedCriteria().forEach(c -> c.getSubmissionList().remove(submission));
+            submission.getSatisfiedCriteria().clear();
+        }
+
+        repository.deleteAll(toDelete);
+        return repository.saveAll(toSave).stream()
+                .map(mapper::map)
+                .toList();
+    }
+
+
+    @Override
     public SubmissionDto update(long id, SubmissionDto dto) {
         Submission submission = getSubmissionById(id);
         Task task = getTaskById(dto.getTask());
@@ -127,7 +206,7 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         assertNoTaskChange(submission.getTask(), task);
         assertNoStudentChange(submission.getStudent(), student);
-        assertSameCourseAndTask(satisfiedCriteria, task, student);
+        assertSameCourseAndTask(satisfiedCriteria, task);
         mapper.put(dto, submission);
 
         setSatisfiedCriteria(submission, satisfiedCriteria);
@@ -151,7 +230,7 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         assertNoTaskChange(submission.getTask(), task);
         assertNoStudentChange(submission.getStudent(), student);
-        assertSameCourseAndTask(satisfiedCriteria, task, student);
+        assertSameCourseAndTask(satisfiedCriteria, task);
         mapper.patch(dto, submission);
 
         setSatisfiedCriteria(submission, satisfiedCriteria);
@@ -208,7 +287,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         }
     }
 
-    private void assertSameCourseAndTask(List<Criteria> satisfiedCriteria, Task task, Student student) {
+    private void assertSameCourseAndTask(List<Criteria> satisfiedCriteria, Task task) {
         Set<Long> courseIds = new HashSet<>(
                 satisfiedCriteria.stream()
                         .map(c -> c.getTask().getCourse().getId())
@@ -241,6 +320,12 @@ public class SubmissionServiceImpl implements SubmissionService {
     private void setSatisfiedCriteria(Submission submission, List<Criteria> satisfiedCriteria) {
         submission.setSatisfiedCriteria(satisfiedCriteria);
         satisfiedCriteria.forEach(c -> c.getSubmissionList().add(submission));
+    }
+
+    private List<Criteria> pickCriteria(Map<Long, Criteria> criteriaMap, List<Long> ids) {
+        return ids.stream()
+                .map(criteriaMap::get)
+                .collect(Collectors.toList());
     }
 
     @Autowired

@@ -345,7 +345,6 @@ public class EntityFactory {
     @Data
     @With
     @Builder(access = AccessLevel.PRIVATE)
-    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class EntityFactoryBag {
         private final EntityFactory ef;
@@ -377,6 +376,10 @@ public class EntityFactory {
         private Long groupId;
 
         private Object dto;
+
+        public EntityFactoryBag(EntityFactory ef) {
+            this.ef = ef;
+        }
 
         public Long getAuthUserId() {
             if (authUserId == null) authUserId = ef.createAuthUser(this);

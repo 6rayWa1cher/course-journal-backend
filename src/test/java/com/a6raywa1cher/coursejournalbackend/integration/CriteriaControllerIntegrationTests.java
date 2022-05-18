@@ -274,6 +274,113 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
 
     // ================================================================================================================
 
+    RequestContext<Long> createGetByCourseContext(long courseId) {
+        String name = faker.lorem().word();
+        int criteriaPercent = faker.number().numberBetween(20, 80);
+
+        long taskId = ef.createTask(ef.bag().withCourseId(courseId));
+
+        long id = criteriaService.create(CriteriaDto.builder()
+                .name(name)
+                .criteriaPercent(criteriaPercent)
+                .task(taskId)
+                .build()).getId();
+
+        Function<String, ResultMatcher[]> matchers = prefix ->
+                getCriteriaMatchers(prefix, id, name, criteriaPercent);
+
+        return RequestContext.<Long>builder()
+                .request(id)
+                .matchersSupplier(matchers)
+                .build();
+    }
+
+    @Test
+    void getCriteriaByCourse__self__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                long courseId1 = ef.createCourse(getSelfEmployeeIdAsLong());
+                long courseId2 = ef.createCourse(getSelfEmployeeIdAsLong());
+
+                var ctx1 = createGetByCourseContext(courseId1);
+                var ctx2 = createGetByCourseContext(courseId1);
+                createGetByCourseContext(courseId2);
+
+                securePerform(get("/criteria/course/{id}", courseId1))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx1.getMatchers("$[0]"))
+                        .andExpectAll(ctx2.getMatchers("$[1]"));
+            }
+        };
+    }
+
+    @Test
+    void getCriteriaByCourse__otherAsAdmin__valid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                long employeeId = ef.createEmployee();
+                long courseId1 = ef.createCourse(employeeId);
+                long courseId2 = ef.createCourse(employeeId);
+
+                var ctx1 = createGetByCourseContext(courseId1);
+                var ctx2 = createGetByCourseContext(courseId1);
+                createGetByCourseContext(courseId2);
+
+                securePerform(get("/criteria/course/{id}", courseId1))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx1.getMatchers("$[0]"))
+                        .andExpectAll(ctx2.getMatchers("$[1]"));
+            }
+        };
+    }
+
+    @Test
+    void getCriteriaByCourse__otherAsTeacher__invalid() {
+        long id = ef.createCourse();
+
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                securePerform(get("/criteria/course/{id}", id))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getCriteriaByCourse__withCourseToken__valid() {
+        new WithCourseToken() {
+            @Override
+            void run() throws Exception {
+                long courseId1 = getCourseId();
+                long courseId2 = ef.createCourse();
+
+                var ctx1 = createGetByCourseContext(courseId1);
+                var ctx2 = createGetByCourseContext(courseId1);
+                createGetByCourseContext(courseId2);
+
+                securePerform(get("/criteria/course/{id}", courseId1))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx1.getMatchers("$[0]"))
+                        .andExpectAll(ctx2.getMatchers("$[1]"));
+            }
+        };
+    }
+
+    @Test
+    void getCriteriaByCourse__notAuthenticated__invalid() throws Exception {
+        long id = ef.createCourse();
+        mvc.perform(get("/criteria/course/{id}", id))
+                .andExpect(status().isUnauthorized());
+    }
+
+    // ================================================================================================================
+
     @Test
     void createCriteria__self__valid() {
         new WithUser(USERNAME, PASSWORD) {
@@ -1414,5 +1521,17 @@ public class CriteriaControllerIntegrationTests extends AbstractIntegrationTests
 
         mvc.perform(delete("/criteria/{id}", criteriaId))
                 .andExpect(status().isUnauthorized());
+    }
+
+    // ================================================================================================================
+
+    ResultMatcher[] getCriteriaMatchers(String prefix, Long id, String name, Integer criteriaPercent) {
+        return new ResultMatcher[]{
+                id != null ?
+                        jsonPath(prefix + ".id").value(id) :
+                        jsonPath(prefix + ".id").isNumber(),
+                jsonPath(prefix + ".name").value(name),
+                jsonPath(prefix + ".criteriaPercent").value(criteriaPercent),
+        };
     }
 }

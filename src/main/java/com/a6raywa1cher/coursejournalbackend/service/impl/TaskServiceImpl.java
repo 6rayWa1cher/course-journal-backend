@@ -49,6 +49,12 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public List<Task> findRawByCourseId(long courseId) {
+        Course course = getCourseById(courseId);
+        return repository.getAllByCourse(course);
+    }
+
+    @Override
     public void reorder(long courseId, Map<Long, Integer> idToNumber) {
         List<Task> allRawById = StreamSupport.stream(
                 repository.findAllById(idToNumber.keySet()).spliterator(),

@@ -1,6 +1,7 @@
 package com.a6raywa1cher.coursejournalbackend.rest;
 
 import com.a6raywa1cher.coursejournalbackend.dto.SubmissionDto;
+import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchSetForStudentAndCourseSubmissionRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.MapStructRestDtoMapper;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.SubmissionRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnCreate;
@@ -72,6 +73,26 @@ public class SubmissionController {
     @Validated(OnUpdate.class)
     public SubmissionDto update(@RequestBody @Valid SubmissionRestDto dto, @PathVariable long id) {
         return service.update(id, mapper.map(dto));
+    }
+
+    @PostMapping("/course/{cid}/student/{sid}/set")
+    @PreAuthorize("@accessChecker.editCourseAccess(#cid, authentication)")
+    @Validated(OnUpdate.class)
+    public List<SubmissionDto> setForStudentAndCourse(
+            @RequestBody @Valid BatchSetForStudentAndCourseSubmissionRestDto dto,
+            @PathVariable long cid,
+            @PathVariable long sid
+    ) {
+        return service.setForStudentAndCourse(
+                        sid,
+                        cid,
+                        dto.getSubmissions().stream()
+                                .map(mapper::map)
+                                .toList()
+                )
+                .stream()
+                .sorted(Comparator.comparingLong(SubmissionDto::getId))
+                .toList();
     }
 
     @PatchMapping("/{id}")
