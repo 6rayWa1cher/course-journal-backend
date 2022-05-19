@@ -1,6 +1,7 @@
 package com.a6raywa1cher.coursejournalbackend.integration;
 
 import com.a6raywa1cher.coursejournalbackend.RequestContext;
+import com.a6raywa1cher.coursejournalbackend.dto.CourseFullDto;
 import com.a6raywa1cher.coursejournalbackend.dto.GroupDto;
 import com.a6raywa1cher.coursejournalbackend.service.GroupService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -12,6 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 
+import java.util.List;
 import java.util.function.Function;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -198,6 +200,160 @@ public class GroupControllerIntegrationTests extends AbstractIntegrationTests {
     void getGroupByFaculty__notAuthenticated__invalid() throws Exception {
         long facultyId = ef.createFaculty();
         mvc.perform(get("/groups/faculty/{id}", facultyId))
+                .andExpect(status().isUnauthorized());
+    }
+
+    // ================================================================================================================
+
+    RequestContext<Long> createGetGroupByCourseContext() {
+        String name = faker.lorem().sentence();
+        long facultyId = ef.createFaculty();
+        long id = groupService.create(GroupDto.builder()
+                .faculty(facultyId)
+                .name(name)
+                .build()).getId();
+
+        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
+                jsonPath(prefix + ".id").value(id),
+                jsonPath(prefix + ".name").value(name),
+                jsonPath(prefix + ".faculty").value(facultyId)
+        };
+
+        return RequestContext.<Long>builder()
+                .request(id)
+                .matchersSupplier(matchers)
+                .build();
+    }
+
+    @Test
+    void getGroupByCourse__self__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                var ctx1 = createGetGroupByCourseContext();
+                var ctx2 = createGetGroupByCourseContext();
+                createGetGroupByCourseContext();
+
+                long studentId1 = ef.createStudent(ef.bag().withGroupId(ctx1.getRequest()));
+                long studentId2 = ef.createStudent(ef.bag().withGroupId(ctx2.getRequest()));
+
+                long courseId = ef.createCourse(ef.bag().withEmployeeId(getSelfEmployeeIdAsLong())
+                        .withDto(CourseFullDto.builder().students(List.of(studentId1, studentId2)).build()));
+
+                // WHEN
+                securePerform(get("/groups/course/{id}", courseId))
+                        // THEN
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx1.getMatchers("$[0]"))
+                        .andExpectAll(ctx2.getMatchers("$[1]"));
+            }
+        };
+    }
+
+    @Test
+    void getGroupByCourse__otherAsAdmin__valid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                var ctx1 = createGetGroupByCourseContext();
+                var ctx2 = createGetGroupByCourseContext();
+                createGetGroupByCourseContext();
+
+                long studentId1 = ef.createStudent(ef.bag().withGroupId(ctx1.getRequest()));
+                long studentId2 = ef.createStudent(ef.bag().withGroupId(ctx2.getRequest()));
+
+                long courseId = ef.createCourse(ef.bag().withEmployeeId(ef.createEmployee())
+                        .withDto(CourseFullDto.builder().students(List.of(studentId1, studentId2)).build()));
+
+                // WHEN
+                securePerform(get("/groups/course/{id}", courseId))
+                        // THEN
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx1.getMatchers("$[0]"))
+                        .andExpectAll(ctx2.getMatchers("$[1]"));
+            }
+        };
+    }
+
+    @Test
+    void getGroupByCourse__otherAsTeacher__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                var ctx1 = createGetGroupByCourseContext();
+                var ctx2 = createGetGroupByCourseContext();
+                createGetGroupByCourseContext();
+
+                long studentId1 = ef.createStudent(ef.bag().withGroupId(ctx1.getRequest()));
+                long studentId2 = ef.createStudent(ef.bag().withGroupId(ctx2.getRequest()));
+
+                long courseId = ef.createCourse(ef.bag().withEmployeeId(ef.createEmployee())
+                        .withDto(CourseFullDto.builder().students(List.of(studentId1, studentId2)).build()));
+
+                // WHEN
+                securePerform(get("/groups/course/{id}", courseId))
+                        // THEN
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getGroupByCourse__withCourseToken__valid() {
+        // GIVEN
+        var ctx1 = createGetGroupByCourseContext();
+        var ctx2 = createGetGroupByCourseContext();
+        createGetGroupByCourseContext();
+
+        long studentId1 = ef.createStudent(ef.bag().withGroupId(ctx1.getRequest()));
+        long studentId2 = ef.createStudent(ef.bag().withGroupId(ctx2.getRequest()));
+
+        long courseId = ef.createCourse(ef.bag()
+                .withDto(CourseFullDto.builder().students(List.of(studentId1, studentId2)).build()));
+
+        new WithCourseToken(courseId, true) {
+            @Override
+            void run() throws Exception {
+                // WHEN
+                securePerform(get("/groups/course/{id}", courseId))
+                        // THEN
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpectAll(ctx1.getMatchers("$[0]"))
+                        .andExpectAll(ctx2.getMatchers("$[1]"));
+            }
+        };
+    }
+
+    @Test
+    void getGroupByCourse__notFound__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                // GIVEN
+                long courseId = ef.createCourse(getSelfEmployeeIdAsLong());
+
+                // WHEN
+                securePerform(get("/groups/course/{id}", courseId + 1000))
+                        // THEN
+                        .andExpect(status().isNotFound());
+            }
+        };
+    }
+
+    @Test
+    void getGroupByCourse__notAuthenticated__invalid() throws Exception {
+        // GIVEN
+        long courseId = ef.createCourse();
+
+        // WHEN
+        mvc.perform(get("/groups/course/{id}", courseId))
+                // THEN
                 .andExpect(status().isUnauthorized());
     }
 

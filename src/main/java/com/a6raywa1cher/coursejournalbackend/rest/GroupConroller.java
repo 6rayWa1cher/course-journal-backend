@@ -41,6 +41,12 @@ public class GroupConroller {
         return service.getByFaculty(id, Sort.by("id"));
     }
 
+    @GetMapping("/course/{id}")
+    @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
+    public List<GroupDto> getByCourse(@PathVariable long id) {
+        return service.getByCourse(id, Sort.by("id"));
+    }
+
     @PostMapping("/")
     @PreAuthorize("@accessChecker.createGroupAccess(authentication)")
     @ResponseStatus(HttpStatus.CREATED)
