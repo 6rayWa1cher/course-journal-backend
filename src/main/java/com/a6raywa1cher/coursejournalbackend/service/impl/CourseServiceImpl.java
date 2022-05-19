@@ -93,7 +93,7 @@ public class CourseServiceImpl implements CourseService {
 
         mapper.put(dto, entity);
 
-        entity.setStudents(students);
+        setStudentList(entity, students);
         entity.setOwner(owner);
         entity.setCreatedAt(LocalDateTime.now());
         entity.setLastModifiedAt(LocalDateTime.now());
@@ -112,7 +112,7 @@ public class CourseServiceImpl implements CourseService {
 
         mapper.put(dto, entity);
 
-        entity.setStudents(students);
+        setStudentList(entity, students);
         entity.setOwner(newOwner);
         entity.setLastModifiedAt(LocalDateTime.now());
 
@@ -132,7 +132,7 @@ public class CourseServiceImpl implements CourseService {
 
         mapper.patch(dto, entity);
 
-        entity.setStudents(students);
+        setStudentList(entity, students);
         entity.setOwner(owner);
         entity.setLastModifiedAt(LocalDateTime.now());
 
@@ -161,7 +161,7 @@ public class CourseServiceImpl implements CourseService {
         if (rawById.size() != ids.size()) {
             throw new NotFoundException(Student.class, EntityUtils.getAnyNotFound(rawById, ids));
         }
-        return rawById;
+        return new ArrayList<>(rawById);
     }
 
     private void assertNameNotChangedOrAvailable(String before, String now, Employee beforeEmployee, Employee afterEmployee) {
@@ -174,5 +174,21 @@ public class CourseServiceImpl implements CourseService {
         if (repository.existsByNameAndOwner(name, employee)) {
             throw new ConflictException(Employee.class, "name", name, "owner", Long.toString(employee.getId()));
         }
+    }
+
+    private void setStudentList(Course course, List<Student> newList) {
+        List<Student> original = course.getStudents();
+        if (original.equals(newList)) return;
+        for (Student originalStudent : original) {
+            if (!newList.contains(originalStudent)) {
+                originalStudent.getCourses().remove(course);
+            }
+        }
+        for (Student newStudent : newList) {
+            if (!original.contains(newStudent)) {
+                newStudent.getCourses().add(course);
+            }
+        }
+        course.setStudents(newList);
     }
 }

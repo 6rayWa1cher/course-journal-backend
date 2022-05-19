@@ -1,10 +1,12 @@
 package com.a6raywa1cher.coursejournalbackend.integration;
 
 import com.a6raywa1cher.coursejournalbackend.RequestContext;
+import com.a6raywa1cher.coursejournalbackend.TestUtils;
 import com.a6raywa1cher.coursejournalbackend.dto.CourseFullDto;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
 import com.a6raywa1cher.coursejournalbackend.model.repo.EmployeeRepository;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Function;
 
 import static com.a6raywa1cher.coursejournalbackend.TestUtils.getIdFromResult;
@@ -401,18 +405,17 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
     // ================================================================================================================
 
     RequestContext<ObjectNode> getCreateCourseContext(long ownerId, String name) {
-
         ObjectNode request = objectMapper.createObjectNode()
                 .put("name", name)
                 .put("owner", ownerId);
 
-        request.putArray("students");
+        long studentId1 = ef.createStudent();
+        long studentId2 = ef.createStudent();
+        List<Long> studentIds = List.of(studentId1, studentId2);
+        ArrayNode studentsNode = request.putArray("students");
+        studentIds.forEach(studentsNode::add);
 
-        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
-                jsonPath(prefix + ".id").isNumber(),
-                jsonPath(prefix + ".name").value(name),
-                jsonPath(prefix + ".owner").value(ownerId)
-        };
+        Function<String, ResultMatcher[]> matchers = prefix -> getCourseMatchers(prefix, ownerId, name, studentIds);
 
         return RequestContext.<ObjectNode>builder()
                 .request(request)
@@ -553,40 +556,57 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
     // ================================================================================================================
 
+    RequestContext<ObjectNode> getPutCourseContext(long id, long ownerId, String name, List<Long> studentIds) {
+        ObjectNode request = objectMapper.createObjectNode()
+                .put("name", name)
+                .put("owner", ownerId);
+
+        ArrayNode studentsNode = request.putArray("students");
+        studentIds.forEach(studentsNode::add);
+
+        Function<String, ResultMatcher[]> matchers = prefix -> getCourseMatchers(prefix, id, ownerId, name, studentIds);
+
+        return RequestContext.<ObjectNode>builder()
+                .request(request)
+                .matchersSupplier(matchers)
+                .build();
+    }
+
     @Test
     void putCourse__self__valid() {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
                 long ownerId = getSelfEmployeeIdAsLong();
+
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
 
                 long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
+                        .students(studentIds)
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
+                long studentId3 = ef.createStudent();
+                var ctx = getPutCourseContext(courseId, ownerId, newName, List.of(studentId1, studentId3));
+                ObjectNode request = ctx.getRequest();
 
-                ResultMatcher[] resultMatchers = {
-                        jsonPath("$.id").value(courseId),
-                        jsonPath("$.name").value(newName),
-                        jsonPath("$.owner").value(ownerId)
-                };
-
+                // WHEN
                 securePerform(put("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", newName)
-                                .put("owner", ownerId)
-                                .toString()))
+                        .content(request.toString()))
                         .andExpect(status().isOk())
-                        .andExpectAll(resultMatchers);
+                        .andExpectAll(ctx.getMatchers());
 
-
+                // THEN
                 securePerform(get("/courses/{id}", courseId))
                         .andExpect(status().isOk())
-                        .andExpectAll(resultMatchers);
+                        .andExpectAll(ctx.getMatchers());
             }
         };
     }
@@ -596,35 +616,36 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
+
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
 
                 long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
+                        .students(studentIds)
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
+                long studentId3 = ef.createStudent();
+                var ctx = getPutCourseContext(courseId, ownerId, newName, List.of(studentId1, studentId3));
+                ObjectNode request = ctx.getRequest();
 
-                ResultMatcher[] resultMatchers = {
-                        jsonPath("$.id").value(courseId),
-                        jsonPath("$.name").value(newName),
-                        jsonPath("$.owner").value(ownerId)
-                };
-
+                // WHEN
                 securePerform(put("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", newName)
-                                .put("owner", ownerId)
-                                .toString()))
+                        .content(request.toString()))
                         .andExpect(status().isOk())
-                        .andExpectAll(resultMatchers);
+                        .andExpectAll(ctx.getMatchers());
 
-
+                // THEN
                 securePerform(get("/courses/{id}", courseId))
                         .andExpect(status().isOk())
-                        .andExpectAll(resultMatchers);
+                        .andExpectAll(ctx.getMatchers());
             }
         };
     }
@@ -634,22 +655,30 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
+
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
 
                 long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
+                        .students(studentIds)
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
+                long studentId3 = ef.createStudent();
+                var ctx = getPutCourseContext(courseId, ownerId, newName, List.of(studentId1, studentId3));
+                ObjectNode request = ctx.getRequest();
 
+                // WHEN
                 securePerform(put("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", newName)
-                                .put("owner", ownerId)
-                                .toString()))
+                        .content(request.toString()))
+                        // THEN
                         .andExpect(status().isForbidden());
             }
         };
@@ -661,21 +690,29 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithCourseToken(ownerId) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
+
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
 
                 long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
+                        .students(studentIds)
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
+                long studentId3 = ef.createStudent();
+                var ctx = getPutCourseContext(courseId, ownerId, newName, List.of(studentId1, studentId3));
+                ObjectNode request = ctx.getRequest();
 
+                // WHEN
                 securePerform(put("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", newName)
-                                .put("owner", ownerId)
-                                .toString()))
+                        .content(request.toString()))
+                        // THEN
                         .andExpect(status().isForbidden());
             }
         };
@@ -686,36 +723,37 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
+
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
 
                 long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
+                        .students(studentIds)
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
                 long newOwnerId = ef.createEmployee();
+                long studentId3 = ef.createStudent();
+                var ctx = getPutCourseContext(courseId, newOwnerId, newName, List.of(studentId1, studentId3));
+                ObjectNode request = ctx.getRequest();
 
-                ResultMatcher[] resultMatchers = {
-                        jsonPath("$.id").value(courseId),
-                        jsonPath("$.name").value(newName),
-                        jsonPath("$.owner").value(newOwnerId)
-                };
-
+                // WHEN
                 securePerform(put("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", newName)
-                                .put("owner", newOwnerId)
-                                .toString()))
+                        .content(request.toString()))
                         .andExpect(status().isOk())
-                        .andExpectAll(resultMatchers);
+                        .andExpectAll(ctx.getMatchers());
 
-
+                // THEN
                 securePerform(get("/courses/{id}", courseId))
                         .andExpect(status().isOk())
-                        .andExpectAll(resultMatchers);
+                        .andExpectAll(ctx.getMatchers());
             }
         };
     }
@@ -725,23 +763,31 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
                 long ownerId = getSelfEmployeeIdAsLong();
+
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
 
                 long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
+                        .students(studentIds)
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
                 long newOwnerId = ef.createEmployee();
+                long studentId3 = ef.createStudent();
+                var ctx = getPutCourseContext(courseId, newOwnerId, newName, List.of(studentId1, studentId3));
+                ObjectNode request = ctx.getRequest();
 
+                // WHEN
                 securePerform(put("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", newName)
-                                .put("owner", newOwnerId)
-                                .toString()))
+                        .content(request.toString()))
+                        // THEN
                         .andExpect(status().isForbidden());
             }
         };
@@ -752,23 +798,31 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
+
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
 
                 long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
+                        .students(studentIds)
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
                 long newOwnerId = getSelfEmployeeIdAsLong();
+                long studentId3 = ef.createStudent();
+                var ctx = getPutCourseContext(courseId, newOwnerId, newName, List.of(studentId1, studentId3));
+                ObjectNode request = ctx.getRequest();
 
+                // WHEN
                 securePerform(put("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", newName)
-                                .put("owner", newOwnerId)
-                                .toString()))
+                        .content(request.toString()))
+                        // THEN
                         .andExpect(status().isForbidden());
             }
         };
@@ -779,23 +833,31 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
+
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
 
                 long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
+                        .students(studentIds)
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
                 long newOwnerId = ef.createEmployee();
+                long studentId3 = ef.createStudent();
+                var ctx = getPutCourseContext(courseId, newOwnerId, newName, List.of(studentId1, studentId3));
+                ObjectNode request = ctx.getRequest();
 
+                // WHEN
                 securePerform(put("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", newName)
-                                .put("owner", newOwnerId)
-                                .toString()))
+                        .content(request.toString()))
+                        // THEN
                         .andExpect(status().isForbidden());
             }
         };
@@ -806,26 +868,35 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name1 = faker.lorem().sentence();
                 String name2 = faker.lorem().sentence();
                 long ownerId = getSelfEmployeeIdAsLong();
 
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
+
                 long courseId = courseService.create(CourseFullDto.builder()
                         .name(name1)
                         .owner(ownerId)
+                        .students(studentIds)
                         .build()).getId();
 
                 courseService.create(CourseFullDto.builder()
                         .name(name2)
                         .owner(ownerId)
+                        .students(studentIds)
                         .build());
 
+                var ctx = getPutCourseContext(courseId, ownerId, name2, studentIds);
+                ObjectNode request = ctx.getRequest();
+
+                // WHEN
                 securePerform(put("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", name2)
-                                .put("owner", ownerId)
-                                .toString()))
+                        .content(request.toString()))
+                        // THEN
                         .andExpect(status().isConflict());
             }
         };
@@ -836,26 +907,35 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
                 long ownerId1 = ef.createEmployee();
                 long ownerId2 = ef.createEmployee();
 
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
+
                 long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId1)
+                        .students(studentIds)
                         .build()).getId();
 
                 courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId2)
+                        .students(studentIds)
                         .build());
 
+                var ctx = getPutCourseContext(courseId, ownerId2, name, studentIds);
+                ObjectNode request = ctx.getRequest();
+
+                // WHEN
                 securePerform(put("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", name)
-                                .put("owner", ownerId2)
-                                .toString()))
+                        .content(request.toString()))
+                        // THEN
                         .andExpect(status().isConflict());
             }
         };
@@ -863,56 +943,75 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void putCourse__notAuthenticated__invalid() throws Exception {
+        // GIVEN
         String name = faker.lorem().sentence();
         long ownerId = ef.createEmployee();
+
+        long studentId1 = ef.createStudent();
+        long studentId2 = ef.createStudent();
+        List<Long> studentIds = List.of(studentId1, studentId2);
 
         long courseId = courseService.create(CourseFullDto.builder()
                 .name(name)
                 .owner(ownerId)
+                .students(studentIds)
                 .build()).getId();
 
+        var ctx = getPutCourseContext(courseId, ownerId, name, studentIds);
+        ObjectNode request = ctx.getRequest();
+
+        // WHEN
         mvc.perform(put("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", faker.lorem().sentence())
-                                .put("owner", ef.createEmployee())
-                                .toString()))
+                        .content(request.toString()))
+                // THEN
                 .andExpect(status().isUnauthorized());
     }
 
     // ================================================================================================================
 
+    ObjectNode getPatchCourseRequest(String name, List<Long> students) {
+        ObjectNode objectNode = objectMapper.createObjectNode()
+                .put("name", name);
+        ArrayNode studentsNode = objectNode.putArray("students");
+        students.forEach(studentsNode::add);
+
+        return objectNode;
+    }
 
     @Test
     void patchCourse__self__valid() {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
                 long ownerId = getSelfEmployeeIdAsLong();
+
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
 
                 long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
+                        .students(studentIds)
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
+                long studentId3 = ef.createStudent();
+                List<Long> newStudentIds = List.of(studentId1, studentId3);
+                ObjectNode request = getPatchCourseRequest(newName, newStudentIds);
+                ResultMatcher[] resultMatchers = getCourseMatchers("$", courseId, ownerId, newName, newStudentIds);
 
-                ResultMatcher[] resultMatchers = {
-                        jsonPath("$.id").value(courseId),
-                        jsonPath("$.name").value(newName),
-                        jsonPath("$.owner").value(ownerId)
-                };
-
+                // WHEN
                 securePerform(patch("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", newName)
-                                .toString()))
+                        .content(request.toString()))
                         .andExpect(status().isOk())
                         .andExpectAll(resultMatchers);
 
-
+                // THEN
                 securePerform(get("/courses/{id}", courseId))
                         .andExpect(status().isOk())
                         .andExpectAll(resultMatchers);
@@ -928,24 +1027,25 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
+
                 long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
+                        .students(studentIds)
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
-
-                ResultMatcher[] resultMatchers = {
-                        jsonPath("$.id").value(courseId),
-                        jsonPath("$.name").value(newName),
-                        jsonPath("$.owner").value(ownerId)
-                };
+                long studentId3 = ef.createStudent();
+                List<Long> newStudentIds = List.of(studentId1, studentId3);
+                ObjectNode request = getPatchCourseRequest(newName, newStudentIds);
+                ResultMatcher[] resultMatchers = getCourseMatchers("$", courseId, ownerId, newName, newStudentIds);
 
                 securePerform(patch("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", newName)
-                                .toString()))
+                        .content(request.toString()))
                         .andExpect(status().isOk())
                         .andExpectAll(resultMatchers);
 
@@ -962,21 +1062,30 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
+
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
 
                 long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
+                        .students(studentIds)
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
+                long studentId3 = ef.createStudent();
+                List<Long> newStudentIds = List.of(studentId1, studentId3);
+                ObjectNode request = getPatchCourseRequest(newName, newStudentIds);
 
+                // WHEN
                 securePerform(patch("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", newName)
-                                .toString()))
+                        .content(request.toString()))
+                        // THEN
                         .andExpect(status().isForbidden());
             }
         };
@@ -990,18 +1099,24 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
             void run() throws Exception {
                 String name = faker.lorem().sentence();
 
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
+
                 long courseId = courseService.create(CourseFullDto.builder()
                         .name(name)
                         .owner(ownerId)
+                        .students(studentIds)
                         .build()).getId();
 
                 String newName = faker.lorem().sentence();
+                long studentId3 = ef.createStudent();
+                List<Long> newStudentIds = List.of(studentId1, studentId3);
+                ObjectNode request = getPatchCourseRequest(newName, newStudentIds);
 
                 securePerform(patch("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.createObjectNode()
-                                .put("name", newName)
-                                .toString()))
+                        .content(request.toString()))
                         .andExpect(status().isForbidden());
             }
         };
@@ -1012,6 +1127,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
@@ -1022,12 +1138,11 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
                 long newOwnerId = ef.createEmployee();
 
-                ResultMatcher[] resultMatchers = {
-                        jsonPath("$.id").value(courseId),
-                        jsonPath("$.name").value(name),
-                        jsonPath("$.owner").value(newOwnerId)
-                };
+                ResultMatcher[] resultMatchers = getCourseMatchers(
+                        "$", courseId, newOwnerId, name, Collections.emptyList()
+                );
 
+                // WHEN
                 securePerform(patch("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.createObjectNode()
@@ -1036,7 +1151,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                         .andExpect(status().isOk())
                         .andExpectAll(resultMatchers);
 
-
+                // THEN
                 securePerform(get("/courses/{id}", courseId))
                         .andExpect(status().isOk())
                         .andExpectAll(resultMatchers);
@@ -1049,6 +1164,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
                 long ownerId = getSelfEmployeeIdAsLong();
 
@@ -1059,11 +1175,13 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
                 long newOwnerId = ef.createEmployee();
 
+                // WHEN
                 securePerform(patch("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.createObjectNode()
                                 .put("owner", newOwnerId)
                                 .toString()))
+                        // THEN
                         .andExpect(status().isForbidden());
             }
         };
@@ -1074,6 +1192,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
@@ -1084,11 +1203,13 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
                 long newOwnerId = getSelfEmployeeIdAsLong();
 
+                // WHEN
                 securePerform(patch("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.createObjectNode()
                                 .put("owner", newOwnerId)
                                 .toString()))
+                        // THEN
                         .andExpect(status().isForbidden());
             }
         };
@@ -1099,6 +1220,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
                 long ownerId = ef.createEmployee();
 
@@ -1109,11 +1231,13 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
                 long newOwnerId = ef.createEmployee();
 
+                // WHEN
                 securePerform(patch("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.createObjectNode()
                                 .put("owner", newOwnerId)
                                 .toString()))
+                        // THEN
                         .andExpect(status().isForbidden());
             }
         };
@@ -1124,6 +1248,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(USERNAME, PASSWORD) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name1 = faker.lorem().sentence();
                 String name2 = faker.lorem().sentence();
                 long ownerId = getSelfEmployeeIdAsLong();
@@ -1138,11 +1263,13 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                         .owner(ownerId)
                         .build());
 
+                // WHEN
                 securePerform(patch("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.createObjectNode()
                                 .put("name", name2)
                                 .toString()))
+                        // THEN
                         .andExpect(status().isConflict());
             }
         };
@@ -1153,6 +1280,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
+                // GIVEN
                 String name = faker.lorem().sentence();
                 long ownerId1 = ef.createEmployee();
                 long ownerId2 = ef.createEmployee();
@@ -1167,11 +1295,13 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                         .owner(ownerId2)
                         .build());
 
+                // WHEN
                 securePerform(patch("/courses/{id}", courseId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.createObjectNode()
                                 .put("owner", ownerId2)
                                 .toString()))
+                        // THEN
                         .andExpect(status().isConflict());
             }
         };
@@ -1179,6 +1309,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
     @Test
     void patchCourse__notAuthenticated__invalid() throws Exception {
+        // GIVEN
         String name = faker.lorem().sentence();
         long ownerId = ef.createEmployee();
 
@@ -1187,6 +1318,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                 .owner(ownerId)
                 .build()).getId();
 
+        // WHEN
         mvc.perform(
                         patch("/courses/{id}", courseId)
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -1195,6 +1327,7 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
                                         .toString()
                                 )
                 )
+                // THEN
                 .andExpect(status().isUnauthorized());
     }
 
@@ -1294,5 +1427,22 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
 
         mvc.perform(delete("/courses/{id}", courseId))
                 .andExpect(status().isUnauthorized());
+    }
+
+    // ================================================================================================================
+
+    ResultMatcher[] getCourseMatchers(String prefix, long ownerId, String name, List<Long> studentIds) {
+        return getCourseMatchers(prefix, null, ownerId, name, studentIds);
+    }
+
+    ResultMatcher[] getCourseMatchers(String prefix, Long id, long ownerId, String name, List<Long> studentIds) {
+        return new ResultMatcher[]{
+                id != null ?
+                        jsonPath(prefix + ".id").value(id) :
+                        jsonPath(prefix + ".id").isNumber(),
+                jsonPath(prefix + ".name").value(name),
+                jsonPath(prefix + ".owner").value(ownerId),
+                jsonPath(prefix + ".students", new TestUtils.ContainsAllIdsMatcher(studentIds))
+        };
     }
 }
