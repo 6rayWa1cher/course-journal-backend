@@ -16,7 +16,7 @@ import static com.a6raywa1cher.coursejournalbackend.utils.CommonUtils.coalesce;
 
 @Component
 public class LinearSubmissionScoringService implements SubmissionScoringService {
-    private final static int SCALE = 3;
+    private final static int SCALE = 2;
 
     public double calculateDeadlineFactor(SubmissionDto submission, TaskDto task) {
         ZonedDateTime hardDeadlineAt = task.getHardDeadlineAt();

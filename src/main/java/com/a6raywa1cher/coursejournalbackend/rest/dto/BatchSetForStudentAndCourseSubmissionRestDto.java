@@ -31,6 +31,6 @@ public class BatchSetForStudentAndCourseSubmissionRestDto {
         private ZonedDateTime submittedAt;
 
         @NotNull
-        private Integer additionalScore;
+        private Double additionalScore;
     }
 }

@@ -1141,8 +1141,8 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
 
         var ctx = getSetForStudentAndCourseRequest(
                 List.of(
-                        new SubmissionInfo(taskId1, List.of(task1Criteria1), now, faker.number().numberBetween(0, 5)),
-                        new SubmissionInfo(taskId3, List.of(task3Criteria), now, faker.number().numberBetween(0, 5))
+                        new SubmissionInfo(taskId1, List.of(task1Criteria1), now, faker.number().randomDouble(2, 0, 5)),
+                        new SubmissionInfo(taskId3, List.of(task3Criteria), now, faker.number().randomDouble(2, 0, 5))
                 ),
                 studentId
         );
