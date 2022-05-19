@@ -18,14 +18,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/groups")
-public class GroupConroller {
+public class GroupController {
 
     private final GroupService service;
 
     private final MapStructRestDtoMapper mapper;
 
     @Autowired
-    public GroupConroller(GroupService service, MapStructRestDtoMapper mapper) {
+    public GroupController(GroupService service, MapStructRestDtoMapper mapper) {
         this.service = service;
         this.mapper = mapper;
     }
