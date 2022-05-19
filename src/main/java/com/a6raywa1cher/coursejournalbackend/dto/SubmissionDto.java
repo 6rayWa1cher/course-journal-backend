@@ -19,9 +19,9 @@ public class SubmissionDto {
 
     private List<Long> satisfiedCriteria;
 
-    private Integer mainScore;
+    private Double mainScore;
 
-    private Integer additionalScore;
+    private Double additionalScore;
 
     private ZonedDateTime createdAt;
 

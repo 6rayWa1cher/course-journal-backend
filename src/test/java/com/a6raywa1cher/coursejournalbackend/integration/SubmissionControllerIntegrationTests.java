@@ -11,8 +11,6 @@ import com.a6raywa1cher.coursejournalbackend.service.SubmissionService;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.JsonPath;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -42,7 +40,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
 
     RequestContext<Long> createGetSubmissionByIdContextWithCourse(long courseId) {
         ZonedDateTime submittedAt = ZonedDateTime.now().minusDays(1);
-        int additionalScore = faker.number().numberBetween(0, 5);
+        double additionalScore = faker.number().randomDouble(2, 0, 5);
         long taskId = ef.createTask(ef.bag().withCourseId(courseId));
         long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
         List<Long> satisfiedCriteria = createManyCriteria(taskId, faker.number().numberBetween(1, 3));
@@ -171,7 +169,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
 
     RequestContext<Long> createGetSubmissionsByCourseContext(long courseId, long studentId) {
         ZonedDateTime submittedAt = ZonedDateTime.now().minusDays(1);
-        int additionalScore = faker.number().numberBetween(0, 5);
+        double additionalScore = faker.number().randomDouble(2, 0, 5);
         long taskId = ef.createTask(ef.bag().withCourseId(courseId));
         List<Long> satisfiedCriteria = createManyCriteria(taskId, faker.number().numberBetween(1, 3));
 
@@ -298,7 +296,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
 
     RequestContext<Long> createGetSubmissionsByTaskContext(long taskId, long studentId) {
         ZonedDateTime submittedAt = ZonedDateTime.now().minusDays(1);
-        int additionalScore = faker.number().numberBetween(0, 5);
+        double additionalScore = faker.number().randomDouble(2, 0, 5);
         List<Long> satisfiedCriteria = createManyCriteria(taskId, faker.number().numberBetween(1, 3));
 
         long id = submissionService.create(SubmissionDto.builder()
@@ -426,7 +424,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
 
     RequestContext<Long> createGetSubmissionsByStudentAndCourseContext(long taskId, long studentId) {
         ZonedDateTime submittedAt = ZonedDateTime.now().minusDays(1);
-        int additionalScore = faker.number().numberBetween(0, 5);
+        double additionalScore = faker.number().randomDouble(2, 0, 5);
         List<Long> satisfiedCriteria = createManyCriteria(taskId, faker.number().numberBetween(1, 3));
 
         long id = submissionService.create(SubmissionDto.builder()
@@ -571,7 +569,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
     RequestContext<ObjectNode> getCreateSubmissionRequest(long taskId, long studentId) {
         ZonedDateTime submittedAt = ZonedDateTime.now().minusDays(2);
         List<Long> satisfiedCriteria = createManyCriteria(taskId, faker.number().numberBetween(1, 3));
-        int additionalScore = faker.number().numberBetween(2, 5);
+        double additionalScore = faker.number().randomDouble(2, 2, 5);
 
         ObjectNode request = objectMapper.createObjectNode()
                 .put("task", taskId)
@@ -821,7 +819,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -852,7 +850,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -883,7 +881,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -909,7 +907,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -935,7 +933,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -962,7 +960,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -989,7 +987,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -1001,17 +999,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 ObjectNode request = ctx.getRequest()
                         .put("mainScore", mainScore);
 
-                var mainScoreMatcher = new BaseMatcher<Integer>() {
-                    @Override
-                    public boolean matches(Object actual) {
-                        return ((int) actual) != 100500;
-                    }
-
-                    @Override
-                    public void describeTo(Description description) {
-                        description.appendValue(this);
-                    }
-                };
+                var mainScoreMatcher = new TestUtils.NotEqualsMatcher(100500d);
 
                 securePerform(put("/submissions/{id}", submissionId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -1065,7 +1053,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -1088,7 +1076,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
         long submissionId = ef.createSubmission(
                 ef.bag().withTaskId(taskId).withStudentId(studentId)
-                        .withDto(SubmissionDto.builder().additionalScore(5).build())
+                        .withDto(SubmissionDto.builder().additionalScore(5d).build())
         );
 
         int newAdditionalScore = 10;
@@ -1348,7 +1336,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -1379,7 +1367,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -1410,7 +1398,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -1436,7 +1424,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -1462,7 +1450,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -1489,7 +1477,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -1516,7 +1504,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -1528,17 +1516,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 ObjectNode request = ctx.getRequest()
                         .put("mainScore", mainScore);
 
-                var mainScoreMatcher = new BaseMatcher<Integer>() {
-                    @Override
-                    public boolean matches(Object actual) {
-                        return ((int) actual) != 100500;
-                    }
-
-                    @Override
-                    public void describeTo(Description description) {
-                        description.appendValue(this);
-                    }
-                };
+                var mainScoreMatcher = new TestUtils.NotEqualsMatcher(100500d);
 
                 securePerform(patch("/submissions/{id}", submissionId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -1592,7 +1570,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
                 long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
                 long submissionId = ef.createSubmission(
                         ef.bag().withTaskId(taskId).withStudentId(studentId)
-                                .withDto(SubmissionDto.builder().additionalScore(5).build())
+                                .withDto(SubmissionDto.builder().additionalScore(5d).build())
                 );
 
                 int newAdditionalScore = 10;
@@ -1615,7 +1593,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
         long studentId = ef.createStudent(ef.bag().withCourseId(courseId));
         long submissionId = ef.createSubmission(
                 ef.bag().withTaskId(taskId).withStudentId(studentId)
-                        .withDto(SubmissionDto.builder().additionalScore(5).build())
+                        .withDto(SubmissionDto.builder().additionalScore(5d).build())
         );
 
         int newAdditionalScore = 10;
@@ -1942,14 +1920,14 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
     }
 
     private ResultMatcher[] getSubmissionMatchers(
-            String prefix, long taskId, ZonedDateTime submittedAt, Integer additionalScore, long studentId,
+            String prefix, long taskId, ZonedDateTime submittedAt, Double additionalScore, long studentId,
             List<Long> satisfiedCriteria
     ) {
         return getSubmissionMatchers(prefix, null, taskId, submittedAt, additionalScore, studentId, satisfiedCriteria);
     }
 
     private ResultMatcher[] getSubmissionMatchers(
-            String prefix, Long id, long taskId, ZonedDateTime submittedAt, Integer additionalScore, long studentId,
+            String prefix, Long id, long taskId, ZonedDateTime submittedAt, Double additionalScore, long studentId,
             List<Long> satisfiedCriteria
     ) {
         return new ResultMatcher[]{

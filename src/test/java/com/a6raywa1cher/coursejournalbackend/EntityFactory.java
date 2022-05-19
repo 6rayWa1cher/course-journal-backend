@@ -270,7 +270,7 @@ public class EntityFactory {
     public long createSubmission(EntityFactoryBag bag) {
         SubmissionDto dto = SubmissionDto.builder()
                 .submittedAt(getFakedZonedDateTime(ZonedDateTime.now().minusDays(15), ZonedDateTime.now().plusDays(15)))
-                .additionalScore(faker.number().numberBetween(0, 5))
+                .additionalScore((double) faker.number().numberBetween(0, 5))
                 .task(bag.getTaskId())
                 .student(bag.getStudentId())
                 .satisfiedCriteria(new ArrayList<>())

@@ -30,5 +30,5 @@ public class SubmissionRestDto {
     private List<Long> satisfiedCriteria;
 
     @NotNull(groups = {OnCreate.class, OnUpdate.class})
-    private Integer additionalScore;
+    private Double additionalScore;
 }

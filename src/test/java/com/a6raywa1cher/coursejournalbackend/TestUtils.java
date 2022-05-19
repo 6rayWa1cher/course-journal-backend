@@ -59,16 +59,16 @@ public final class TestUtils {
         }
     }
 
-    public static final class GreaterThanMatcher extends BaseMatcher<Integer> {
-        private final int value;
+    public static final class GreaterThanMatcher extends BaseMatcher<Double> {
+        private final double value;
 
-        public GreaterThanMatcher(int value) {
+        public GreaterThanMatcher(double value) {
             this.value = value;
         }
 
         @Override
         public boolean matches(Object actual) {
-            return ((int) actual) > value;
+            return ((double) actual) > value;
         }
 
         @Override
@@ -77,16 +77,16 @@ public final class TestUtils {
         }
     }
 
-    public static final class NotEqualsMatcher extends BaseMatcher<Integer> {
-        private final int value;
+    public static final class NotEqualsMatcher extends BaseMatcher<Double> {
+        private final double value;
 
-        public NotEqualsMatcher(int value) {
+        public NotEqualsMatcher(double value) {
             this.value = value;
         }
 
         @Override
         public boolean matches(Object actual) {
-            return ((int) actual) != value;
+            return Math.abs((double) actual - value) > 0.00001;
         }
 
         @Override
