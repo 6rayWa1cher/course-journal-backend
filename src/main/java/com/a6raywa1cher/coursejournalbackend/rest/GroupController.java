@@ -18,14 +18,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/groups")
-public class GroupConroller {
+public class GroupController {
 
     private final GroupService service;
 
     private final MapStructRestDtoMapper mapper;
 
     @Autowired
-    public GroupConroller(GroupService service, MapStructRestDtoMapper mapper) {
+    public GroupController(GroupService service, MapStructRestDtoMapper mapper) {
         this.service = service;
         this.mapper = mapper;
     }
@@ -39,6 +39,12 @@ public class GroupConroller {
     @GetMapping("/faculty/{id}")
     public List<GroupDto> getByFaculty(@PathVariable long id) {
         return service.getByFaculty(id, Sort.by("id"));
+    }
+
+    @GetMapping("/course/{id}")
+    @PreAuthorize("@accessChecker.readCourseAccess(#id, authentication)")
+    public List<GroupDto> getByCourse(@PathVariable long id) {
+        return service.getByCourse(id, Sort.by("id"));
     }
 
     @PostMapping("/")

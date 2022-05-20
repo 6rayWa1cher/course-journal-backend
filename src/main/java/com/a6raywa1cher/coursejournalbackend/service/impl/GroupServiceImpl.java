@@ -5,6 +5,7 @@ import com.a6raywa1cher.coursejournalbackend.dto.exc.ConflictException;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.NotFoundException;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.TransferNotAllowedException;
 import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
+import com.a6raywa1cher.coursejournalbackend.model.Course;
 import com.a6raywa1cher.coursejournalbackend.model.Faculty;
 import com.a6raywa1cher.coursejournalbackend.model.Group;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
@@ -50,6 +51,14 @@ public class GroupServiceImpl implements GroupService {
     public List<GroupDto> getByFaculty(long facultyId, Sort sort) {
         Faculty faculty = getFacultyById(facultyId);
         return repository.getAllByFaculty(faculty, sort).stream()
+                .map(mapper::map)
+                .toList();
+    }
+
+    @Override
+    public List<GroupDto> getByCourse(long courseId, Sort sort) {
+        Course course = getCourseById(courseId);
+        return repository.getAllByCourse(course, sort).stream()
                 .map(mapper::map)
                 .toList();
     }
@@ -108,6 +117,10 @@ public class GroupServiceImpl implements GroupService {
 
     private Faculty getFacultyById(long id) {
         return facultyRepository.findById(id).orElseThrow(() -> new NotFoundException(Faculty.class, id));
+    }
+
+    private Course getCourseById(long id) {
+        return courseRepository.findById(id).orElseThrow(() -> new NotFoundException(Course.class, id));
     }
 
     private void assertUniqueFacultyAndNamePair(Faculty faculty, String name) {
