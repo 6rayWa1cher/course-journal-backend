@@ -3,6 +3,7 @@ package com.a6raywa1cher.coursejournalbackend;
 import com.a6raywa1cher.coursejournalbackend.model.AttendanceType;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.jayway.jsonpath.JsonPath;
+import net.minidev.json.JSONArray;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.springframework.test.web.servlet.MvcResult;
@@ -10,8 +11,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.util.Base64;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public final class TestUtils {
     public static String basic(String login, String password) {
@@ -92,6 +93,29 @@ public final class TestUtils {
         @Override
         public void describeTo(Description description) {
             description.appendValue(value);
+        }
+    }
+
+    public static final class ContainsAllIdsMatcher extends BaseMatcher<JSONArray> {
+        private final Set<Integer> expected;
+
+        public ContainsAllIdsMatcher(List<Long> expected) {
+            this.expected = expected.stream()
+                    .map(Math::toIntExact)
+                    .collect(Collectors.toSet());
+        }
+
+        @Override
+        public boolean matches(Object actual) {
+            Set<Integer> actualList = Arrays.stream(((JSONArray) actual).toArray())
+                    .map(o -> (int) o)
+                    .collect(Collectors.toSet());
+            return actualList.equals(expected);
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendValue(String.join(",", expected.stream().map(l -> Long.toString(l)).toList()));
         }
     }
 }

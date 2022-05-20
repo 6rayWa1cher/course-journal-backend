@@ -11,6 +11,7 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,7 +32,7 @@ public class Student implements IdEntity<Long> {
     private Group group;
 
     @ManyToMany(mappedBy = "students", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private List<Course> courses;
+    private List<Course> courses = new ArrayList<>();
 
     @Column(name = "first_name", nullable = false)
     private String firstName;
@@ -47,7 +48,7 @@ public class Student implements IdEntity<Long> {
 
     @OneToMany(mappedBy = "student", orphanRemoval = true, cascade = CascadeType.ALL)
     @ToString.Exclude
-    private List<Submission> submissions;
+    private List<Submission> submissions = new ArrayList<>();
 
     @Column(name = "created_at")
     @CreatedDate
