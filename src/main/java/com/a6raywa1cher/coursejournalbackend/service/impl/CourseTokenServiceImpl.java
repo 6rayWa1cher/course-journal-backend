@@ -78,6 +78,7 @@ public class CourseTokenServiceImpl implements CourseTokenService {
     @Override
     public void delete(long id) {
         CourseToken courseToken = getCourseTokenById(id);
+        courseToken.getCourse().setCourseToken(null);
         repository.delete(courseToken);
     }
 
