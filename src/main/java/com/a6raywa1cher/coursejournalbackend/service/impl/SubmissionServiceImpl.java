@@ -319,8 +319,19 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
     private void setSatisfiedCriteria(Submission submission, List<Criteria> satisfiedCriteria) {
+        List<Criteria> originalList = submission.getSatisfiedCriteria();
+        if (originalList.equals(satisfiedCriteria)) return;
+        for (Criteria originalStudent : originalList) {
+            if (!satisfiedCriteria.contains(originalStudent)) {
+                originalStudent.getSubmissionList().remove(submission);
+            }
+        }
+        for (Criteria newStudent : satisfiedCriteria) {
+            if (!originalList.contains(newStudent)) {
+                newStudent.getSubmissionList().add(submission);
+            }
+        }
         submission.setSatisfiedCriteria(satisfiedCriteria);
-        satisfiedCriteria.forEach(c -> c.getSubmissionList().add(submission));
     }
 
     private List<Criteria> pickCriteria(Map<Long, Criteria> criteriaMap, List<Long> ids) {

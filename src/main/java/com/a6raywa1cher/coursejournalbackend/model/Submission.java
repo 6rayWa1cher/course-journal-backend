@@ -11,6 +11,7 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -52,7 +53,7 @@ public class Submission implements IdEntity<Long> {
             }
     )
     @ToString.Exclude
-    private List<Criteria> satisfiedCriteria;
+    private List<Criteria> satisfiedCriteria = new ArrayList<>();
 
     @Column(name = "main_score", precision = 3, scale = 2)
     private Double mainScore;
