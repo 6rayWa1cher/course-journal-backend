@@ -14,14 +14,12 @@ RUN chmod +x mvnw
 # Download all dependecies
 RUN ./mvnw dependency:go-offline -B
 
-# Copy .git for plugin
-COPY ./.git ./.git
 
 # Copy the project source
 COPY ./src ./src
 COPY ./pom.xml ./pom.xml
 
-RUN ./mvnw package -DskipTests
+RUN ./mvnw package -DskipTests -Dmaven.gitcommitid.skip=true
 
 FROM openjdk:17-alpine
 WORKDIR /app
