@@ -22,8 +22,7 @@ public class TaskRestDto {
     @Pattern(regexp = COMMON_NAME)
     private String title;
 
-    @Min(0)
-    @Max(25000)
+    @Size(max = 25000)
     private String description;
 
     @PositiveOrZero
