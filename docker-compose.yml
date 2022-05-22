@@ -17,7 +17,7 @@ services:
       - JSON_REST_SECURITY_JWT_SECRET=${SECRET:-generate}
       - JSON_REST_SECURITY_CORS_ALLOWED_ORIGINS=${ORIGINS:-[]}
     ports:
-      - '8080:8080'
+      - '${PORT:-8080}:8080'
 
   cj_db:
     image: "postgres:14.1-alpine"
