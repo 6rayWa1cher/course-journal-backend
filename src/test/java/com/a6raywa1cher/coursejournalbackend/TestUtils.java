@@ -10,6 +10,8 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.Period;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,6 +54,24 @@ public final class TestUtils {
         @Override
         public boolean matches(Object actual) {
             return Duration.between(date, ZonedDateTime.parse((String) actual)).toMillis() < 1;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendValue(date);
+        }
+    }
+
+    public static final class LocalDateMatcher extends BaseMatcher<String> {
+        private final LocalDate date;
+
+        public LocalDateMatcher(LocalDate date) {
+            this.date = date;
+        }
+
+        @Override
+        public boolean matches(Object actual) {
+            return Period.between(date, LocalDate.parse((String) actual)).getDays() < 1;
         }
 
         @Override

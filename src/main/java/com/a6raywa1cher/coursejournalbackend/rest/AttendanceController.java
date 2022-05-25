@@ -1,6 +1,8 @@
 package com.a6raywa1cher.coursejournalbackend.rest;
 
+import com.a6raywa1cher.coursejournalbackend.dto.AttendanceConflictListDto;
 import com.a6raywa1cher.coursejournalbackend.dto.AttendanceDto;
+import com.a6raywa1cher.coursejournalbackend.dto.TableDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.AttendanceRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchCreateAttendancesDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.MapStructRestDtoMapper;
@@ -15,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -44,6 +47,20 @@ public class AttendanceController {
     @PreAuthorize("@accessChecker.readCourseAccess(#courseId, authentication)")
     public List<AttendanceDto> getByCourseAndStudent(@PathVariable long courseId, @PathVariable long studentId) {
         return service.getByCourseAndStudentIds(courseId, studentId, Sort.by("id"));
+    }
+
+    @GetMapping("/table/{courseId}")
+    @PreAuthorize("@accessChecker.readCourseAccess(#courseId, authentication)")
+    public TableDto getTableByCourseAndDatePeriod(@PathVariable long courseId, @RequestParam String fromDate,
+                                             @RequestParam String toDate) {
+        return service.getAttendancesTableByDatePeriod(courseId, LocalDate.parse(fromDate), LocalDate.parse(toDate));
+    }
+
+    @GetMapping("/conflicts/{courseId}")
+    @PreAuthorize("@accessChecker.readCourseAccess(#courseId, authentication)")
+    public AttendanceConflictListDto getConflictsInTableByCourseAndDatePeriod(@PathVariable long courseId, @RequestParam String fromDate,
+                                                                              @RequestParam String toDate) {
+        return service.getAttendanceConflictsByDatePeriodAndClass(courseId, LocalDate.parse(fromDate), LocalDate.parse(toDate));
     }
 
     @PostMapping("/")
