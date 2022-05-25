@@ -2,7 +2,7 @@
 # APPLICATION
 # ===============================
 app:
-  version: '@project.version@ c:@git.commit.id.abbrev@_@git.build.time@ b:@maven.build.timestamp@'
+  version: '@project.version@ b:@maven.build.timestamp@'
 # ===============================
 # SPRING
 # ===============================
@@ -10,6 +10,8 @@ spring:
   jmx:
     default-domain: com.a6raywa1cher.coursejournalbackend
     unique-names: true
+server:
+  forward-headers-strategy: framework
 # ===============================
 # DB CONNECTION
 # ===============================
@@ -39,13 +41,5 @@ springdoc:
 # ===============================
 #json-rest-security:
 #  jwt:
-#    secret: 0hLPKPapgfrwB1m4aL0Bez343MhodEdnMU3JxZnw0NGYGRNYNf97kpSweD3H1Tj
+#    secret: generate # use https://www.grc.com/passwords.htm
 #    access-duration: P1D
-json-rest-security:
-  jwt:
-    secret: 0hLPKPapgfrwB1m4aL0Bez343MhodEdnMU3JxZnw0NGYGRNYNf97kpSweD3H1Tj
-  cors-allowed-origins:
-    - http://localhost:3000
-  first-user:
-    username: admin
-    password: admin

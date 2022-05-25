@@ -1,26 +1,26 @@
-version: '3.3'
+version: "3.3"
 
 services:
-  app:
+  cj_app:
     build:
-      context: .
-    container_name: app
+      context: https://github.com/6rayWa1cher/course-journal-backend.git
     networks:
       - private_network
     depends_on:
-      - db
+      - cj_db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/compose-postgres
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://cj_db:5432/compose-postgres
       - SPRING_DATASOURCE_USERNAME=compose-postgres
       - SPRING_DATASOURCE_PASSWORD=compose-postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - SPRING_PROFILES_ACTIVE=${PROFILE}
+      - SPRING_PROFILES_ACTIVE=${PROFILE:-prod}
+      - JSON_REST_SECURITY_JWT_SECRET=${SECRET:-generate}
+      - JSON_REST_SECURITY_CORS_ALLOWED_ORIGINS=${ORIGINS:-[]}
     ports:
-      - '8080:8080'
+      - '${PORT:-8080}:8080'
 
-  db:
-    image: 'postgres:14.1-alpine'
-    container_name: db
+  cj_db:
+    image: "postgres:14.1-alpine"
     networks:
       - private_network
     environment:

@@ -7,7 +7,6 @@ import lombok.Data;
 import javax.validation.constraints.*;
 import java.time.ZonedDateTime;
 
-import static com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary.COMMON_DESCRIPTION;
 import static com.a6raywa1cher.coursejournalbackend.validation.RegexLibrary.COMMON_NAME;
 
 @Data
@@ -23,7 +22,7 @@ public class TaskRestDto {
     @Pattern(regexp = COMMON_NAME)
     private String title;
 
-    @Pattern(regexp = COMMON_DESCRIPTION)
+    @Size(max = 25000)
     private String description;
 
     @PositiveOrZero

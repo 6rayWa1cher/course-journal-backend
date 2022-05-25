@@ -5,7 +5,5 @@ public final class RegexLibrary {
 
     public static final String COMMON_NAME = "^.{1,250}$";
 
-    public static final String COMMON_DESCRIPTION = "^.{1,25000}$";
-
     public static final String CRITERIA_NAME = "^[^$]{1,150}$";
 }
