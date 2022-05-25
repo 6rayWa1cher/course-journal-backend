@@ -2,11 +2,9 @@ package com.a6raywa1cher.coursejournalbackend.service.impl;
 
 import com.a6raywa1cher.coursejournalbackend.dto.AttendanceConflictListDto;
 import com.a6raywa1cher.coursejournalbackend.dto.AttendanceDto;
+import com.a6raywa1cher.coursejournalbackend.dto.StudentDto;
 import com.a6raywa1cher.coursejournalbackend.dto.TableDto;
-import com.a6raywa1cher.coursejournalbackend.dto.exc.ConflictException;
-import com.a6raywa1cher.coursejournalbackend.dto.exc.NotFoundException;
-import com.a6raywa1cher.coursejournalbackend.dto.exc.TransferNotAllowedException;
-import com.a6raywa1cher.coursejournalbackend.dto.exc.VariousParentEntitiesException;
+import com.a6raywa1cher.coursejournalbackend.dto.exc.*;
 import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
 import com.a6raywa1cher.coursejournalbackend.model.Attendance;
 import com.a6raywa1cher.coursejournalbackend.model.Course;
@@ -78,13 +76,17 @@ public class AttendanceServiceImpl implements AttendanceService {
                 course,
                 fromDate,
                 toDate,
-                Sort.by(Sort.DEFAULT_DIRECTION, "attendedDate", "attendedClass")
+                Sort.by("attendedDate", "attendedClass")
         );
+        TableDto tableDto = new TableDto();
         if (attendances.size() == 0) {
-            return null;
+            List<StudentDto> studentsDto = studentService.getByCourseId(courseId, Sort.by("id"));
+            for (StudentDto studentDto : studentsDto) {
+                tableDto.addTableBodyElement(studentDto.getId(), 0);
+            }
+            return tableDto;
         }
         Map<Student, Integer> studentsToIndexMap = new HashMap<>();
-        TableDto tableDto = new TableDto();
         for (Attendance attendance : attendances) {
             Student currentStudent = attendance.getStudent();
             studentsToIndexMap.put(currentStudent, null);
@@ -115,19 +117,19 @@ public class AttendanceServiceImpl implements AttendanceService {
     public AttendanceConflictListDto getAttendanceConflictsByDatePeriodAndClass(long courseId, LocalDate fromDate, LocalDate toDate) {
         assertFromDateBeforeToDate(fromDate, toDate);
         Course course = getCourseById(courseId);
+        AttendanceConflictListDto conflicts = new AttendanceConflictListDto();
         List<Attendance> attendances = repository.getAllConflictsByCourseAndDatePeriod(
                 course,
                 fromDate,
                 toDate,
-                Sort.by(Sort.DEFAULT_DIRECTION, "attendedDate", "attendedClass")
+                Sort.by("attendedDate", "attendedClass")
         );
         if (attendances.size() == 0) {
-            return null;
+            return conflicts;
         }
         Employee teacher = attendances.get(0).getCourse().getOwner();
-        String teacherFullName = teacher.getFirstName() + (teacher.getMiddleName() != null ? ' ' + teacher.getMiddleName() : "") + ' ' + teacher.getLastName();
-        AttendanceConflictListDto conflicts = new AttendanceConflictListDto();
-        for (int i = 0; i < attendances.size(); i += 2) {
+        String teacherFullName = teacher.getLastName() + ' ' + teacher.getFirstName() + (teacher.getMiddleName() != null ? ' ' + teacher.getMiddleName() : "");
+        for (int i = 0; i < attendances.size(); i++) {
             Attendance attendance = attendances.get(i);
             AttendanceConflictListDto.AttendanceConflict newConflict = new AttendanceConflictListDto.AttendanceConflict(
                     teacherFullName,
@@ -230,7 +232,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     private void assertFromDateBeforeToDate(LocalDate fromDate, LocalDate toDate) {
         if (fromDate.isAfter(toDate)) {
-            throw new TransferNotAllowedException(Attendance.class, "attendance", fromDate.toString(), toDate.toString());
+            throw new WrongDatesException(fromDate.toString(), toDate.toString());
         }
     }
 

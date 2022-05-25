@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 public class AttendanceConflictListDto {
     @Data
-    static public class AttendanceConflict {
+    public static class AttendanceConflict {
         private String conflictedTeacherFullName;
 
         private String conflictedCourseName;

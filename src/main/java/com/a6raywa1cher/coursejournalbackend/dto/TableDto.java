@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 public class TableDto {
     @Data
-    static public class TableBodyElement {
+    public static class TableBodyElement {
         private Long studentId;
         private List<AttendanceType> attendances;
 

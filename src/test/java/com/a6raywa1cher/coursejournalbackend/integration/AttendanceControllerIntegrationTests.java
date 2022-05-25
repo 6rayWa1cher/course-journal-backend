@@ -506,6 +506,16 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
         return new RequestContext<>(request, matchers);
     }
+    RequestContext<ObjectNode> createGetTableWithoutAttendancesByCourse(List<Long> students) {
+        ObjectNode request = objectMapper.createObjectNode();
+
+        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
+                jsonPath(prefix + ".header").isEmpty(),
+                jsonPath(prefix + ".body[0].studentId").value(students.get(0)),
+                jsonPath(prefix + ".body[1].studentId").value(students.get(1))
+        };
+        return new RequestContext<>(request, matchers);
+    }
 
     @Test
     void getTable__self__valid() {
@@ -561,6 +571,30 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
     }
 
     @Test
+    void getTable__withoutAttendances__valid() {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
+            @Override
+            void run() throws Exception {
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> students = List.of(studentId1, studentId2);
+
+                long courseId = ef.createCourse(ef.bag().withEmployeeId(getSelfEmployeeIdAsLong()).withDto(CourseFullDto.builder()
+                                .students(students)
+                        .build()));
+
+                LocalDate fromDate = LocalDate.now().minusDays(3);
+                LocalDate toDate = LocalDate.now();
+                var context = createGetTableWithoutAttendancesByCourse(students);
+
+                securePerform(get("/attendances/table/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
+            }
+        };
+    }
+
+    @Test
     void getTable__fromDateAfterToDate__invalid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
@@ -611,7 +645,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 for (long studentId : studentIds) {
                     AttendanceType attendanceType = TestUtils.randomAttendanceType();
                     AttendanceConflictListDto.AttendanceConflict conflict = new AttendanceConflictListDto.AttendanceConflict(
-                            teacherFirstName + ' ' + teacherLastName,
+                            teacherLastName + ' ' + teacherFirstName,
                             courseName,
                             studentId,
                             date,
@@ -648,6 +682,14 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
         return new RequestContext<>(request, matchers);
     }
+    RequestContext<ObjectNode> createGetConflictsWithoutConflictsByCourse(List<Long> studentIds) {
+        ObjectNode request = objectMapper.createObjectNode();
+
+        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
+                jsonPath(prefix + ".conflicts").isEmpty(),
+        };
+        return new RequestContext<>(request, matchers);
+    }
 
     @Test
     void getConflicts__self__valid() {
@@ -670,7 +712,6 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         };
     }
 
-
     @Test
     void getConflicts__otherAsAdmin__valid() {
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
@@ -692,7 +733,6 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         };
     }
 
-
     @Test
     void getConflicts__otherAsTeacher__invalid() {
         new WithUser(USERNAME, PASSWORD) {
@@ -708,6 +748,27 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                         .build()));
                 securePerform(get("/attendances/conflicts/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
                         .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getConflicts__withoutConflicts__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                LocalDate fromDate = LocalDate.now();
+                LocalDate toDate = fromDate.plusDays(3);
+                long student1 = ef.createStudent();
+                long student2 = ef.createStudent();
+                List<Long> studentIds = List.of(student1, student2);
+                long courseId = ef.createCourse(ef.bag().withEmployeeId(getSelfEmployeeIdAsLong()).withDto(CourseFullDto.builder()
+                        .students(studentIds)
+                        .build()));
+                var context = createGetConflictsWithoutConflictsByCourse(studentIds);
+                securePerform(get("/attendances/conflicts/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
             }
         };
     }
