@@ -1,6 +1,10 @@
 package com.a6raywa1cher.coursejournalbackend.rest;
 
+import com.a6raywa1cher.coursejournalbackend.dto.AttendanceConflictListDto;
 import com.a6raywa1cher.coursejournalbackend.dto.AttendanceDto;
+import com.a6raywa1cher.coursejournalbackend.dto.TableDto;
+import com.a6raywa1cher.coursejournalbackend.dto.exc.TransferNotAllowedException;
+import com.a6raywa1cher.coursejournalbackend.dto.exc.WrongDatesException;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.AttendanceRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchCreateAttendancesDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.MapStructRestDtoMapper;
@@ -15,6 +19,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @RestController
@@ -44,6 +50,23 @@ public class AttendanceController {
     @PreAuthorize("@accessChecker.readCourseAccess(#courseId, authentication)")
     public List<AttendanceDto> getByCourseAndStudent(@PathVariable long courseId, @PathVariable long studentId) {
         return service.getByCourseAndStudentIds(courseId, studentId, Sort.by("id"));
+    }
+
+    @GetMapping("/table/{courseId}")
+    @PreAuthorize("@accessChecker.readCourseAccess(#courseId, authentication)")
+    public TableDto getTableByCourseAndDatePeriod(@PathVariable long courseId, @RequestParam String fromDate,
+                                             @RequestParam String toDate) {
+        LocalDate parsedFromDate = parseStringToLocalDate(fromDate);
+        LocalDate parsedToDate = parseStringToLocalDate(toDate);
+        return service.getAttendancesTableByDatePeriod(courseId, parsedFromDate, parsedToDate);
+    }
+
+    @GetMapping("/conflicts/{courseId}")
+    @PreAuthorize("@accessChecker.readCourseAccess(#courseId, authentication)")
+    public AttendanceConflictListDto getConflictsInTableByCourseAndDatePeriod(@PathVariable long courseId, @RequestParam String fromDate, @RequestParam String toDate) {
+        LocalDate parsedFromDate = parseStringToLocalDate(fromDate);
+        LocalDate parsedToDate = parseStringToLocalDate(toDate);
+        return service.getAttendanceConflictsByDatePeriodAndClass(courseId, parsedFromDate, parsedToDate);
     }
 
     @PostMapping("/")
@@ -83,5 +106,13 @@ public class AttendanceController {
     @PreAuthorize("@accessChecker.editAttendanceAccess(#id, authentication)")
     public void delete(@PathVariable long id) {
         service.delete(id);
+    }
+
+    private LocalDate parseStringToLocalDate(String date) {
+        try {
+            return LocalDate.parse(date);
+        } catch (DateTimeParseException e) {
+            throw new WrongDatesException(date);
+        }
     }
 }

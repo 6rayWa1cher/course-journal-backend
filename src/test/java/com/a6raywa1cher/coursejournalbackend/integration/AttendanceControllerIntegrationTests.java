@@ -2,7 +2,7 @@ package com.a6raywa1cher.coursejournalbackend.integration;
 
 import com.a6raywa1cher.coursejournalbackend.RequestContext;
 import com.a6raywa1cher.coursejournalbackend.TestUtils;
-import com.a6raywa1cher.coursejournalbackend.dto.AttendanceDto;
+import com.a6raywa1cher.coursejournalbackend.dto.*;
 import com.a6raywa1cher.coursejournalbackend.model.AttendanceType;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.a6raywa1cher.coursejournalbackend.service.AttendanceService;
@@ -18,8 +18,15 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -424,6 +431,376 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         mvc.perform(get("/attendances/course/{id}", id)).andExpect(status().isUnauthorized());
     }
 
+    // =================================================================================================================
+
+    RequestContext<ObjectNode> createGetTableByCourseAndDatePeriod(long courseId, LocalDate fromDate, LocalDate toDate) {
+        List<LocalDate> dates = new ArrayList<>();
+        fromDate.datesUntil(toDate).forEach(dates::add);
+        int classNumber1 = faker.number().numberBetween(1, 14);
+        int classNumber2 = classNumber1 + 1;
+        int classNumber3 = classNumber2 + 1;
+        List<Integer> classes = List.of(classNumber1, classNumber2, classNumber3);
+        long studentId1 = ef.createStudent(ef.bag().withCourseId(courseId));
+        long studentId2 = ef.createStudent(ef.bag().withCourseId(courseId));
+        List<Long> studentIds = List.of(studentId1, studentId2);
+        List<AttendanceType> attendanceTypes = new ArrayList<>();
+
+        List<TableDto.TableHeaderElement> header = new ArrayList<>();
+        List<TableDto.TableBodyElement> body = new ArrayList<>();
+
+        for (Long studentId : studentIds) {
+            for (LocalDate date : dates) {
+                for (Integer classNumber : classes) {
+                    AttendanceType attendanceType = TestUtils.randomAttendanceType();
+                    attendanceTypes.add(attendanceType);
+                    ef.createAttendance(ef.bag().withStudentId(studentId).withCourseId(courseId).withDto(AttendanceDto.builder()
+                            .attendedDate(date)
+                            .attendanceType(attendanceType)
+                            .attendedClass(classNumber)
+                            .build()));
+                }
+            }
+        }
+
+        for (LocalDate date : dates) {
+            for (Integer classNumber : classes) {
+                TableDto.TableHeaderElement headerElement = new TableDto.TableHeaderElement(date, classNumber);
+                header.add(headerElement);
+            }
+        }
+
+        int headerSize = header.size();
+
+        for (int i = 0; i < studentIds.size(); i++) {
+            TableDto.TableBodyElement bodyElement = new TableDto.TableBodyElement(studentIds.get(i), attendanceTypes.subList(i * headerSize, (i + 1) * headerSize));
+            body.add(bodyElement);
+        }
+
+        ObjectNode request = objectMapper.createObjectNode()
+                .put("fromDate", String.valueOf(fromDate))
+                .put("toDate", String.valueOf(toDate));
+
+        Function<String, ResultMatcher[]> matchers = prefix -> Stream.concat(
+                IntStream.range(0, headerSize)
+                        .boxed()
+                        .flatMap(i -> {
+                            TableDto.TableHeaderElement headerElement = header.get(i);
+                            return Stream.of(
+                                    jsonPath(prefix + ".header[%d].classNumber".formatted(i)).value(headerElement.getClassNumber()),
+                                    jsonPath(prefix + ".header[%d].date".formatted(i), new TestUtils.LocalDateMatcher(headerElement.getDate()))
+                            );
+                        }),
+                IntStream.range(0, body.size())
+                        .boxed()
+                        .flatMap(i -> {
+                            TableDto.TableBodyElement bodyElement = body.get(i);
+                            return Stream.of(
+                                    jsonPath(prefix + ".body[%d].studentId".formatted(i)).value(bodyElement.getStudentId()),
+                                    jsonPath(prefix + ".body[%d].attendances".formatted(i),
+                                            contains(bodyElement.getAttendances().stream()
+                                                    .map(AttendanceType::toString)
+                                                    .toArray(String[]::new)))
+                            );
+                        })
+        ).toArray(ResultMatcher[]::new);
+
+        return new RequestContext<>(request, matchers);
+    }
+    RequestContext<ObjectNode> createGetTableWithoutAttendancesByCourse(List<Long> students) {
+        ObjectNode request = objectMapper.createObjectNode();
+
+        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
+                jsonPath(prefix + ".header").isEmpty(),
+                jsonPath(prefix + ".body[0].studentId").value(students.get(0)),
+                jsonPath(prefix + ".body[1].studentId").value(students.get(1))
+        };
+        return new RequestContext<>(request, matchers);
+    }
+
+    @Test
+    void getTable__self__valid() {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse(ef.bag().withEmployeeId(getSelfEmployeeIdAsLong()));
+
+                LocalDate fromDate = LocalDate.now().minusDays(3);
+                LocalDate toDate = LocalDate.now();
+                var context = createGetTableByCourseAndDatePeriod(courseId, fromDate, toDate);
+
+                securePerform(get("/attendances/table/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
+            }
+        };
+    }
+
+    @Test
+    void getTable__otherAsAdmin__valid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse();
+
+                LocalDate fromDate = LocalDate.now().minusDays(3);
+                LocalDate toDate = LocalDate.now();
+                var context = createGetTableByCourseAndDatePeriod(courseId, fromDate, toDate);
+
+                securePerform(get("/attendances/table/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
+            }
+        };
+    }
+
+    @Test
+    void getTable__otherAsTeacher__invalid() {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse(ef.bag());
+
+                LocalDate fromDate = LocalDate.now().minusDays(3);
+                LocalDate toDate = LocalDate.now();
+                createGetTableByCourseAndDatePeriod(courseId, fromDate, toDate);
+
+                securePerform(get("/attendances/table/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getTable__withoutAttendances__valid() {
+        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
+            @Override
+            void run() throws Exception {
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> students = List.of(studentId1, studentId2);
+
+                long courseId = ef.createCourse(ef.bag().withEmployeeId(getSelfEmployeeIdAsLong()).withDto(CourseFullDto.builder()
+                                .students(students)
+                        .build()));
+
+                LocalDate fromDate = LocalDate.now().minusDays(3);
+                LocalDate toDate = LocalDate.now();
+                var context = createGetTableWithoutAttendancesByCourse(students);
+
+                securePerform(get("/attendances/table/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
+            }
+        };
+    }
+
+    @Test
+    void getTable__fromDateAfterToDate__invalid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                long courseId = ef.createCourse();
+
+                LocalDate fromDate = LocalDate.now().plusDays(3);
+                LocalDate toDate = LocalDate.now();
+
+                securePerform(get("/attendances/table/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
+                        .andExpect(status().isBadRequest());
+            }
+        };
+    }
+
+    @Test
+    void getTable__notAuthenticated__invalid() throws Exception {
+        long courseId = ef.createCourse(ef.bag());
+        LocalDate fromDate = LocalDate.now().plusDays(3);
+        LocalDate toDate = LocalDate.now();
+
+        mvc.perform(get("/attendances/table/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
+                .andExpect(status().isUnauthorized());
+    }
+
+    // =================================================================================================================
+
+    RequestContext<ObjectNode> createGetConflictsByCourseAndDatePeriod(List<Long> studentIds, LocalDate fromDate, LocalDate toDate) {
+        AttendanceConflictListDto conflicts = new AttendanceConflictListDto();
+        List<LocalDate> dates = new ArrayList<>();
+        fromDate.datesUntil(toDate).forEach(dates::add);
+        int classNumber1 = faker.number().numberBetween(1, 14);
+        int classNumber2 = classNumber1 + 1;
+        List<Integer> classNumbers = List.of(classNumber1, classNumber2);
+        String teacherFirstName = faker.name().firstName();
+        String teacherLastName = faker.name().lastName();
+        long teacher = ef.createEmployee(ef.bag().withDto(EmployeeDto.builder()
+                        .firstName(teacherFirstName)
+                        .lastName(teacherLastName)
+                .build()));
+        String courseName = faker.lorem().sentence(3);
+        long course = ef.createCourse(ef.bag().withEmployeeId(teacher).withDto(CourseFullDto.builder()
+                        .name(courseName)
+                .build()));
+
+        for (LocalDate date : dates) {
+            for (int classNumber : classNumbers) {
+                for (long studentId : studentIds) {
+                    AttendanceType attendanceType = TestUtils.randomAttendanceType();
+                    AttendanceConflictListDto.AttendanceConflict conflict = new AttendanceConflictListDto.AttendanceConflict(
+                            teacherLastName + ' ' + teacherFirstName,
+                            courseName,
+                            studentId,
+                            date,
+                            classNumber,
+                            attendanceType
+                    );
+                    conflicts.addAttendanceConflictToList(conflict);
+                    ef.createAttendance(ef.bag().withCourseId(course).withStudentId(studentId).withDto(AttendanceDto.builder()
+                                    .attendedClass(classNumber)
+                                    .attendedDate(date)
+                                    .attendanceType(attendanceType)
+                            .build()));
+                }
+            }
+        }
+
+        ObjectNode request = objectMapper.createObjectNode()
+                .put("fromDate", String.valueOf(fromDate))
+                .put("toDate", String.valueOf(toDate));
+
+        Function<String, ResultMatcher[]> matchers = prefix -> IntStream.range(0, dates.size() * 4)
+            .boxed()
+            .flatMap(i -> {
+                AttendanceConflictListDto.AttendanceConflict conflict = conflicts.get(i);
+                return Stream.of(
+                        jsonPath(prefix + ".conflicts[%d].attendedClass".formatted(i)).value(conflict.getAttendedClass()),
+                        jsonPath(prefix + ".conflicts[%d].attendedDate".formatted(i), new TestUtils.LocalDateMatcher(conflict.getAttendedDate())),
+                        jsonPath(prefix + ".conflicts[%d].attendanceType".formatted(i)).value(conflict.getAttendanceType().toString()),
+                        jsonPath(prefix + ".conflicts[%d].conflictedTeacherFullName".formatted(i)).value(conflict.getConflictedTeacherFullName()),
+                        jsonPath(prefix + ".conflicts[%d].studentId".formatted(i)).value(conflict.getStudentId()),
+                        jsonPath(prefix + ".conflicts[%d].conflictedCourseName".formatted(i)).value(conflict.getConflictedCourseName())
+                        );
+            }).toArray(ResultMatcher[]::new);
+
+        return new RequestContext<>(request, matchers);
+    }
+    RequestContext<ObjectNode> createGetConflictsWithoutConflictsByCourse(List<Long> studentIds) {
+        ObjectNode request = objectMapper.createObjectNode();
+
+        Function<String, ResultMatcher[]> matchers = prefix -> new ResultMatcher[]{
+                jsonPath(prefix + ".conflicts").isEmpty(),
+        };
+        return new RequestContext<>(request, matchers);
+    }
+
+    @Test
+    void getConflicts__self__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                LocalDate fromDate = LocalDate.now();
+                LocalDate toDate = fromDate.plusDays(3);
+                long student1 = ef.createStudent();
+                long student2 = ef.createStudent();
+                List<Long> studentIds = List.of(student1, student2);
+                long courseId = ef.createCourse(ef.bag().withEmployeeId(getSelfEmployeeIdAsLong()).withDto(CourseFullDto.builder()
+                                .students(studentIds)
+                        .build()));
+                var context = createGetConflictsByCourseAndDatePeriod(studentIds, fromDate, toDate);
+                securePerform(get("/attendances/conflicts/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
+            }
+        };
+    }
+
+    @Test
+    void getConflicts__otherAsAdmin__valid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                LocalDate fromDate = LocalDate.now();
+                LocalDate toDate = fromDate.plusDays(3);
+                long student1 = ef.createStudent();
+                long student2 = ef.createStudent();
+                List<Long> studentIds = List.of(student1, student2);
+                long courseId = ef.createCourse(ef.bag().withDto(CourseFullDto.builder()
+                        .students(studentIds)
+                        .build()));
+                var context = createGetConflictsByCourseAndDatePeriod(studentIds, fromDate, toDate);
+                securePerform(get("/attendances/conflicts/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
+            }
+        };
+    }
+
+    @Test
+    void getConflicts__otherAsTeacher__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                LocalDate fromDate = LocalDate.now();
+                LocalDate toDate = fromDate.plusDays(3);
+                long student1 = ef.createStudent();
+                long student2 = ef.createStudent();
+                List<Long> studentIds = List.of(student1, student2);
+                long courseId = ef.createCourse(ef.bag().withDto(CourseFullDto.builder()
+                        .students(studentIds)
+                        .build()));
+                securePerform(get("/attendances/conflicts/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getConflicts__withoutConflicts__valid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                LocalDate fromDate = LocalDate.now();
+                LocalDate toDate = fromDate.plusDays(3);
+                long student1 = ef.createStudent();
+                long student2 = ef.createStudent();
+                List<Long> studentIds = List.of(student1, student2);
+                long courseId = ef.createCourse(ef.bag().withEmployeeId(getSelfEmployeeIdAsLong()).withDto(CourseFullDto.builder()
+                        .students(studentIds)
+                        .build()));
+                var context = createGetConflictsWithoutConflictsByCourse(studentIds);
+                securePerform(get("/attendances/conflicts/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
+                        .andExpect(status().isOk())
+                        .andExpectAll(context.getMatchers());
+            }
+        };
+    }
+
+    @Test
+    void getConflicts__fromDateAfterToDate__invalid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                LocalDate fromDate = LocalDate.now();
+                LocalDate toDate = fromDate.minusDays(3);
+                long courseId = ef.createCourse();
+
+                securePerform(get("/attendances/conflicts/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
+                        .andExpect(status().isBadRequest());
+            }
+        };
+    }
+
+    @Test
+    void getConflicts__notAuthenticated__invalid() throws Exception {
+        LocalDate fromDate = LocalDate.now();
+        LocalDate toDate = fromDate.plusDays(3);
+        long student1 = ef.createStudent();
+        long student2 = ef.createStudent();
+        List<Long> studentIds = List.of(student1, student2);
+        long courseId = ef.createCourse(ef.bag().withDto(CourseFullDto.builder()
+                .students(studentIds)
+                .build()));
+        mvc.perform(get("/attendances/conflicts/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
+                .andExpect(status().isUnauthorized());
+    }
 
     // =================================================================================================================
 
