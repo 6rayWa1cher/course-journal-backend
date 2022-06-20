@@ -33,6 +33,7 @@ public class Employee implements IdEntity<Long> {
     private Long id;
 
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "employee", orphanRemoval = true)
+    @ToString.Exclude
     private AuthUser authUser;
 
     @Column(name = "first_name")

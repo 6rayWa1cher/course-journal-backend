@@ -1165,6 +1165,7 @@ public class SubmissionControllerIntegrationTests extends AbstractIntegrationTes
 
                 var ctx = prepareSetForStudentAndCourseRequest(courseId, studentId);
                 ObjectNode request = ctx.getRequest();
+                System.out.println(request.toString());
 
                 // WHEN
                 securePerform(post("/submissions/course/{cid}/student/{sid}/set", courseId, studentId)

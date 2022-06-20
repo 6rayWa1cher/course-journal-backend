@@ -6,16 +6,13 @@ import com.a6raywa1cher.coursejournalbackend.dto.StudentDto;
 import com.a6raywa1cher.coursejournalbackend.dto.TableDto;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.*;
 import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
-import com.a6raywa1cher.coursejournalbackend.model.Attendance;
-import com.a6raywa1cher.coursejournalbackend.model.Course;
-import com.a6raywa1cher.coursejournalbackend.model.Employee;
-import com.a6raywa1cher.coursejournalbackend.model.Student;
+import com.a6raywa1cher.coursejournalbackend.model.*;
 import com.a6raywa1cher.coursejournalbackend.model.repo.AttendanceRepository;
 import com.a6raywa1cher.coursejournalbackend.service.AttendanceService;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
+import com.a6raywa1cher.coursejournalbackend.service.GroupService;
 import com.a6raywa1cher.coursejournalbackend.service.StudentService;
 import com.a6raywa1cher.coursejournalbackend.utils.CommonUtils;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -35,6 +32,8 @@ public class AttendanceServiceImpl implements AttendanceService {
     private StudentService studentService;
 
     private CourseService courseService;
+
+    private GroupService groupService;
 
     public AttendanceServiceImpl(AttendanceRepository attendanceRepository, MapStructMapper mapper) {
         this.repository = attendanceRepository;
@@ -79,22 +78,23 @@ public class AttendanceServiceImpl implements AttendanceService {
                 Sort.by("attendedDate", "attendedClass")
         );
         TableDto tableDto = new TableDto();
+        List<StudentDto> studentsDto = studentService.getByCourseId(courseId, Sort.by("id"));
         if (attendances.size() == 0) {
-            List<StudentDto> studentsDto = studentService.getByCourseId(courseId, Sort.by("id"));
             for (StudentDto studentDto : studentsDto) {
-                tableDto.addTableBodyElement(studentDto.getId(), 0);
+                String studentName = studentDto.getLastName() + ' ' + studentDto.getFirstName() + (studentDto.getMiddleName() != null ? ' ' + studentDto.getMiddleName() : "");
+                tableDto.addTableBodyElement(studentDto.getId(), 0, studentName, studentDto.getGroup());
             }
             return tableDto;
         }
-        Map<Student, Integer> studentsToIndexMap = new HashMap<>();
+        Map<Long, Integer> studentsToIndexMap = new HashMap<>();
         for (Attendance attendance : attendances) {
-            Student currentStudent = attendance.getStudent();
-            studentsToIndexMap.put(currentStudent, null);
             tableDto.addTableHeaderElement(attendance.getAttendedDate(), attendance.getAttendedClass());
         }
-        for (Student student : studentsToIndexMap.keySet()) {
-            tableDto.addTableBodyElement(student.getId(), tableDto.getHeader().size());
-            studentsToIndexMap.replace(student, tableDto.getBody().size() - 1);
+        for (StudentDto studentDto : studentsDto) {
+            String studentName = studentDto.getLastName() + ' ' + studentDto.getFirstName() + (studentDto.getMiddleName() != null ? ' ' + studentDto.getMiddleName() : "");
+            tableDto.addTableBodyElement(studentDto.getId(), tableDto.getHeader().size(), studentName, studentDto.getGroup());
+            studentsToIndexMap.put(studentDto.getId(), tableDto.getBody().size() - 1);
+
         }
         int indexOfHeaderElement = 0;
         int classNumber = attendances.get(0).getAttendedClass();
@@ -102,15 +102,179 @@ public class AttendanceServiceImpl implements AttendanceService {
         for (Attendance attendance : attendances) {
             int currentClassNumber = attendance.getAttendedClass();
             LocalDate currentDate = attendance.getAttendedDate();
-            if (currentDate != date || currentClassNumber != classNumber) {
+            if (!currentDate.toString().equals(date.toString()) || currentClassNumber != classNumber) {
+
                 indexOfHeaderElement++;
                 classNumber = currentClassNumber;
                 date = currentDate;
             }
-            tableDto.addAttendanceToBody(studentsToIndexMap.get(attendance.getStudent()), indexOfHeaderElement,
+            tableDto.addAttendanceToBody(studentsToIndexMap.get(attendance.getStudent().getId()), indexOfHeaderElement,
+
                     attendance.getAttendanceType());
         }
         return tableDto;
+    }
+
+    @Override
+    public TableDto getAttendancesTableByDatePeriodAndGroup(long courseId, long groupId, LocalDate fromDate, LocalDate toDate) {
+        assertFromDateBeforeToDate(fromDate, toDate);
+        Course course = getCourseById(courseId);
+        Group group = getGroupById(groupId);
+        List<Attendance> attendances = repository.getAllByCourseAndStudentGroupAndAttendedDateBetween(
+                course,
+                group,
+                fromDate,
+                toDate,
+                Sort.by("attendedDate", "attendedClass")
+        );
+        TableDto tableDto = new TableDto();
+        List<StudentDto> studentsDto = studentService.getByCourseId(courseId, Sort.by("id"));
+        if (attendances.size() == 0) {
+            for (StudentDto studentDto : studentsDto) {
+                String studentName = studentDto.getLastName() + ' ' + studentDto.getFirstName() + (studentDto.getMiddleName() != null ? ' ' + studentDto.getMiddleName() : "");
+                tableDto.addTableBodyElement(studentDto.getId(), 0, studentName, studentDto.getGroup());
+            }
+            return tableDto;
+        }
+        Map<Long, Integer> studentsToIndexMap = new HashMap<>();
+        for (Attendance attendance : attendances) {
+            tableDto.addTableHeaderElement(attendance.getAttendedDate(), attendance.getAttendedClass());
+        }
+        for (StudentDto studentDto : studentsDto) {
+            String studentName = studentDto.getLastName() + ' ' + studentDto.getFirstName() + (studentDto.getMiddleName() != null ? ' ' + studentDto.getMiddleName() : "");
+            tableDto.addTableBodyElement(studentDto.getId(), tableDto.getHeader().size(), studentName, studentDto.getGroup());
+            studentsToIndexMap.put(studentDto.getId(), tableDto.getBody().size() - 1);
+        }
+        int indexOfHeaderElement = 0;
+        int classNumber = attendances.get(0).getAttendedClass();
+        LocalDate date = attendances.get(0).getAttendedDate();
+        for (Attendance attendance : attendances) {
+            int currentClassNumber = attendance.getAttendedClass();
+            LocalDate currentDate = attendance.getAttendedDate();
+            if (!currentDate.toString().equals(date.toString()) || currentClassNumber != classNumber) {
+                indexOfHeaderElement++;
+                classNumber = currentClassNumber;
+                date = currentDate;
+            }
+            tableDto.addAttendanceToBody(studentsToIndexMap.get(attendance.getStudent().getId()), indexOfHeaderElement,
+                    attendance.getAttendanceType());
+        }
+        return tableDto;
+    }
+
+    @Override
+    public TableDto saveTableToAttendances(TableDto tableDto, long courseId, LocalDate fromDate, LocalDate toDate) {
+        assertFromDateBeforeToDate(fromDate, toDate);
+        Course course = getCourseById(courseId);
+        List<Attendance> attendances = repository.getAllByCourseAndAttendedDateBetween(
+                course,
+                fromDate,
+                toDate,
+                Sort.by("attendedDate", "attendedClass", "student_id")
+        );
+        int i = 0;
+        int j = 0;
+        LocalDateTime now = LocalDateTime.now();
+        TableDto sortedTableDto = new TableDto();
+        sortedTableDto.setHeader(tableDto.getHeader());
+        List<TableDto.TableBodyElement> sortedBody = tableDto.getBody();
+        sortedBody.sort((element1, element2) -> element1.getStudentId() < element2.getStudentId() ? -1 : ((element1 == element2) ? 0 : 1));
+        sortedTableDto.setBody(sortedBody);
+        List<Attendance> toDelete = new ArrayList<>();
+        List<Attendance> toSave = new ArrayList<>();
+        Map<Long, Student> idToStudent = course.getStudents()
+                .stream()
+                .collect(Collectors.toMap(Student::getId, s -> s));
+
+        while (i < attendances.size() || j < sortedTableDto.getHeader().size()) {
+            int studentRunner = 0;
+            if (attendances.get(i).getAttendedDate().toString().equals(sortedTableDto.getHeader().get(j).getDate().toString()) &&
+                    Objects.equals(attendances.get(i).getAttendedClass(), sortedTableDto.getHeader().get(j).getClassNumber())) {
+                while (studentRunner < sortedTableDto.getBody().size() && i < attendances.size()) {
+                    Attendance attendance = attendances.get(i);
+                    TableDto.TableBodyElement tableStudent = sortedTableDto.getBody().get(studentRunner);
+                    if (Objects.equals(attendance.getStudent().getId(), tableStudent.getStudentId())) {
+                        AttendanceType newAttendanceType = tableStudent.getAttendances().get(j);
+                        if (attendance.getAttendanceType() != newAttendanceType) {
+                            toDelete.add(attendance);
+                            if (newAttendanceType != null) {
+                                Attendance newAttendance = new Attendance();
+                                newAttendance.setId(attendance.getId());
+                                newAttendance.setCourse(attendance.getCourse());
+                                newAttendance.setAttendanceType(newAttendanceType);
+                                newAttendance.setAttendedDate(attendance.getAttendedDate());
+                                newAttendance.setAttendedClass(attendance.getAttendedClass());
+                                newAttendance.setStudent(attendance.getStudent());
+                                newAttendance.setCreatedAt(attendance.getCreatedAt());
+                                newAttendance.setLastModifiedAt(now);
+                                toSave.add(newAttendance);
+                            }
+                        }
+                        i++;
+                    } else if (tableStudent.getAttendances().get(j) != null) {
+                        Attendance newAttendance = new Attendance();
+                        TableDto.TableHeaderElement headerElement = sortedTableDto.getHeader().get(j);
+                        newAttendance.setAttendedClass(headerElement.getClassNumber());
+                        newAttendance.setAttendedDate(headerElement.getDate());
+                        newAttendance.setAttendanceType(tableStudent.getAttendances().get(j));
+                        newAttendance.setStudent(idToStudent.get(tableStudent.getStudentId()));
+                        newAttendance.setCourse(course);
+                        newAttendance.setCreatedAt(now);
+                        newAttendance.setLastModifiedAt(now);
+                        toSave.add(newAttendance);
+                    }
+                    studentRunner++;
+                }
+            } else {
+                while (studentRunner < sortedTableDto.getBody().size()) {
+                    TableDto.TableBodyElement tableStudent = sortedTableDto.getBody().get(studentRunner);
+                    if (tableStudent.getAttendances().get(j) != null) {
+                        Attendance newAttendance = new Attendance();
+                        TableDto.TableHeaderElement headerElement = sortedTableDto.getHeader().get(j);
+                        newAttendance.setAttendedClass(headerElement.getClassNumber());
+                        newAttendance.setAttendedDate(headerElement.getDate());
+                        newAttendance.setAttendanceType(tableStudent.getAttendances().get(j));
+                        newAttendance.setStudent(idToStudent.get(tableStudent.getStudentId()));
+                        newAttendance.setCourse(course);
+                        newAttendance.setCreatedAt(now);
+                        newAttendance.setLastModifiedAt(now);
+                        toSave.add(newAttendance);
+                    }
+                    studentRunner++;
+                }
+            }
+            j++;
+        }
+        if (i == attendances.size() - 1) {
+            while (j < sortedTableDto.getHeader().size()) {
+                int studentRunner = 0;
+                while (studentRunner < sortedTableDto.getBody().size()) {
+                    TableDto.TableBodyElement tableStudent = sortedTableDto.getBody().get(studentRunner);
+                    if (tableStudent.getAttendances().get(j) != null) {
+                        Attendance newAttendance = new Attendance();
+                        TableDto.TableHeaderElement headerElement = sortedTableDto.getHeader().get(j);
+                        newAttendance.setAttendedClass(headerElement.getClassNumber());
+                        newAttendance.setAttendedDate(headerElement.getDate());
+                        newAttendance.setAttendanceType(tableStudent.getAttendances().get(j));
+                        newAttendance.setStudent(idToStudent.get(tableStudent.getStudentId()));
+                        newAttendance.setCourse(course);
+                        newAttendance.setCreatedAt(now);
+                        newAttendance.setLastModifiedAt(now);
+                        toSave.add(newAttendance);
+                    }
+                    studentRunner++;
+                }
+                j++;
+            }
+        } else if (j == sortedTableDto.getHeader().size() - 1) {
+            while (i < attendances.size()) {
+                toDelete.add(attendances.get(i));
+                i++;
+            }
+        }
+        repository.deleteAll(toDelete);
+        repository.saveAll(toSave);
+        return getAttendancesTableByDatePeriod(courseId, fromDate, toDate);
     }
 
     @Override
@@ -143,6 +307,40 @@ public class AttendanceServiceImpl implements AttendanceService {
         }
         return conflicts;
     }
+
+    @Override
+    public AttendanceConflictListDto getAttendanceConflictsByDatePeriodAndClassAndGroup(long courseId, long groupId, LocalDate fromDate, LocalDate toDate) {
+        assertFromDateBeforeToDate(fromDate, toDate);
+        Course course = getCourseById(courseId);
+        Group group = getGroupById(groupId);
+        AttendanceConflictListDto conflicts = new AttendanceConflictListDto();
+        List<Attendance> attendances = repository.getAllConflictsByCourseAndGroupAndDatePeriod(
+                course,
+                group,
+                fromDate,
+                toDate,
+                Sort.by("attendedDate", "attendedClass")
+        );
+        if (attendances.size() == 0) {
+            return conflicts;
+        }
+        Employee teacher = attendances.get(0).getCourse().getOwner();
+        String teacherFullName = teacher.getLastName() + ' ' + teacher.getFirstName() + (teacher.getMiddleName() != null ? ' ' + teacher.getMiddleName() : "");
+        for (int i = 0; i < attendances.size(); i++) {
+            Attendance attendance = attendances.get(i);
+            AttendanceConflictListDto.AttendanceConflict newConflict = new AttendanceConflictListDto.AttendanceConflict(
+                    teacherFullName,
+                    attendance.getCourse().getName(),
+                    attendance.getStudent().getId(),
+                    attendance.getAttendedDate(),
+                    attendance.getAttendedClass(),
+                    attendance.getAttendanceType()
+            );
+            conflicts.addAttendanceConflictToList(newConflict);
+        }
+        return conflicts;
+    }
+
 
     @Override
     public AttendanceDto create(AttendanceDto dto) {
@@ -219,6 +417,10 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     private Course getCourseById(long id) {
         return courseService.findRawById(id).orElseThrow(() -> new NotFoundException(Course.class, id));
+    }
+
+    private Group getGroupById(long id) {
+        return groupService.findRawById(id).orElseThrow(() -> new NotFoundException(Group.class, id));
     }
 
     private void assertUniqueByStudentAttendedDateAndAttendedClass(Student student, LocalDate date, Integer attendedClass) {

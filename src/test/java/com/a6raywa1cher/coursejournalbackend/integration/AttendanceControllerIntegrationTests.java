@@ -3,11 +3,14 @@ package com.a6raywa1cher.coursejournalbackend.integration;
 import com.a6raywa1cher.coursejournalbackend.RequestContext;
 import com.a6raywa1cher.coursejournalbackend.TestUtils;
 import com.a6raywa1cher.coursejournalbackend.dto.*;
+import com.a6raywa1cher.coursejournalbackend.integration.models.BodyInfo;
+import com.a6raywa1cher.coursejournalbackend.integration.models.HeaderInfo;
 import com.a6raywa1cher.coursejournalbackend.model.AttendanceType;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.a6raywa1cher.coursejournalbackend.service.AttendanceService;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
 import com.a6raywa1cher.coursejournalbackend.service.StudentService;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
@@ -433,16 +436,13 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
     // =================================================================================================================
 
-    RequestContext<ObjectNode> createGetTableByCourseAndDatePeriod(long courseId, LocalDate fromDate, LocalDate toDate) {
+    RequestContext<ObjectNode> createGetTableByCourseAndDatePeriod(long courseId, List<Long> studentIds, LocalDate fromDate, LocalDate toDate) {
         List<LocalDate> dates = new ArrayList<>();
         fromDate.datesUntil(toDate).forEach(dates::add);
         int classNumber1 = faker.number().numberBetween(1, 14);
         int classNumber2 = classNumber1 + 1;
         int classNumber3 = classNumber2 + 1;
         List<Integer> classes = List.of(classNumber1, classNumber2, classNumber3);
-        long studentId1 = ef.createStudent(ef.bag().withCourseId(courseId));
-        long studentId2 = ef.createStudent(ef.bag().withCourseId(courseId));
-        List<Long> studentIds = List.of(studentId1, studentId2);
         List<AttendanceType> attendanceTypes = new ArrayList<>();
 
         List<TableDto.TableHeaderElement> header = new ArrayList<>();
@@ -472,7 +472,8 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         int headerSize = header.size();
 
         for (int i = 0; i < studentIds.size(); i++) {
-            TableDto.TableBodyElement bodyElement = new TableDto.TableBodyElement(studentIds.get(i), attendanceTypes.subList(i * headerSize, (i + 1) * headerSize));
+            TableDto.TableBodyElement bodyElement = new TableDto.TableBodyElement(studentIds.get(i), attendanceTypes.subList(i * headerSize, (i + 1) * headerSize), "Alexandr", 0L);
+
             body.add(bodyElement);
         }
 
@@ -522,11 +523,18 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(ef.bag().withEmployeeId(getSelfEmployeeIdAsLong()));
+                long groupId = ef.createGroup();
+                long studentId1 = ef.createStudent(ef.bag().withGroupId(groupId));
+                long studentId2 = ef.createStudent(ef.bag().withGroupId(groupId));
+                List<Long> studentIds = List.of(studentId1, studentId2);
+                long courseId = ef.createCourse(ef.bag().withEmployeeId(getSelfEmployeeIdAsLong()).withDto(CourseFullDto.builder()
+                                .students(studentIds)
+                        .build()));
 
                 LocalDate fromDate = LocalDate.now().minusDays(3);
                 LocalDate toDate = LocalDate.now();
-                var context = createGetTableByCourseAndDatePeriod(courseId, fromDate, toDate);
+                var context = createGetTableByCourseAndDatePeriod(courseId, studentIds, fromDate, toDate);
+
 
                 securePerform(get("/attendances/table/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
                         .andExpect(status().isOk())
@@ -540,11 +548,16 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse();
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
+                long courseId = ef.createCourse(ef.bag().withDto(CourseFullDto.builder()
+                        .students(studentIds)
+                        .build()));
 
                 LocalDate fromDate = LocalDate.now().minusDays(3);
                 LocalDate toDate = LocalDate.now();
-                var context = createGetTableByCourseAndDatePeriod(courseId, fromDate, toDate);
+                var context = createGetTableByCourseAndDatePeriod(courseId, studentIds, fromDate, toDate);
 
                 securePerform(get("/attendances/table/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
                         .andExpect(status().isOk())
@@ -558,11 +571,16 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
         new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
             @Override
             void run() throws Exception {
-                long courseId = ef.createCourse(ef.bag());
+                long studentId1 = ef.createStudent();
+                long studentId2 = ef.createStudent();
+                List<Long> studentIds = List.of(studentId1, studentId2);
+                long courseId = ef.createCourse(ef.bag().withDto(CourseFullDto.builder()
+                        .students(studentIds)
+                        .build()));
 
                 LocalDate fromDate = LocalDate.now().minusDays(3);
                 LocalDate toDate = LocalDate.now();
-                createGetTableByCourseAndDatePeriod(courseId, fromDate, toDate);
+                createGetTableByCourseAndDatePeriod(courseId, studentIds, fromDate, toDate);
 
                 securePerform(get("/attendances/table/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
                         .andExpect(status().isForbidden());

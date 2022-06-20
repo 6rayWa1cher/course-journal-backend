@@ -13,15 +13,19 @@ public class TableDto {
     public static class TableBodyElement {
         private Long studentId;
         private List<AttendanceType> attendances;
+        private String studentName;
+        private Long studentGroup;
 
         public TableBodyElement() {
             this.attendances = new ArrayList<>();
             this.studentId = null;
         }
 
-        public TableBodyElement(Long studentId, List<AttendanceType> attendances) {
+        public TableBodyElement(Long studentId, List<AttendanceType> attendances, String studentName, Long studentGroup) {
             this.attendances = attendances;
             this.studentId = studentId;
+            this.studentGroup = studentGroup;
+            this.studentName = studentName;
         }
     }
 
@@ -53,9 +57,11 @@ public class TableDto {
         }
     }
 
-    public void addTableBodyElement(long studentId, long attendanceLength) {
+    public void addTableBodyElement(long studentId, long attendanceLength, String studentName, long studentGroup) {
         TableBodyElement newBodyElement = new TableBodyElement();
         newBodyElement.setStudentId(studentId);
+        newBodyElement.setStudentGroup(studentGroup);
+        newBodyElement.setStudentName(studentName);
         List<AttendanceType> attendances = new ArrayList<>();
         for (int i = 0; i < attendanceLength; i++) {
             attendances.add(null);

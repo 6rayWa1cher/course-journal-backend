@@ -21,7 +21,13 @@ public interface AttendanceService {
 
     TableDto getAttendancesTableByDatePeriod(long courseId, LocalDate start, LocalDate end);
 
+    TableDto getAttendancesTableByDatePeriodAndGroup(long courseId, long groupId, LocalDate start, LocalDate end);
+
+    TableDto saveTableToAttendances(TableDto tableDto, long courseId, LocalDate fromDate, LocalDate toDate);
+
     AttendanceConflictListDto getAttendanceConflictsByDatePeriodAndClass(long courseId, LocalDate start, LocalDate end);
+
+    AttendanceConflictListDto getAttendanceConflictsByDatePeriodAndClassAndGroup(long courseId, long groupId, LocalDate start, LocalDate end);
 
     AttendanceDto create(AttendanceDto dto);
 

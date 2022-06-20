@@ -24,6 +24,12 @@ public class AccessChecker {
         this.em = em;
     }
 
+    private boolean isHeadman(Authentication authentication) {
+        return authentication != null && authentication.getAuthorities()
+                .stream()
+                .anyMatch(ga -> ga.getAuthority().equals("ROLE_HEADMAN"));
+    }
+
     private boolean isTeacher(Authentication authentication) {
         return authentication != null && authentication.getAuthorities()
                 .stream()
@@ -91,6 +97,10 @@ public class AccessChecker {
 
     public boolean readCourseAccess(Long id, Authentication authentication) {
         return hasAuthority(id, Course.class, ActionType.READ, authentication);
+    }
+
+    public boolean readCourseByHeadman(Long id, Authentication authentication) {
+        return isAdmin(authentication) || isHeadman(authentication) && hasAuthority(id, Group.class, ActionType.READ, authentication);
     }
 
     public boolean editCourseAccess(Long id, Authentication authentication) {

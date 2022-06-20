@@ -3,6 +3,7 @@ package com.a6raywa1cher.coursejournalbackend.model.repo;
 import com.a6raywa1cher.coursejournalbackend.model.Course;
 import com.a6raywa1cher.coursejournalbackend.model.Employee;
 import com.a6raywa1cher.coursejournalbackend.model.Group;
+import com.a6raywa1cher.coursejournalbackend.model.Student;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -27,6 +28,6 @@ public interface CourseRepository extends PagingAndSortingRepository<Course, Lon
     @Query("select c.id from Course c where c.owner = :owner")
     List<Long> findByOwner(@Param("owner") Employee owner);
 
-    @Query("select c.id from Course c, Student s where s.group = :group group by c.id")
-    List<Long> findAllByGroup(@Param("group") Group group);
+    @Query("select c from Course c, Student s where s.group = :group group by c.id")
+    Page<Course> findAllByGroup(@Param("group") Group group, Pageable pageable);
 }

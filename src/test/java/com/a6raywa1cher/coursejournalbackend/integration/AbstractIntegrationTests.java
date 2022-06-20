@@ -76,6 +76,7 @@ public abstract class AbstractIntegrationTests {
     abstract class WithUser {
         private String username;
         private String password;
+        private long groupId;
 
         public WithUser(String username, String password, UserRole userRole) {
             this.username = username;
@@ -110,11 +111,13 @@ public abstract class AbstractIntegrationTests {
                     .build());
         }
 
-        private void createStudent() {
+        private void  createStudent() {
+            long groupId = ef.createGroup();
+            setGroupId(groupId);
             StudentDto dto = studentService.create(StudentDto.builder()
                     .firstName(faker.name().firstName())
                     .lastName(faker.name().lastName())
-                    .group(ef.createGroup())
+                    .group(getGroupId())
                     .build());
             authUserService.create(CreateEditAuthUserDto.builder()
                     .username(username)
@@ -186,6 +189,14 @@ public abstract class AbstractIntegrationTests {
 
         public void setUsername(String username) {
             this.username = username;
+        }
+
+        public long getGroupId() {
+            return groupId;
+        }
+
+        public void setGroupId(long groupId) {
+            this.groupId = groupId;
         }
 
         public String getPassword() {

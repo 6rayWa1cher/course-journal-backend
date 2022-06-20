@@ -61,7 +61,6 @@ public interface MapStructRestDtoMapper {
     @Mapping(target = "course", ignore = true)
     AttendanceDto map(BatchCreateAttendancesDto.AttendanceInfo attendanceInfo);
 
-
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "lastModifiedAt", ignore = true)
@@ -96,4 +95,6 @@ public interface MapStructRestDtoMapper {
     @Mapping(target = "mainScore", ignore = true)
     @Mapping(target = "student", ignore = true)
     SubmissionDto map(BatchSetForStudentAndCourseSubmissionRestDto.SubmissionSetRestDto dto);
+
+    TableDto map(TableRestDto dto);
 }
