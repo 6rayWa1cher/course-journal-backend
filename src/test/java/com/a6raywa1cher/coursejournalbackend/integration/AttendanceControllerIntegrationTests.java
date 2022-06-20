@@ -7,7 +7,6 @@ import com.a6raywa1cher.coursejournalbackend.integration.models.BodyInfo;
 import com.a6raywa1cher.coursejournalbackend.integration.models.HeaderInfo;
 import com.a6raywa1cher.coursejournalbackend.model.AttendanceType;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
-import com.a6raywa1cher.coursejournalbackend.rest.dto.TableRestDto;
 import com.a6raywa1cher.coursejournalbackend.service.AttendanceService;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
 import com.a6raywa1cher.coursejournalbackend.service.StudentService;
@@ -474,6 +473,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
         for (int i = 0; i < studentIds.size(); i++) {
             TableDto.TableBodyElement bodyElement = new TableDto.TableBodyElement(studentIds.get(i), attendanceTypes.subList(i * headerSize, (i + 1) * headerSize), "Alexandr", 0L);
+
             body.add(bodyElement);
         }
 
@@ -534,6 +534,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                 LocalDate fromDate = LocalDate.now().minusDays(3);
                 LocalDate toDate = LocalDate.now();
                 var context = createGetTableByCourseAndDatePeriod(courseId, studentIds, fromDate, toDate);
+
 
                 securePerform(get("/attendances/table/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
                         .andExpect(status().isOk())
@@ -635,132 +636,6 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
 
         mvc.perform(get("/attendances/table/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate))
                 .andExpect(status().isUnauthorized());
-    }
-
-    // =================================================================================================================
-
-    RequestContext<ObjectNode> createPostTableByCourseAndDatePeriod(long courseId, List<Long> studentIds, LocalDate fromDate, LocalDate toDate, List<Integer> classes, List<LocalDate> dates) {
-
-        List<AttendanceType> attendanceTypes = new ArrayList<>();
-
-        List<TableDto.TableHeaderElement> header = new ArrayList<>();
-        List<TableDto.TableBodyElement> body = new ArrayList<>();
-        List<HeaderInfo> headerInfos = new ArrayList<>();
-        List<BodyInfo> bodyInfos = new ArrayList<>();
-
-        for (Long studentId : studentIds) {
-            for (LocalDate date : dates) {
-                for (Integer classNumber : classes) {
-                    AttendanceType attendanceType = TestUtils.randomAttendanceType();
-                    attendanceTypes.add(attendanceType);
-                }
-            }
-        }
-
-        for (LocalDate date : dates) {
-            for (Integer classNumber : classes) {
-                TableDto.TableHeaderElement headerElement = new TableDto.TableHeaderElement(date, classNumber);
-                header.add(headerElement);
-                headerInfos.add(new HeaderInfo(headerElement));
-            }
-        }
-
-        int headerSize = header.size();
-
-        for (int i = 0; i < studentIds.size(); i++) {
-            TableDto.TableBodyElement bodyElement = new TableDto.TableBodyElement(studentIds.get(i), attendanceTypes.subList(i * headerSize, (i + 1) * headerSize), "Alexandr", 0L);
-            body.add(bodyElement);
-            bodyInfos.add(new BodyInfo(bodyElement));
-        }
-        ObjectNode request = objectMapper.createObjectNode();
-        ArrayNode bodyNode = request.putArray("body");
-        ArrayNode headerNode = request.putArray("header");
-//        for (BodyInfo bodyElement : bodyInfos) {
-//            bodyNode.add(objectMapper.valueToTree(bodyElement));
-//        }
-//        for (HeaderInfo headerElement : headerInfos) {
-//            headerNode.add(objectMapper.valueToTree(headerElement));
-//        }
-        for (TableDto.TableBodyElement bodyElement : body) {
-            bodyNode.add(String.valueOf(bodyElement));
-        }
-        for (TableDto.TableHeaderElement headerElement : header) {
-            bodyNode.add(String.valueOf(headerElement));
-        }
-
-        Function<String, ResultMatcher[]> matchers = prefix -> Stream.concat(
-                IntStream.range(0, headerSize)
-                        .boxed()
-                        .flatMap(i -> {
-                            TableDto.TableHeaderElement headerElement = header.get(i);
-                            return Stream.of(
-                                    jsonPath(prefix + ".header[%d].classNumber".formatted(i)).value(headerElement.getClassNumber()),
-                                    jsonPath(prefix + ".header[%d].date".formatted(i), new TestUtils.LocalDateMatcher(headerElement.getDate()))
-                            );
-                        }),
-                IntStream.range(0, body.size())
-                        .boxed()
-                        .flatMap(i -> {
-                            TableDto.TableBodyElement bodyElement = body.get(i);
-                            return Stream.of(
-                                    jsonPath(prefix + ".body[%d].studentId".formatted(i)).value(bodyElement.getStudentId()),
-                                    jsonPath(prefix + ".body[%d].attendances".formatted(i),
-                                            contains(bodyElement.getAttendances().stream()
-                                                    .map(AttendanceType::toString)
-                                                    .toArray(String[]::new)))
-                            );
-                        })
-        ).toArray(ResultMatcher[]::new);
-
-        return new RequestContext<>(request, matchers);
-    }
-
-    @Test
-    void postTable__self__valid() {
-        new WithUser(USERNAME, PASSWORD, UserRole.TEACHER) {
-            @Override
-            void run() throws Exception {
-                long groupId = ef.createGroup();
-                long studentId1 = ef.createStudent(ef.bag().withGroupId(groupId));
-                long studentId2 = ef.createStudent(ef.bag().withGroupId(groupId));
-                List<Long> studentIds = List.of(studentId1);
-                long courseId = ef.createCourse(ef.bag().withEmployeeId(getSelfEmployeeIdAsLong()).withDto(CourseFullDto.builder()
-                        .students(studentIds)
-                        .build()));
-
-                int classNumber1 = faker.number().numberBetween(1, 14);
-                int classNumber2 = classNumber1 + 1;
-                int classNumber3 = classNumber2 + 1;
-                List<Integer> classes = List.of(classNumber1, classNumber2);
-
-
-                LocalDate fromDate = LocalDate.now().minusDays(2);
-                LocalDate toDate = LocalDate.now();
-                List<LocalDate> dates = new ArrayList<>();
-                fromDate.datesUntil(toDate).forEach(dates::add);
-
-                for (Long studentId : studentIds) {
-                    for (LocalDate date : dates) {
-                        for (Integer classNumber : classes) {
-                            AttendanceType attendanceType = TestUtils.randomAttendanceType();
-                            ef.createAttendance(ef.bag().withStudentId(studentId).withCourseId(courseId).withDto(AttendanceDto.builder()
-                                    .attendedDate(date)
-                                    .attendanceType(attendanceType)
-                                    .attendedClass(classNumber)
-                                    .build()));
-                        }
-                    }
-                }
-
-                var context = createPostTableByCourseAndDatePeriod(courseId, studentIds, fromDate, toDate, classes, dates);
-
-                securePerform(post("/attendances/table/{courseId}?fromDate={fromDate}&toDate={toDate}", courseId, fromDate, toDate)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(context.getRequest().toString()))
-                        .andExpect(status().isOk())
-                        .andExpectAll(context.getMatchers());
-            }
-        };
     }
 
     // =================================================================================================================

@@ -7,7 +7,6 @@ import com.a6raywa1cher.coursejournalbackend.model.Student;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -43,6 +42,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
                                                           LocalDate toDate,
                                                           Sort sort);
 
+
     @Query("""
             select a1 from Attendance a1, Attendance a2 where 
             a1.attendedClass = a2.attendedClass and 
@@ -57,4 +57,5 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
                                                           LocalDate fromDate,
                                                           LocalDate toDate,
                                                           Sort sort);
+
 }

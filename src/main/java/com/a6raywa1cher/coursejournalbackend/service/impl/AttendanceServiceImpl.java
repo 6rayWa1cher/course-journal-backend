@@ -13,7 +13,6 @@ import com.a6raywa1cher.coursejournalbackend.service.CourseService;
 import com.a6raywa1cher.coursejournalbackend.service.GroupService;
 import com.a6raywa1cher.coursejournalbackend.service.StudentService;
 import com.a6raywa1cher.coursejournalbackend.utils.CommonUtils;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -95,6 +94,7 @@ public class AttendanceServiceImpl implements AttendanceService {
             String studentName = studentDto.getLastName() + ' ' + studentDto.getFirstName() + (studentDto.getMiddleName() != null ? ' ' + studentDto.getMiddleName() : "");
             tableDto.addTableBodyElement(studentDto.getId(), tableDto.getHeader().size(), studentName, studentDto.getGroup());
             studentsToIndexMap.put(studentDto.getId(), tableDto.getBody().size() - 1);
+
         }
         int indexOfHeaderElement = 0;
         int classNumber = attendances.get(0).getAttendedClass();
@@ -103,11 +103,13 @@ public class AttendanceServiceImpl implements AttendanceService {
             int currentClassNumber = attendance.getAttendedClass();
             LocalDate currentDate = attendance.getAttendedDate();
             if (!currentDate.toString().equals(date.toString()) || currentClassNumber != classNumber) {
+
                 indexOfHeaderElement++;
                 classNumber = currentClassNumber;
                 date = currentDate;
             }
             tableDto.addAttendanceToBody(studentsToIndexMap.get(attendance.getStudent().getId()), indexOfHeaderElement,
+
                     attendance.getAttendanceType());
         }
         return tableDto;

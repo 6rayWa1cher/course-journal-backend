@@ -3,7 +3,6 @@ package com.a6raywa1cher.coursejournalbackend.rest;
 import com.a6raywa1cher.coursejournalbackend.dto.AttendanceConflictListDto;
 import com.a6raywa1cher.coursejournalbackend.dto.AttendanceDto;
 import com.a6raywa1cher.coursejournalbackend.dto.TableDto;
-import com.a6raywa1cher.coursejournalbackend.dto.exc.TransferNotAllowedException;
 import com.a6raywa1cher.coursejournalbackend.dto.exc.WrongDatesException;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.AttendanceRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchCreateAttendancesDto;
