@@ -7,10 +7,12 @@ import com.a6raywa1cher.coursejournalbackend.dto.exc.NotFoundException;
 import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
 import com.a6raywa1cher.coursejournalbackend.model.Course;
 import com.a6raywa1cher.coursejournalbackend.model.Employee;
+import com.a6raywa1cher.coursejournalbackend.model.Group;
 import com.a6raywa1cher.coursejournalbackend.model.Student;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
 import com.a6raywa1cher.coursejournalbackend.service.EmployeeService;
+import com.a6raywa1cher.coursejournalbackend.service.GroupService;
 import com.a6raywa1cher.coursejournalbackend.service.StudentService;
 import com.a6raywa1cher.coursejournalbackend.utils.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,12 +39,15 @@ public class CourseServiceImpl implements CourseService {
 
     private final StudentService studentService;
 
+    private final GroupService groupService;
+
     @Autowired
-    public CourseServiceImpl(CourseRepository repository, MapStructMapper mapper, EmployeeService employeeService, @Lazy StudentService studentService) {
+    public CourseServiceImpl(CourseRepository repository, MapStructMapper mapper, EmployeeService employeeService, @Lazy StudentService studentService, GroupService groupService) {
         this.repository = repository;
         this.mapper = mapper;
         this.employeeService = employeeService;
         this.studentService = studentService;
+        this.groupService = groupService;
     }
 
 
@@ -81,6 +86,12 @@ public class CourseServiceImpl implements CourseService {
     public Page<CourseDto> getByOwnerAndNameContains(long ownerId, String name, Pageable pageable) {
         Employee owner = getUserById(ownerId);
         return repository.findByOwnerAndNameContains(owner, name.toLowerCase(Locale.ROOT), pageable).map(mapper::map);
+    }
+
+    @Override
+    public Page<CourseFullDto> getByGroupId(long groupId, Pageable pageable) {
+        Group group = getGroupById(groupId);
+        return repository.findAllByGroup(group, pageable).map(mapper::mapFull);
     }
 
     @Override
@@ -162,6 +173,14 @@ public class CourseServiceImpl implements CourseService {
             throw new NotFoundException(Student.class, EntityUtils.getAnyNotFound(rawById, ids));
         }
         return new ArrayList<>(rawById);
+    }
+
+    private Group getGroupById(long groupId) {
+        Optional<Group> rawById = groupService.findRawById(groupId);
+        if (rawById.isEmpty()) {
+            throw new NotFoundException(Group.class, groupId);
+        }
+        return rawById.get();
     }
 
     private void assertNameNotChangedOrAvailable(String before, String now, Employee beforeEmployee, Employee afterEmployee) {

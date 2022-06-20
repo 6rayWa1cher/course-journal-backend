@@ -8,6 +8,7 @@ import com.a6raywa1cher.coursejournalbackend.dto.exc.WrongDatesException;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.AttendanceRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchCreateAttendancesDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.MapStructRestDtoMapper;
+import com.a6raywa1cher.coursejournalbackend.rest.dto.TableRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnCreate;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnPatch;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnUpdate;
@@ -61,12 +62,29 @@ public class AttendanceController {
         return service.getAttendancesTableByDatePeriod(courseId, parsedFromDate, parsedToDate);
     }
 
+    @GetMapping("/table/{courseId}/group/{groupId}")
+    @PreAuthorize("@accessChecker.readCourseByHeadman(#groupId, authentication)")
+    public TableDto getTableByCourseAndGroupAndDatePeriod(@PathVariable long courseId, @PathVariable long groupId, @RequestParam String fromDate,
+                                                  @RequestParam String toDate) {
+        LocalDate parsedFromDate = parseStringToLocalDate(fromDate);
+        LocalDate parsedToDate = parseStringToLocalDate(toDate);
+        return service.getAttendancesTableByDatePeriodAndGroup(courseId, groupId, parsedFromDate, parsedToDate);
+    }
+
     @GetMapping("/conflicts/{courseId}")
     @PreAuthorize("@accessChecker.readCourseAccess(#courseId, authentication)")
     public AttendanceConflictListDto getConflictsInTableByCourseAndDatePeriod(@PathVariable long courseId, @RequestParam String fromDate, @RequestParam String toDate) {
         LocalDate parsedFromDate = parseStringToLocalDate(fromDate);
         LocalDate parsedToDate = parseStringToLocalDate(toDate);
         return service.getAttendanceConflictsByDatePeriodAndClass(courseId, parsedFromDate, parsedToDate);
+    }
+
+    @GetMapping("/conflicts/{courseId}/group/{groupId}")
+    @PreAuthorize("@accessChecker.readCourseByHeadman(#courseId, authentication)")
+    public AttendanceConflictListDto getConflictsInTableByCourseAndDatePeriod(@PathVariable long courseId, @PathVariable long groupId, @RequestParam String fromDate, @RequestParam String toDate) {
+        LocalDate parsedFromDate = parseStringToLocalDate(fromDate);
+        LocalDate parsedToDate = parseStringToLocalDate(toDate);
+        return service.getAttendanceConflictsByDatePeriodAndClassAndGroup(courseId, groupId, parsedFromDate, parsedToDate);
     }
 
     @PostMapping("/")
@@ -86,6 +104,16 @@ public class AttendanceController {
                 .map(mapper::map)
                 .peek(d -> d.setCourse(dto.getCourse()))
                 .toList());
+    }
+
+    @PostMapping("/table/{courseId}")
+    @PreAuthorize("@accessChecker.readCourseAccess(#courseId, authentication)")
+    public TableDto saveTableToAttendances(@RequestBody TableRestDto dto, @PathVariable long courseId, @RequestParam String fromDate,
+                                           @RequestParam String toDate) {
+        System.out.println(dto);
+        LocalDate parsedFromDate = parseStringToLocalDate(fromDate);
+        LocalDate parsedToDate = parseStringToLocalDate(toDate);
+        return service.saveTableToAttendances(mapper.map(dto), courseId, parsedFromDate, parsedToDate);
     }
 
     @PutMapping("/{id}")

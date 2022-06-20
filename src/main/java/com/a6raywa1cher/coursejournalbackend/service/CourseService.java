@@ -25,6 +25,8 @@ public interface CourseService {
 
     Page<CourseDto> getByOwnerAndNameContains(long ownerId, String name, Pageable pageable);
 
+    Page<CourseFullDto> getByGroupId(long groupId, Pageable pageable);
+
     CourseFullDto create(CourseFullDto dto);
 
     CourseFullDto update(long id, CourseFullDto dto);

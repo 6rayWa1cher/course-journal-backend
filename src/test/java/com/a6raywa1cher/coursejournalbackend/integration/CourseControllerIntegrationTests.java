@@ -3,6 +3,10 @@ package com.a6raywa1cher.coursejournalbackend.integration;
 import com.a6raywa1cher.coursejournalbackend.RequestContext;
 import com.a6raywa1cher.coursejournalbackend.TestUtils;
 import com.a6raywa1cher.coursejournalbackend.dto.CourseFullDto;
+import com.a6raywa1cher.coursejournalbackend.dto.GroupDto;
+import com.a6raywa1cher.coursejournalbackend.dto.StudentDto;
+import com.a6raywa1cher.coursejournalbackend.model.Student;
+import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
 import com.a6raywa1cher.coursejournalbackend.model.repo.EmployeeRepository;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
@@ -401,6 +405,166 @@ public class CourseControllerIntegrationTests extends AbstractIntegrationTests {
         };
     }
 
+
+    // ================================================================================================================
+
+    @Test
+    void getCourseByStudent__self__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                long groupId = ef.createGroup();
+                long studentId = ef.createStudent(ef.bag().withGroupId(groupId));
+                ef.createCourse(ef.bag().withDto(CourseFullDto.builder()
+                                .students(List.of(studentId))
+                                .owner(getSelfEmployeeIdAsLong())
+                        .build()));
+
+                securePerform(get("/courses/group/{id}", groupId)
+                        .queryParam("sort", "name,asc"))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getCourseByGroup__otherAsAdmin__valid() {
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                long employeeId = ef.createEmployee();
+                long groupId = ef.createGroup();
+                long studentId1 = ef.createStudent(ef.bag().withGroupId(groupId));
+                long studentId2 = ef.createStudent(ef.bag().withGroupId(groupId));
+                long studentId3 = ef.createStudent(ef.bag().withGroupId(groupId));
+
+                String courseName1 = "A" + faker.lorem().sentence();
+                ef.createCourse(ef.bag().withDto(CourseFullDto.builder()
+                        .owner(employeeId)
+                        .students(List.of(studentId1, studentId2))
+                        .name(courseName1)
+                        .build()));
+                String courseName2 = "B" + faker.lorem().sentence();
+                ef.createCourse(ef.bag().withDto(CourseFullDto.builder()
+                        .owner(employeeId)
+                        .students(List.of(studentId1, studentId3))
+                        .name(courseName2)
+                        .build()));
+
+                securePerform(get("/courses/group/{id}", groupId)
+                        .queryParam("sort", "name,asc"))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.totalElements").value(2))
+                        .andExpect(jsonPath("$.content[0].name").value(courseName1))
+                        .andExpect(jsonPath("$.content[1].name").value(courseName2));
+            }
+        };
+    }
+
+    @Test
+    void getCourseByStudent__otherAsTeacher__invalid() {
+        new WithUser(USERNAME, PASSWORD) {
+            @Override
+            void run() throws Exception {
+                long employeeId = ef.createEmployee();
+                long groupId = ef.createGroup();
+                long studentId = ef.createStudent(ef.bag().withGroupId(groupId));
+                ef.createCourse(ef.bag().withDto(CourseFullDto.builder()
+                        .students(List.of(studentId))
+                        .owner(employeeId)
+                        .build()));
+
+                securePerform(get("/courses/group/{id}", groupId)
+                        .queryParam("sort", "name,asc"))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getCourseByGroup__selfAsHeadman__valid() {
+        new WithUser(USERNAME, PASSWORD, UserRole.HEADMAN) {
+            @Override
+            void run() throws Exception {
+                long employeeId = ef.createEmployee();
+                long studentId1 = ef.createStudent(ef.bag().withGroupId(getGroupId()));
+                long studentId2 = ef.createStudent(ef.bag().withGroupId(getGroupId()));
+                long studentId3 = ef.createStudent(ef.bag().withGroupId(getGroupId()));
+
+                String courseName1 = "A" + faker.lorem().sentence();
+                ef.createCourse(ef.bag().withDto(CourseFullDto.builder()
+                        .owner(employeeId)
+                        .students(List.of(studentId1, studentId2))
+                        .name(courseName1)
+                        .build()));
+                String courseName2 = "B" + faker.lorem().sentence();
+                ef.createCourse(ef.bag().withDto(CourseFullDto.builder()
+                        .owner(employeeId)
+                        .students(List.of(studentId1, studentId3))
+                        .name(courseName2)
+                        .build()));
+
+                securePerform(get("/courses/group/{id}", getGroupId())
+                        .queryParam("sort", "name,asc"))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.totalElements").value(2))
+                        .andExpect(jsonPath("$.content[0].name").value(courseName1))
+                        .andExpect(jsonPath("$.content[1].name").value(courseName2));
+            }
+        };
+    }
+
+    @Test
+    void getCourseByGroup__otherAsHeadman__valid() {
+        new WithUser(USERNAME, PASSWORD, UserRole.HEADMAN) {
+            @Override
+            void run() throws Exception {
+                long employeeId = ef.createEmployee();
+                long groupId = ef.createGroup();
+                long studentId1 = ef.createStudent(ef.bag().withGroupId(groupId));
+                long studentId2 = ef.createStudent(ef.bag().withGroupId(groupId));
+                long studentId3 = ef.createStudent(ef.bag().withGroupId(groupId));
+
+                String courseName1 = "A" + faker.lorem().sentence();
+                ef.createCourse(ef.bag().withDto(CourseFullDto.builder()
+                        .owner(employeeId)
+                        .students(List.of(studentId1, studentId2))
+                        .name(courseName1)
+                        .build()));
+                String courseName2 = "B" + faker.lorem().sentence();
+                ef.createCourse(ef.bag().withDto(CourseFullDto.builder()
+                        .owner(employeeId)
+                        .students(List.of(studentId1, studentId3))
+                        .name(courseName2)
+                        .build()));
+
+                securePerform(get("/courses/group/{id}", groupId)
+                        .queryParam("sort", "name,asc"))
+                        .andExpect(status().isForbidden());
+            }
+        };
+    }
+
+    @Test
+    void getCourseByGroup__notExists__invalid() {
+        long groupId = ef.createGroup();
+
+        new WithUser(ADMIN_USERNAME, ADMIN_PASSWORD, false) {
+            @Override
+            void run() throws Exception {
+                securePerform(get("/group/{id}", getGroupId() + 1000))
+                        .andExpect(status().isNotFound());
+            }
+        };
+    }
+
+    @Test
+    void getCourseByGroup__notAuthenticated__invalid() throws Exception {
+        long groupId = ef.createGroup();
+
+        mvc.perform(get("/group/{id}", groupId))
+                .andExpect(status().isUnauthorized());
+    }
 
     // ================================================================================================================
 

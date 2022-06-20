@@ -44,6 +44,7 @@ public class Student implements IdEntity<Long> {
     private String middleName;
 
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "student", orphanRemoval = true)
+    @ToString.Exclude
     private AuthUser authUser;
 
     @OneToMany(mappedBy = "student", orphanRemoval = true, cascade = CascadeType.ALL)
