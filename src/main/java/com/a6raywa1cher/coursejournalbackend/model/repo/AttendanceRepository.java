@@ -27,7 +27,13 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
     List<Attendance> getAllByCourseAndAttendedDateBetween(Course course, LocalDate start, LocalDate end, Sort sort);
 
-    List<Attendance> getAllByCourseAndStudentGroupAndAttendedDateBetween(Course course, Group group, LocalDate start, LocalDate end, Sort sort);
+    @Query("""
+            select a from Attendance a where 
+            a.course = :course and 
+            a.student.group = :group and 
+            a.attendedDate between :fromDate and :toDate
+            """)
+    List<Attendance> getAllByCourseAndStudentGroupAndAttendedDateBetween(Course course, Group group, LocalDate fromDate, LocalDate toDate, Sort sort);
 
     @Query("""
             select a1 from Attendance a1, Attendance a2 where 

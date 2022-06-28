@@ -99,7 +99,7 @@ public class AccessChecker {
         return hasAuthority(id, Course.class, ActionType.READ, authentication);
     }
 
-    public boolean readCourseByHeadman(Long id, Authentication authentication) {
+    public boolean readCourseAsHeadman(Long id, Authentication authentication) {
         return isAdmin(authentication) || isHeadman(authentication) && hasAuthority(id, Group.class, ActionType.READ, authentication);
     }
 

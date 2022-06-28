@@ -1,9 +1,9 @@
 package com.a6raywa1cher.coursejournalbackend.security;
 
-import com.a6raywa1cher.coursejournalbackend.model.AuthUser;
-import com.a6raywa1cher.coursejournalbackend.model.Employee;
-import com.a6raywa1cher.coursejournalbackend.model.UserRole;
+import com.a6raywa1cher.coursejournalbackend.dto.exc.NotFoundException;
+import com.a6raywa1cher.coursejournalbackend.model.*;
 import com.a6raywa1cher.coursejournalbackend.model.repo.CourseRepository;
+import com.a6raywa1cher.coursejournalbackend.model.repo.GroupRepository;
 import com.a6raywa1cher.jsonrestsecurity.component.authority.GrantedAuthorityService;
 import com.a6raywa1cher.jsonrestsecurity.component.checker.UserEnabledChecker;
 import com.a6raywa1cher.jsonrestsecurity.dao.model.IUser;
@@ -19,10 +19,12 @@ import static com.a6raywa1cher.coursejournalbackend.security.Permission.*;
 public class GrantedAuthorityServiceImpl implements GrantedAuthorityService {
     private final UserEnabledChecker userEnabledChecker;
     private final CourseRepository courseRepository;
+    private final GroupRepository groupRepository;
 
-    public GrantedAuthorityServiceImpl(UserEnabledChecker userEnabledChecker, CourseRepository courseRepository) {
+    public GrantedAuthorityServiceImpl(UserEnabledChecker userEnabledChecker, CourseRepository courseRepository, GroupRepository groupRepository) {
         this.userEnabledChecker = userEnabledChecker;
         this.courseRepository = courseRepository;
+        this.groupRepository = groupRepository;
     }
 
     private static GrantedAuthority newAuthority(String authority) {
@@ -45,6 +47,9 @@ public class GrantedAuthorityServiceImpl implements GrantedAuthorityService {
             }
             case HEADMAN -> {
                 long groupId = authUser.getStudent().getGroup().getId();
+                Group group = getRawGroupById(groupId);
+                List<Course> courses = courseRepository.findAllByGroupWithoutPage(group);
+                courses.forEach(course -> set.add(newAuthority(getPermissionForCourse(course, ActionType.READ))));
                 set.add(newAuthority(getPermissionForGroup(groupId, ActionType.READ)));
                 set.add(newAuthority(getPermissionForGroup(groupId, ActionType.WRITE_ATTENDANCE)));
             }
@@ -77,5 +82,9 @@ public class GrantedAuthorityServiceImpl implements GrantedAuthorityService {
             set.add(new SimpleGrantedAuthority("ENABLED"));
         }
         return Collections.unmodifiableSet(set);
+    }
+
+    private Group getRawGroupById(Long groupId) {
+        return groupRepository.findById(groupId).orElseThrow(() -> new NotFoundException(Group.class, groupId));
     }
 }

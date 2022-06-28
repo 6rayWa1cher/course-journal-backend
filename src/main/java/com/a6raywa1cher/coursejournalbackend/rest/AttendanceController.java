@@ -62,7 +62,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/table/{courseId}/group/{groupId}")
-    @PreAuthorize("@accessChecker.readCourseByHeadman(#groupId, authentication)")
+    @PreAuthorize("@accessChecker.readCourseAsHeadman(#groupId, authentication)")
     public TableDto getTableByCourseAndGroupAndDatePeriod(@PathVariable long courseId, @PathVariable long groupId, @RequestParam String fromDate,
                                                   @RequestParam String toDate) {
         LocalDate parsedFromDate = parseStringToLocalDate(fromDate);
@@ -79,7 +79,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/conflicts/{courseId}/group/{groupId}")
-    @PreAuthorize("@accessChecker.readCourseByHeadman(#courseId, authentication)")
+    @PreAuthorize("@accessChecker.readCourseAsHeadman(#groupId, authentication)")
     public AttendanceConflictListDto getConflictsInTableByCourseAndDatePeriod(@PathVariable long courseId, @PathVariable long groupId, @RequestParam String fromDate, @RequestParam String toDate) {
         LocalDate parsedFromDate = parseStringToLocalDate(fromDate);
         LocalDate parsedToDate = parseStringToLocalDate(toDate);

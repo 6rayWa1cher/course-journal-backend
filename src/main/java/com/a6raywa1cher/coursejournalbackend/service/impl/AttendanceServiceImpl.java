@@ -33,11 +33,12 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     private CourseService courseService;
 
-    private GroupService groupService;
+    private final GroupService groupService;
 
-    public AttendanceServiceImpl(AttendanceRepository attendanceRepository, MapStructMapper mapper) {
+    public AttendanceServiceImpl(AttendanceRepository attendanceRepository, MapStructMapper mapper, GroupService groupService) {
         this.repository = attendanceRepository;
         this.mapper = mapper;
+        this.groupService = groupService;
     }
 
     @Override
@@ -128,9 +129,9 @@ public class AttendanceServiceImpl implements AttendanceService {
                 Sort.by("attendedDate", "attendedClass")
         );
         TableDto tableDto = new TableDto();
-        List<StudentDto> studentsDto = studentService.getByCourseId(courseId, Sort.by("id"));
+        List<StudentDto> studentsDtoList = studentService.getByCourseId(courseId, Sort.by("id"));
         if (attendances.size() == 0) {
-            for (StudentDto studentDto : studentsDto) {
+            for (StudentDto studentDto : studentsDtoList) {
                 String studentName = studentDto.getLastName() + ' ' + studentDto.getFirstName() + (studentDto.getMiddleName() != null ? ' ' + studentDto.getMiddleName() : "");
                 tableDto.addTableBodyElement(studentDto.getId(), 0, studentName, studentDto.getGroup());
             }
@@ -140,7 +141,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         for (Attendance attendance : attendances) {
             tableDto.addTableHeaderElement(attendance.getAttendedDate(), attendance.getAttendedClass());
         }
-        for (StudentDto studentDto : studentsDto) {
+        for (StudentDto studentDto : studentsDtoList) {
             String studentName = studentDto.getLastName() + ' ' + studentDto.getFirstName() + (studentDto.getMiddleName() != null ? ' ' + studentDto.getMiddleName() : "");
             tableDto.addTableBodyElement(studentDto.getId(), tableDto.getHeader().size(), studentName, studentDto.getGroup());
             studentsToIndexMap.put(studentDto.getId(), tableDto.getBody().size() - 1);

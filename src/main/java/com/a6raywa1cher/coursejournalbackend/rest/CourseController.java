@@ -67,7 +67,7 @@ public class CourseController {
     }
 
     @GetMapping("/group/{id}")
-    @PreAuthorize("@accessChecker.readCourseByHeadman(#id, authentication)")
+    @PreAuthorize("@accessChecker.readCourseAsHeadman(#id, authentication)")
     public Page<CourseFullDto> findByGroup(@PathVariable long id, @ParameterObject Pageable pageable) {
         return service.getByGroupId(id, pageable);
     }

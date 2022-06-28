@@ -30,4 +30,7 @@ public interface CourseRepository extends PagingAndSortingRepository<Course, Lon
 
     @Query("select c from Course c, Student s where s.group = :group group by c.id")
     Page<Course> findAllByGroup(@Param("group") Group group, Pageable pageable);
+
+    @Query("select c from Course c, Student s where s.group = :group group by c.id")
+    List<Course> findAllByGroupWithoutPage(@Param("group") Group group);
 }
