@@ -94,7 +94,7 @@ public interface MapStructRestDtoMapper {
     @Mapping(target = "lastModifiedAt", ignore = true)
     @Mapping(target = "mainScore", ignore = true)
     @Mapping(target = "student", ignore = true)
-    SubmissionDto map(BatchSetForStudentAndCourseSubmissionRestDto.SubmissionSetRestDto dto);
+    SubmissionDto map(BatchSetSubmissionsRestDto.SubmissionSetRestDto dto);
 
     TableDto map(TableRestDto dto);
 }

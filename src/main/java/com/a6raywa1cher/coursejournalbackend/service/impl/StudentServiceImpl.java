@@ -67,6 +67,12 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    public List<Student> getRawByStudentId(long courseId) {
+        Course course = getCourseById(courseId);
+        return repository.getAllByCourse(course, Sort.unsorted());
+    }
+
+    @Override
     public List<StudentDto> getByGroupId(long groupId, Sort sort) {
         return repository.getAllByGroup(getGroupById(groupId), sort).stream().map(mapper::map).toList();
     }

@@ -11,7 +11,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 @Data
-public class BatchSetForStudentAndCourseSubmissionRestDto {
+public class BatchSetSubmissionsRestDto {
     @NotNull
     @UniqueByTask
     @Valid

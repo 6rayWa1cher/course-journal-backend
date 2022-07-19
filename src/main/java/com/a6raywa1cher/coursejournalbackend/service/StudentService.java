@@ -20,6 +20,8 @@ public interface StudentService {
 
     List<StudentDto> getByCourseId(long courseId, Sort sort);
 
+    List<Student> getRawByStudentId(long courseId);
+
     List<StudentDto> getByGroupId(long groupId, Sort sort);
 
     StudentDto create(StudentDto dto);

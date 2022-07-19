@@ -1,7 +1,7 @@
 package com.a6raywa1cher.coursejournalbackend.rest;
 
 import com.a6raywa1cher.coursejournalbackend.dto.SubmissionDto;
-import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchSetForStudentAndCourseSubmissionRestDto;
+import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchSetSubmissionsRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.MapStructRestDtoMapper;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.SubmissionRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnCreate;
@@ -70,21 +70,33 @@ public class SubmissionController {
         return service.update(id, mapper.map(dto));
     }
 
+    @PostMapping("/course/{cid}/set")
+    @PreAuthorize("@accessChecker.editCourseAccess(#cid, authentication)")
+    @Validated(OnUpdate.class)
+    public List<SubmissionDto> setForCourse(
+            @RequestBody @Valid BatchSetSubmissionsRestDto dto,
+            @PathVariable long cid) {
+        List<SubmissionDto> submissionDtoList = dto.getSubmissions().stream()
+                .map(mapper::map)
+                .toList();
+        return service.setForCourse(cid, submissionDtoList)
+                .stream()
+                .sorted(Comparator.comparingLong(SubmissionDto::getId))
+                .toList();
+    }
+
     @PostMapping("/course/{cid}/student/{sid}/set")
     @PreAuthorize("@accessChecker.editCourseAccess(#cid, authentication)")
     @Validated(OnUpdate.class)
     public List<SubmissionDto> setForStudentAndCourse(
-            @RequestBody @Valid BatchSetForStudentAndCourseSubmissionRestDto dto,
+            @RequestBody @Valid BatchSetSubmissionsRestDto dto,
             @PathVariable long cid,
             @PathVariable long sid
     ) {
-        return service.setForStudentAndCourse(
-                        sid,
-                        cid,
-                        dto.getSubmissions().stream()
-                                .map(mapper::map)
-                                .toList()
-                )
+        List<SubmissionDto> submissionDtoList = dto.getSubmissions().stream()
+                .map(mapper::map)
+                .toList();
+        return service.setForStudentAndCourse(sid, cid, submissionDtoList)
                 .stream()
                 .sorted(Comparator.comparingLong(SubmissionDto::getId))
                 .toList();

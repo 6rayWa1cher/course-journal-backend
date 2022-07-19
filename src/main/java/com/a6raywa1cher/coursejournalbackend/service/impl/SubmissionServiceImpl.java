@@ -121,33 +121,19 @@ public class SubmissionServiceImpl implements SubmissionService {
         return mapper.map(repository.save(submission));
     }
 
-    @Override
-    public List<SubmissionDto> setForStudentAndCourse(long studentId, long courseId, List<SubmissionDto> submissionDtoList) {
-        Student student = getStudentById(studentId);
-        Course course = getCourseById(courseId);
-        LocalDateTime now = LocalDateTime.now();
+    private SetForStudentAndCourseContext createSetForStudentAndCourseContext(Course course) {
+        long courseId = course.getId();
 
-        List<Submission> allSubmissions = repository.getAllByStudentAndCourse(student, course, Sort.unsorted());
-        Map<Long, Submission> taskToSubmission = allSubmissions
-                .stream()
-                .collect(Collectors.toMap(s -> s.getTask().getId(), s -> s));
+        LocalDateTime now = LocalDateTime.now();
         List<Criteria> allCriteria = criteriaService.findRawByCourseId(courseId);
         Map<Long, Criteria> idToCriteria = allCriteria
                 .stream()
                 .collect(Collectors.toMap(Criteria::getId, c -> c));
-        // this map contains all criteriaDto for the given task id
         Map<Long, List<CriteriaDto>> taskToCriteriaList = allCriteria
                 .stream()
                 .map(mapper::map)
                 .map(dto -> Pair.of(dto.getTask(), dto))
-                .collect(HashMap::new, (map, pair) -> {
-                    long taskId = pair.getFirst();
-                    map.computeIfAbsent(taskId, (l) -> new ArrayList<>()).add(pair.getSecond());
-                }, (a, b) -> {
-                    for (var item : b.entrySet()) {
-                        a.computeIfAbsent(item.getKey(), (l) -> new ArrayList<>()).addAll(item.getValue());
-                    }
-                });
+                .collect(Collectors.groupingBy(Pair::getFirst, Collectors.mapping(Pair::getSecond, Collectors.toList())));
         Map<Long, Task> idToTask = taskService.findRawByCourseId(courseId)
                 .stream()
                 .collect(Collectors.toMap(Task::getId, t -> t));
@@ -155,10 +141,28 @@ public class SubmissionServiceImpl implements SubmissionService {
                 .stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> mapper.map(e.getValue())));
 
-        List<Submission> toSave = new ArrayList<>();
-        List<Submission> toDelete = new ArrayList<>(allSubmissions);
+        return new SetForStudentAndCourseContext(idToCriteria, taskToCriteriaList, idToTask, idToTaskDto, now);
+    }
 
-        for (SubmissionDto req : submissionDtoList) {
+    private SetForStudentAndCourseResult $setForStudentAndCourse(
+            Student student,
+            List<Submission> studentSubmissions,
+            List<SubmissionDto> studentSubmissionDtoList,
+            SetForStudentAndCourseContext ctx
+    ) {
+        Map<Long, Criteria> idToCriteria = ctx.idToCriteria();
+        Map<Long, List<CriteriaDto>> taskToCriteriaList = ctx.taskToCriteriaList();
+        Map<Long, Task> idToTask = ctx.idToTask();
+        Map<Long, TaskDto> idToTaskDto = ctx.idToTaskDto();
+        LocalDateTime now = ctx.now();
+
+        Map<Long, Submission> taskToSubmission = studentSubmissions
+                .stream()
+                .collect(Collectors.toMap(s -> s.getTask().getId(), s -> s));
+        List<Submission> toSave = new ArrayList<>();
+        List<Submission> toDelete = new ArrayList<>(studentSubmissions);
+
+        for (SubmissionDto req : studentSubmissionDtoList) {
             Long taskId = req.getTask();
             Task task = idToTask.get(taskId);
             Submission db = taskToSubmission.getOrDefault(taskId, new Submission());
@@ -190,11 +194,81 @@ public class SubmissionServiceImpl implements SubmissionService {
             submission.getSatisfiedCriteria().forEach(c -> c.getSubmissionList().remove(submission));
             submission.getSatisfiedCriteria().clear();
         }
+        return new SetForStudentAndCourseResult(toSave, toDelete);
+    }
+
+    @Override
+    public List<SubmissionDto> setForStudentAndCourse(long studentId, long courseId, List<SubmissionDto> submissionDtoList) {
+        Student student = getStudentById(studentId);
+        Course course = getCourseById(courseId);
+
+        List<Submission> allSubmissions = repository.getAllByStudentAndCourse(student, course, Sort.unsorted());
+        SetForStudentAndCourseContext ctx = createSetForStudentAndCourseContext(course);
+
+        SetForStudentAndCourseResult result = $setForStudentAndCourse(
+                student, allSubmissions, submissionDtoList, ctx
+        );
+
+        List<Submission> toSave = result.toSave();
+        List<Submission> toDelete = result.toDelete();
 
         repository.deleteAll(toDelete);
         return repository.saveAll(toSave).stream()
                 .map(mapper::map)
                 .toList();
+    }
+
+    @Override
+    public List<SubmissionDto> setForCourse(long courseId, List<SubmissionDto> submissionDtoList) {
+        Course course = getCourseById(courseId);
+
+        SetForStudentAndCourseContext ctx = createSetForStudentAndCourseContext(course);
+
+        List<Student> allStudents = studentService.getRawByStudentId(courseId);
+        Map<Long, Student> idToStudent = allStudents.stream()
+                .collect(Collectors.toMap(Student::getId, s -> s));
+        Map<Student, List<SubmissionDto>> studentToRequestMap = submissionDtoList.stream()
+                .collect(Collectors.groupingBy(s -> idToStudent.computeIfAbsent(s.getStudent(), k -> {
+                    throw new NotFoundException(Student.class, k);
+                })));
+        List<Submission> allSubmissions = repository.getAllByCourse(course, Sort.unsorted());
+        Map<Student, List<Submission>> studentToDbSubmissionsMap = allSubmissions.stream()
+                .collect(Collectors.groupingBy(s -> idToStudent.computeIfAbsent(s.getStudent().getId(), k -> {
+                    throw new NotFoundException(Student.class, k);
+                })));
+
+        List<Submission> toSave = new ArrayList<>();
+        List<Submission> toDelete = new ArrayList<>();
+        for (var entry : studentToDbSubmissionsMap.entrySet()) {
+            Student student = entry.getKey();
+            List<Submission> studentSubmissions = entry.getValue();
+            List<SubmissionDto> requestSubmissions = studentToRequestMap.get(student);
+
+            SetForStudentAndCourseResult result = $setForStudentAndCourse(
+                    student,
+                    studentSubmissions,
+                    requestSubmissions,
+                    ctx
+            );
+            toSave.addAll(result.toSave());
+            toDelete.addAll(result.toDelete());
+        }
+
+        repository.deleteAll(toDelete);
+        return repository.saveAll(toSave).stream()
+                .map(mapper::map)
+                .toList();
+    }
+
+    private record SetForStudentAndCourseResult(List<Submission> toSave, List<Submission> toDelete) {
+    }
+
+    private record SetForStudentAndCourseContext(
+            Map<Long, Criteria> idToCriteria,
+            Map<Long, List<CriteriaDto>> taskToCriteriaList,
+            Map<Long, Task> idToTask,
+            Map<Long, TaskDto> idToTaskDto,
+            LocalDateTime now) {
     }
 
 
