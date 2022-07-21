@@ -11,14 +11,14 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 @Data
-public class BatchSetSubmissionsRestDto {
+public class BatchSetSubmissionsForStudentAndCourseRestDto {
     @NotNull
     @UniqueByTask
     @Valid
-    private List<SubmissionSetRestDto> submissions;
+    private List<SubmissionSetForStudentAndCourseRestDto> submissions;
 
     @Data
-    public static final class SubmissionSetRestDto {
+    public static final class SubmissionSetForStudentAndCourseRestDto {
         @NotNull
         @Positive
         private Long task;

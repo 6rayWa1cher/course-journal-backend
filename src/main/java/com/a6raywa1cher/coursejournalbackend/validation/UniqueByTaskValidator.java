@@ -1,6 +1,6 @@
 package com.a6raywa1cher.coursejournalbackend.validation;
 
-import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchSetSubmissionsRestDto;
+import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchSetSubmissionsForStudentAndCourseRestDto;
 import org.springframework.stereotype.Component;
 
 import javax.validation.ConstraintValidator;
@@ -11,15 +11,15 @@ import java.util.stream.Collectors;
 
 @Component
 public class UniqueByTaskValidator implements ConstraintValidator<UniqueByTask,
-        List<BatchSetSubmissionsRestDto.SubmissionSetRestDto>> {
+        List<BatchSetSubmissionsForStudentAndCourseRestDto.SubmissionSetForStudentAndCourseRestDto>> {
     @Override
     public boolean isValid(
-            List<BatchSetSubmissionsRestDto.SubmissionSetRestDto> value,
+            List<BatchSetSubmissionsForStudentAndCourseRestDto.SubmissionSetForStudentAndCourseRestDto> value,
             ConstraintValidatorContext context
     ) {
         if (value == null) return true;
         Set<?> set = value.stream()
-                .map(BatchSetSubmissionsRestDto.SubmissionSetRestDto::getTask)
+                .map(BatchSetSubmissionsForStudentAndCourseRestDto.SubmissionSetForStudentAndCourseRestDto::getTask)
                 .collect(Collectors.toSet());
         return value.size() == set.size();
     }

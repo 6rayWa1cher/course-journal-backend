@@ -1,7 +1,8 @@
 package com.a6raywa1cher.coursejournalbackend.rest;
 
 import com.a6raywa1cher.coursejournalbackend.dto.SubmissionDto;
-import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchSetSubmissionsRestDto;
+import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchSetSubmissionsForCourseRestDto;
+import com.a6raywa1cher.coursejournalbackend.rest.dto.BatchSetSubmissionsForStudentAndCourseRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.MapStructRestDtoMapper;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.SubmissionRestDto;
 import com.a6raywa1cher.coursejournalbackend.rest.dto.groups.OnCreate;
@@ -74,7 +75,7 @@ public class SubmissionController {
     @PreAuthorize("@accessChecker.editCourseAccess(#cid, authentication)")
     @Validated(OnUpdate.class)
     public List<SubmissionDto> setForCourse(
-            @RequestBody @Valid BatchSetSubmissionsRestDto dto,
+            @RequestBody @Valid BatchSetSubmissionsForCourseRestDto dto,
             @PathVariable long cid) {
         List<SubmissionDto> submissionDtoList = dto.getSubmissions().stream()
                 .map(mapper::map)
@@ -89,7 +90,7 @@ public class SubmissionController {
     @PreAuthorize("@accessChecker.editCourseAccess(#cid, authentication)")
     @Validated(OnUpdate.class)
     public List<SubmissionDto> setForStudentAndCourse(
-            @RequestBody @Valid BatchSetSubmissionsRestDto dto,
+            @RequestBody @Valid BatchSetSubmissionsForStudentAndCourseRestDto dto,
             @PathVariable long cid,
             @PathVariable long sid
     ) {

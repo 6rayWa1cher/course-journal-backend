@@ -3,14 +3,11 @@ package com.a6raywa1cher.coursejournalbackend.integration;
 import com.a6raywa1cher.coursejournalbackend.RequestContext;
 import com.a6raywa1cher.coursejournalbackend.TestUtils;
 import com.a6raywa1cher.coursejournalbackend.dto.*;
-import com.a6raywa1cher.coursejournalbackend.integration.models.BodyInfo;
-import com.a6raywa1cher.coursejournalbackend.integration.models.HeaderInfo;
 import com.a6raywa1cher.coursejournalbackend.model.AttendanceType;
 import com.a6raywa1cher.coursejournalbackend.model.UserRole;
 import com.a6raywa1cher.coursejournalbackend.service.AttendanceService;
 import com.a6raywa1cher.coursejournalbackend.service.CourseService;
 import com.a6raywa1cher.coursejournalbackend.service.StudentService;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
@@ -22,9 +19,7 @@ import org.springframework.test.web.servlet.ResultMatcher;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -496,7 +491,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                         .flatMap(i -> {
                             TableDto.TableBodyElement bodyElement = body.get(i);
                             return Stream.of(
-                                    jsonPath(prefix + ".body[%d].studentId".formatted(i)).value(bodyElement.getStudentId()),
+                                    jsonPath(prefix + ".body[%d].student".formatted(i)).value(bodyElement.getStudentId()),
                                     jsonPath(prefix + ".body[%d].attendances".formatted(i),
                                             contains(bodyElement.getAttendances().stream()
                                                     .map(AttendanceType::toString)
@@ -693,9 +688,9 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                         jsonPath(prefix + ".conflicts[%d].attendedDate".formatted(i), new TestUtils.LocalDateMatcher(conflict.getAttendedDate())),
                         jsonPath(prefix + ".conflicts[%d].attendanceType".formatted(i)).value(conflict.getAttendanceType().toString()),
                         jsonPath(prefix + ".conflicts[%d].conflictedTeacherFullName".formatted(i)).value(conflict.getConflictedTeacherFullName()),
-                        jsonPath(prefix + ".conflicts[%d].studentId".formatted(i)).value(conflict.getStudentId()),
+                        jsonPath(prefix + ".conflicts[%d].student".formatted(i)).value(conflict.getStudentId()),
                         jsonPath(prefix + ".conflicts[%d].conflictedCourseName".formatted(i)).value(conflict.getConflictedCourseName())
-                        );
+                );
             }).toArray(ResultMatcher[]::new);
 
         return new RequestContext<>(request, matchers);

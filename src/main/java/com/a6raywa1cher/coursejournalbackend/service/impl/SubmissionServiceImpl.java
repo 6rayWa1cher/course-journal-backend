@@ -3,10 +3,7 @@ package com.a6raywa1cher.coursejournalbackend.service.impl;
 import com.a6raywa1cher.coursejournalbackend.dto.CriteriaDto;
 import com.a6raywa1cher.coursejournalbackend.dto.SubmissionDto;
 import com.a6raywa1cher.coursejournalbackend.dto.TaskDto;
-import com.a6raywa1cher.coursejournalbackend.dto.exc.ConflictException;
-import com.a6raywa1cher.coursejournalbackend.dto.exc.NotFoundException;
-import com.a6raywa1cher.coursejournalbackend.dto.exc.TransferNotAllowedException;
-import com.a6raywa1cher.coursejournalbackend.dto.exc.VariousParentEntitiesException;
+import com.a6raywa1cher.coursejournalbackend.dto.exc.*;
 import com.a6raywa1cher.coursejournalbackend.dto.mapper.MapStructMapper;
 import com.a6raywa1cher.coursejournalbackend.model.*;
 import com.a6raywa1cher.coursejournalbackend.model.repo.SubmissionRepository;
@@ -19,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -201,6 +199,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     public List<SubmissionDto> setForStudentAndCourse(long studentId, long courseId, List<SubmissionDto> submissionDtoList) {
         Student student = getStudentById(studentId);
         Course course = getCourseById(courseId);
+        assertStudentInCourse(student, course);
 
         List<Submission> allSubmissions = repository.getAllByStudentAndCourse(student, course, Sort.unsorted());
         SetForStudentAndCourseContext ctx = createSetForStudentAndCourseContext(course);
@@ -224,25 +223,27 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         SetForStudentAndCourseContext ctx = createSetForStudentAndCourseContext(course);
 
-        List<Student> allStudents = studentService.getRawByStudentId(courseId);
+        List<Student> allStudents = studentService.getRawByCourseId(courseId);
         Map<Long, Student> idToStudent = allStudents.stream()
                 .collect(Collectors.toMap(Student::getId, s -> s));
+
+        Function<Long, Student> handleStudentAbsence = (k) -> {
+            throw new StudentDoesntBelongToCourseException(k, course.getId());
+        };
+
         Map<Student, List<SubmissionDto>> studentToRequestMap = submissionDtoList.stream()
-                .collect(Collectors.groupingBy(s -> idToStudent.computeIfAbsent(s.getStudent(), k -> {
-                    throw new NotFoundException(Student.class, k);
-                })));
+                .collect(Collectors.groupingBy(s -> idToStudent.computeIfAbsent(s.getStudent(), handleStudentAbsence)));
+
         List<Submission> allSubmissions = repository.getAllByCourse(course, Sort.unsorted());
         Map<Student, List<Submission>> studentToDbSubmissionsMap = allSubmissions.stream()
-                .collect(Collectors.groupingBy(s -> idToStudent.computeIfAbsent(s.getStudent().getId(), k -> {
-                    throw new NotFoundException(Student.class, k);
-                })));
+                .collect(Collectors.groupingBy(s -> idToStudent.computeIfAbsent(s.getStudent().getId(), handleStudentAbsence)));
 
         List<Submission> toSave = new ArrayList<>();
         List<Submission> toDelete = new ArrayList<>();
-        for (var entry : studentToDbSubmissionsMap.entrySet()) {
-            Student student = entry.getKey();
-            List<Submission> studentSubmissions = entry.getValue();
-            List<SubmissionDto> requestSubmissions = studentToRequestMap.get(student);
+
+        for (Student student : allStudents) {
+            List<Submission> studentSubmissions = studentToDbSubmissionsMap.getOrDefault(student, Collections.emptyList());
+            List<SubmissionDto> requestSubmissions = studentToRequestMap.getOrDefault(student, Collections.emptyList());
 
             SetForStudentAndCourseResult result = $setForStudentAndCourse(
                     student,
@@ -359,6 +360,12 @@ public class SubmissionServiceImpl implements SubmissionService {
     private void assertNoStudentChange(Student oldStudent, Student newStudent) {
         if (!Objects.equals(oldStudent, newStudent)) {
             throw new TransferNotAllowedException(Student.class, "student", oldStudent.getId(), newStudent.getId());
+        }
+    }
+
+    private void assertStudentInCourse(Student student, Course course) {
+        if (!course.getStudents().contains(student)) {
+            throw new StudentDoesntBelongToCourseException(student.getId(), course.getId());
         }
     }
 
