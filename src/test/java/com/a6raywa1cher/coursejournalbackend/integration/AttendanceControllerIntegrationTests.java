@@ -491,7 +491,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                         .flatMap(i -> {
                             TableDto.TableBodyElement bodyElement = body.get(i);
                             return Stream.of(
-                                    jsonPath(prefix + ".body[%d].student".formatted(i)).value(bodyElement.getStudentId()),
+                                    jsonPath(prefix + ".body[%d].studentId".formatted(i)).value(bodyElement.getStudentId()),
                                     jsonPath(prefix + ".body[%d].attendances".formatted(i),
                                             contains(bodyElement.getAttendances().stream()
                                                     .map(AttendanceType::toString)
@@ -688,7 +688,7 @@ public class AttendanceControllerIntegrationTests extends AbstractIntegrationTes
                         jsonPath(prefix + ".conflicts[%d].attendedDate".formatted(i), new TestUtils.LocalDateMatcher(conflict.getAttendedDate())),
                         jsonPath(prefix + ".conflicts[%d].attendanceType".formatted(i)).value(conflict.getAttendanceType().toString()),
                         jsonPath(prefix + ".conflicts[%d].conflictedTeacherFullName".formatted(i)).value(conflict.getConflictedTeacherFullName()),
-                        jsonPath(prefix + ".conflicts[%d].student".formatted(i)).value(conflict.getStudentId()),
+                        jsonPath(prefix + ".conflicts[%d].studentId".formatted(i)).value(conflict.getStudentId()),
                         jsonPath(prefix + ".conflicts[%d].conflictedCourseName".formatted(i)).value(conflict.getConflictedCourseName())
                 );
             }).toArray(ResultMatcher[]::new);
