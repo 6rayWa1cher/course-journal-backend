@@ -11,18 +11,15 @@ spring:
   jmx:
     default-domain: com.a6raywa1cher.coursejournalbackend
     unique-names: true
-# ===============================
-# DB CONNECTION
-# ===============================
-spring.datasource.url: jdbc:postgresql://localhost:5432/course-journal-test
-spring.datasource.username: postgres
-spring.datasource.password: postgres
-# ===============================
-# JPA / HIBERNATE
-# ===============================
-spring.jpa.show-sql: false
-spring.jpa.hibernate.ddl-auto: create-drop
-spring.jpa.database-platform: org.hibernate.dialect.PostgreSQLDialect
+  datasource:
+    url: "jdbc:postgresql://${embedded.postgresql.host}:${embedded.postgresql.port}/${embedded.postgresql.schema}"
+    username: ${embedded.postgresql.user}
+    password: ${embedded.postgresql.password}
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+  jpa:
+    show-sql: false
+    hibernate.ddl-auto: create
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.properties:
   hibernate.temp.use_jdbc_metadata_defaults: false
   hibernate.current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
