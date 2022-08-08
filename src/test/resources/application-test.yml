@@ -15,7 +15,6 @@ spring:
     url: "jdbc:postgresql://${embedded.postgresql.host}:${embedded.postgresql.port}/${embedded.postgresql.schema}"
     username: ${embedded.postgresql.user}
     password: ${embedded.postgresql.password}
-    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
   jpa:
     show-sql: false
     hibernate.ddl-auto: create
